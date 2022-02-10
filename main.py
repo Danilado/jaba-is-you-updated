@@ -9,8 +9,8 @@ def main():
     parser.add_argument("-d", "--debug",        help='Shows ghosts target position',    action="store_true")
     args = parser.parse_args()
     if args.debug:
-        settings.instant_win = 1
-        print("Instant win on")
+        settings.debug = 1
+        print("Debug on")
 
 
 if __name__ == '__main__':
