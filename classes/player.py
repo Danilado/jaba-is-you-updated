@@ -3,6 +3,7 @@ from typing import List
 import pygame
 
 import settings
+from elements.global_classes import sprite_manager
 
 
 class Player:
@@ -14,7 +15,7 @@ class Player:
         self.turning_side = -1
         self.status_cancel = False
 
-    def move(self):
+    def move(self):   # TODO: use Δt to calculate distance move
         if self.turning_side == 0:
             self.move_right()
         if self.turning_side == 1:
@@ -35,7 +36,7 @@ class Player:
             self.y -= 1
 
     def move_down(self):
-        if self.y < settings.resolution[1] // 50 - 1:
+        if self.y < settings.RESOLUTION[1] // 50 - 1:
             self.moves.append((self.x, self.y, self.status_of_rotate))
             self.status_of_rotate = 3
             self.y += 1
@@ -47,7 +48,7 @@ class Player:
             self.x -= 1
 
     def move_right(self):
-        if self.x < settings.resolution[0] // 50 - 1:
+        if self.x < settings.RESOLUTION[0] // 50 - 1:
             self.moves.append((self.x, self.y, self.status_of_rotate))
             self.status_of_rotate = 0
             self.x += 1
@@ -82,12 +83,12 @@ class Player:
     def draw(self, screen):
         img = None
         if self.status_of_rotate == 0:
-            img = pygame.image.load(f'./elements/textures/jaba_rotate_right.png').convert_alpha()
+            img = sprite_manager.get(f'sprites/jaba/s02')
         if self.status_of_rotate == 1:
-            img = pygame.image.load(f'./elements/textures/jaba_rotate_up.png').convert_alpha()
+            img = sprite_manager.get(f'sprites/jaba/f12')
         if self.status_of_rotate == 2:
-            img = pygame.image.load(f'./elements/textures/jaba_rotate_left.png').convert_alpha()
+            img = sprite_manager.get(f'sprites/jaba/f00')
         if self.status_of_rotate == 3:
-            img = pygame.image.load(f'./elements/textures/jaba_rotate_down.png').convert_alpha()
+            img = sprite_manager.get(f'sprites/jaba/b00')
         img = pygame.transform.scale(img, (50, 50))
         screen.blit(img, (self.x * 50, self.y * 50))

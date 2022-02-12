@@ -1,65 +1,53 @@
+from typing import List, Optional
+
 import pygame
 
-from elements.game import game
-from elements.global_classes import GuiSettings
-from classes.button import Button
-from elements.editor import edit
 import settings
-
-pygame.init()
-pygame.mixer.init()
-
-in_game = False
-
-
-def exit_game():
-    global in_game
-    in_game = True
-    print('click!')
+from classes.button import Button
+from classes.game_state import GameState
+from classes.game_strategy import GameStrategy
+from classes.state import State
+from elements.editor import edit
+from elements.game import Game
+from elements.global_classes import GuiSettings
 
 
-white = (255, 255, 255)
+class MainMenu(GameStrategy):
+    def __init__(self, screen: pygame.Surface):
+        super().__init__(screen)
+        self._state: Optional[State] = None
 
+    def _start_the_game(self):
+        self._state = State(GameState.switch, Game)
 
-def main_menu():
-    try:
-        #   Button(x, y, width, height, outline, settings, text="", action=None)
-        main_screen = pygame.display.set_mode(settings.resolution)
+    def _exit_the_game(self):
+        self._state = State(GameState.stop, None)
+
+    def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int):
         buttons = [
-            Button(settings.resolution[0]//2-200, settings.resolution[1]//2-120, 400, 50, (0, 0, 0), GuiSettings(), "Начать играть", lambda: game(main_screen)),
-            Button(settings.resolution[0]//2-200, settings.resolution[1]//2-60 , 400, 50, (0, 0, 0), GuiSettings(), "Мультиплеер"),
-            Button(settings.resolution[0]//2-200, settings.resolution[1]//2    , 400, 50, (0, 0, 0), GuiSettings(), "Редактор уровней", edit),
-            Button(settings.resolution[0]//2-200, settings.resolution[1]//2+60 , 400, 50, (0, 0, 0), GuiSettings(), "Уровни"),
-            Button(settings.resolution[0] // 2 - 200, settings.resolution[1] // 2 + 120, 400, 50, (0, 0, 0), GuiSettings(), "Выйти", exit_game),
+            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
+                   GuiSettings(), "Начать играть", self._start_the_game),
+            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 60, 400, 50, (0, 0, 0),
+                   GuiSettings(), "Мультиплеер"),
+            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2, 400, 50, (0, 0, 0),
+                   GuiSettings(), "Редактор уровней", edit),
+            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 60, 400, 50, (0, 0, 0),
+                   GuiSettings(), "Уровни"),
+            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 120, 400, 50, (0, 0, 0),
+                   GuiSettings(), "Выйти", self._exit_the_game),
         ]
-        clock = pygame.time.Clock()
-        timeout = 0
-        while not in_game:
-            pygame.draw.rect(main_screen, (0, 0, 0), (0, 0, settings.resolution[0], settings.resolution[1]))
-            timeout += 1
-            events = pygame.event.get()
+        self._state = None
+        if events:
+            self.screen.fill("black")
             for event in events:
                 if event.type == pygame.QUIT:
-                    pygame.quit()
-                    return
+                    self._exit_the_game()
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        pygame.quit()
-                        return
-
-            if in_game:
-                break
-
+                        self._exit_the_game()
             for button in buttons:
-                button.draw(main_screen)
-
-            for button in buttons:
-                if not in_game and button.update(events) and button.action is exit_game:
-                    break
-
-            pygame.display.flip()
-            clock.tick(60)
-            pygame.time.wait(60)
-        pygame.quit()
-    except KeyboardInterrupt:
-        pass
+                button.draw(self.screen)
+                button.update(events)
+            if self._state is None:
+                self._state = State(GameState.flip, None)
+        return self._state

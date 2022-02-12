@@ -1,35 +1,39 @@
+from typing import List, Optional
+
 import pygame
 
+from classes.game_state import GameState
+from classes.game_strategy import GameStrategy
 from classes.player import Player
-from settings import show_grid, resolution
+from classes.state import State
+from settings import SHOW_GRID, RESOLUTION
 
 
-def game(main_screen: pygame.Surface):
-    jaba = Player(0, 0)
-    running = True
-    while running:
-        try:
-            events = pygame.event.get()
-            if events:
-                main_screen.fill('black')
+class Game(GameStrategy):
+    def __init__(self, screen: pygame.Surface):
+        super().__init__(screen)
+        self.jaba = Player(0, 0)
 
-                for event in events:
-                    if event.type == pygame.QUIT:
-                        running = False
-                    if event.type == pygame.KEYDOWN:
-                        if event.key == pygame.K_ESCAPE:
-                            running = False
-                jaba.check_events(events)
+    def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
+        state = None
+        if events:
+            self.screen.fill("black")
 
-                jaba.move()
-                jaba.cancel_move()
+            for event in events:
+                if event.type == pygame.QUIT:
+                    state = State(GameState.back)
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_ESCAPE:
+                        state = State(GameState.back)
+            self.jaba.check_events(events)
+            self.jaba.move()
+            self.jaba.cancel_move()
 
-                jaba.draw(main_screen)
-                if show_grid:
-                    for x in range(0, resolution[0], 50):
-                        for y in range(0, resolution[0], 50):
-                            pygame.draw.rect(main_screen, (255, 255, 255), (x, y, 50, 50), 1)
-
-                pygame.display.flip()
-        except KeyboardInterrupt:
-            running = False
+            self.jaba.draw(self.screen)
+            if SHOW_GRID:
+                for x in range(0, RESOLUTION[0], 50):
+                    for y in range(0, RESOLUTION[1], 50):
+                        pygame.draw.rect(self.screen, (255, 255, 255), (x, y, 50, 50), 1)
+            if state is None:
+                state = State(GameState.flip)
+        return state
