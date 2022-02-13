@@ -2,6 +2,7 @@ import argparse
 
 import settings
 from classes.game_context import GameContext
+from elements.global_classes import sprite_manager
 from elements.main_menu import MainMenu
 
 
@@ -12,6 +13,8 @@ def main():
     if args.debug:
         settings.DEBUG = 1
         print("Debug on")
+
+    sprite_manager.start_download()
 
 
 if __name__ == '__main__':

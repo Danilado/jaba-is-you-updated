@@ -10,6 +10,11 @@ from settings import SHOW_GRID, RESOLUTION
 
 
 class Game(GameStrategy):
+    """
+    Класс игры
+
+    :ivar jaba: Игрок
+    """
     def __init__(self, screen: pygame.Surface):
         super().__init__(screen)
         self.jaba = Player(0, 0)
