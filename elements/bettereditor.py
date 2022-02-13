@@ -11,7 +11,7 @@ from elements.objects import Object
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.state import State
-from settings import SHOW_GRID, RESOLUTION
+from settings import SHOW_GRID, RESOLUTION, OBJECTS
 
 
 def my_deepcopy(arr):
@@ -79,15 +79,33 @@ class Editor(GameStrategy):
         self.current_state = [[[] for i in range(32)] for j in range(18)]
         self.focus = (-1, -1)
         self.buttons = []
+        self.page = 0
+        self.pagination_limit = len(self.buttons)//10
+        self.pagination_buttons = [
+                                    Button(RESOLUTION[0] + 17, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
+                                        f"<", partial(self.page_turn, -1)),
+                                    Button(RESOLUTION[0] + 101, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
+                                        f">", partial(self.page_turn, 1)),
+                                  ]
 
         self.screen = pygame.display.set_mode((1800, 900))
+
+    def page_turn(self, n : int):
+        """Меняет страницу списка объектов
+
+        :param n: Вперёд или назад перелистывать и на какое количество страниц
+        :type n: int
+        """
+        self.page = (self.page + n) % self.pagination_limit
+        if self.page == self.pagination_limit - 1:
+            self.buttons
 
     def safe_exit(self):
         """Функция подготовки к безопасному выходу из редактора без потери изменений"""
         self.screen = pygame.display.set_mode((1600, 900))
         save(self.current_state)
 
-    def set_name(self, string):
+    def set_name(self, string : str):
         """Функция смены названия объекта, а следовательно текстур и правил.
 
         :param string: Новое название объекта
@@ -95,7 +113,7 @@ class Editor(GameStrategy):
         """
         self.name = string
 
-    def turn(self, dir):
+    def turn(self, dir : int):
         """Функция поворота объекта
 
         :param dir: направление, где 1 - по часовой стрелке, а -1 - против часовой
@@ -103,13 +121,13 @@ class Editor(GameStrategy):
         """
         self.direction = (self.direction + dir) % 4
 
-    def set_tool(self, int):
+    def set_tool(self, n : int):
         """Функция смены инструмента
 
-        :param int: [0 - 2], где 0 - удалить, 1 - создать, а 2 - исследовать клетку и вывести содержимое в консоль 
-        :type int: int
+        :param n: [0 - 2], где 0 - удалить, 1 - создать, а 2 - исследовать клетку и вывести содержимое в консоль 
+        :type n: int
         """
-        self.tool = int
+        self.tool = n
 
     def is_text_swap(self):
         """Меняет является ли объект текстом, или нет
@@ -171,6 +189,8 @@ class Editor(GameStrategy):
                         self.set_tool(1)
                     if event.key == pygame.K_a:
                         self.set_tool(2)
+                    if event.key == pygame.K_TAB:
+                        self.page_turn(1)
                     if event.key == pygame.K_z and event.mod == 4160:
                         self.undo()
                 if event.type == pygame.MOUSEMOTION:
@@ -212,11 +232,16 @@ class Editor(GameStrategy):
             for button in self.buttons:
                 if state is None and button.update(events) and button.action is exit:
                     break
+            for button in self.pagination_buttons:
+                if state is None and button.update(events):
+                    break
             for indicator in indicators:
                 if state is None and indicator.update(events):
                     break
 
             for button in self.buttons:
+                button.draw(self.screen)
+            for button in self.pagination_buttons:
                 button.draw(self.screen)
             for indicator in indicators:
                 indicator.draw(self.screen)

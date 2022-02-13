@@ -11,6 +11,8 @@ class Button:
         self.settings = settings
         self.action = action
         self.outline = outline
+        pygame.font.init() # Чтобы не инициализировать шрифт каждый раз
+        self.font = pygame.font.SysFont('segoeuisemibold', self.settings.text_size)
 
     def draw(self, screen):
         if self.outline:
@@ -21,12 +23,10 @@ class Button:
         pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height), 0)
 
         if self.text != "":
-            pygame.font.init()
-            font = pygame.font.SysFont('segoeuisemibold', self.settings.text_size)
             lines = self.text.split('\n')
             text_height = 0
             for index, line in enumerate(lines):
-                line = font.render(line, True, (255, 255, 255))
+                line = self.font.render(line, True, (255, 255, 255))
                 text_height += line.get_height()
                 screen.blit(
                     line,

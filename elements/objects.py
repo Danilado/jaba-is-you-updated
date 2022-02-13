@@ -7,7 +7,7 @@ font = pygame.font.SysFont('segoeuisemibold', 15)
 # Абстрактный, но нет
 class Object:
 
-    def __init__(self, x=None, y=None, direction=None, name: str = "empty", rules=None, is_text: bool = True):
+    def __init__(self, x : int = None, y : int = None, direction : int = None, name: str = "empty", rules=None, is_text: bool = True):
         """Класс всех объектов на экране
 
         :param x: Позиция объекта на экране по оси X ПО СЕТКЕ, defaults to None
