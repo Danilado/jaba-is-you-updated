@@ -30,7 +30,7 @@ class SpriteManager:
     def get(self, path: Union[Path, str], alpha: bool = True) -> pygame.Surface:
         if not isinstance(path, Path):
             path = Path(path)
-        path = str(path.with_suffix(".webp").resolve())
+        path = str(path.with_suffix(".png").resolve())
         if self._thread.is_alive():
             self._thread.join(5)
             if self._thread.is_alive():

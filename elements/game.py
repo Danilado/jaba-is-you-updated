@@ -31,9 +31,11 @@ class Game(GameStrategy):
 
             self.jaba.draw(self.screen)
             if SHOW_GRID:
-                for x in range(0, RESOLUTION[0], 50):
-                    for y in range(0, RESOLUTION[1], 50):
-                        pygame.draw.rect(self.screen, (255, 255, 255), (x, y, 50, 50), 1)
+                for i in range(RESOLUTION[0] // 50 + 1):  # Отрисовать сетку
+                    pygame.draw.line(self.screen, (255, 255, 255), (i * 50, 0), (i * 50, RESOLUTION[1]), 1)
+                for i in range(RESOLUTION[1] // 50 + 1):
+                    pygame.draw.line(self.screen, (255, 255, 255), (0, i * 50 - (1 if i == 18 else 0)),
+                                 (RESOLUTION[0], i * 50 - (1 if i == 18 else 0)), 1)
             if state is None:
                 state = State(GameState.flip)
         return state

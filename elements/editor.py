@@ -121,17 +121,6 @@ def edit():
                             print(current_state == changes[-1])
                             current_state = changes[-1]
                             changes.pop()
-                    if settings.DEBUG:
-                        print(f"""
-event: KeyDown -> {event.unicode} mod {event.mod}
-
-focus position: {focus[0]} {focus[1]}
-tool:           {tool}
-direction:      {direction}
-is_text:        {is_text}
-name:           {name}
-
-                        """)
                 if event.type == pygame.MOUSEMOTION:
                     if event.pos[0] <= 1600:
                         focus = (event.pos[0] // 50, event.pos[1] // 50)
@@ -155,18 +144,7 @@ name:           {name}
                                 current_state[focus[1]][focus[0]].pop()
                         else:
                             print(current_state[focus[1]][focus[0]])
-                    if settings.DEBUG:
-                        print(f"""
-event: MouseDown
-
-focus position: {focus[0]} {focus[1]}
-tool:           {tool}
-direction:      {direction}
-is_text:        {is_text}
-name:           {name}
-
-                        """)
-
+                            
             if left:
                 break
 
