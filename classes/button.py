@@ -1,5 +1,7 @@
 import pygame
+import os, os.path
 
+from classes.SpriteManager import SpriteManager
 
 class Button:
     def __init__(self, x, y, width, height, outline, settings, text="", action=None):
@@ -52,3 +54,10 @@ class Button:
             if self.y < pos[1] < self.y + self.height:
                 return True
         return False
+
+class Object_Button(Button):
+    def __init__(self, x, y, width, height, outline, settings, text="", action=None):
+        super().__init__(x, y, width, height, outline, settings, text, action)
+        DIR = f'./sprites/{self.text}'
+        self.sprite_count = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
+        self.state_count = self.sprite_count // 3
