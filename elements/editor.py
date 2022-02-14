@@ -120,20 +120,6 @@ def edit():
                             print(current_state == changes[-1])
                             current_state = changes[-1]
                             changes.pop()
-<<<<<<< HEAD
-=======
-                    if settings.DEBUG:
-                        print(f"""
-event: KeyDown -> {event.unicode} mod {event.mod}
-
-focus position: {focus[0]} {focus[1]}
-tool:           {tool}
-direction:      {direction}
-is_text:        {is_text}
-name:           {name}
-
-                        """)  # TODO: Use logging module
->>>>>>> 7-develop-docs
                 if event.type == pygame.MOUSEMOTION:
                     if event.pos[0] <= 1600:
                         focus = (event.pos[0] // 50, event.pos[1] // 50)

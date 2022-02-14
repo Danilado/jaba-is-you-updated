@@ -1,12 +1,12 @@
 from typing import List, Optional
 from functools import partial
+from math import ceil
 
 import pygame
 import os
 
-
 from elements.global_classes import EuiSettings, IuiSettings
-from classes.button import Button
+from classes.button import Button, ObjectButton
 from classes.objects import Object
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
@@ -39,14 +39,14 @@ def unparse_all(state):
     :return: Строка для записи
     :rtype: str
     """
-    s = ''
-    c = 0
+    string = ''
+    counter = 0
     for row in state:
         for cell in row:
             for object in cell:
-                c += 1
-                s += object.unparse() + '\n'
-    return s, c
+                counter += 1
+                string += object.unparse() + '\n'
+    return string, counter
 
 
 def save(state):
@@ -55,11 +55,11 @@ def save(state):
     :param state: Трёхмерный массив состояния сетки
     :type state: list
     """
-    s, c = unparse_all(state)
-    if c > 0:
+    string, counter = unparse_all(state)
+    if counter > 0:
         with open(f"levels/level{len(os.listdir('levels/'))}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
                 encoding='utf-8') as file:
-            file.write(s)
+            file.write(string)
 
 
 class Editor(GameStrategy):
@@ -80,32 +80,44 @@ class Editor(GameStrategy):
         self.focus = (-1, -1)
         self.buttons = []
         self.page = 0
-        self.pagination_limit = len(self.buttons)//10
+        self.pagination_limit = ceil(len(OBJECTS)/12)
         self.pagination_buttons = [
                                     Button(RESOLUTION[0] + 17, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
                                         f"<", partial(self.page_turn, -1)),
                                     Button(RESOLUTION[0] + 101, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
                                         f">", partial(self.page_turn, 1)),
                                   ]
-
         self.screen = pygame.display.set_mode((1800, 900))
+        self.page_turn(0)
 
-    def page_turn(self, n : int):
+    def page_turn(self, n: int):
         """Меняет страницу списка объектов
 
         :param n: Вперёд или назад перелистывать и на какое количество страниц
         :type n: int
         """
         self.page = (self.page + n) % self.pagination_limit
-        if self.page == self.pagination_limit - 1:
-            self.buttons
+        self.buttons = self.parse_buttons()
+
+    def parse_buttons(self):
+        """Даёт список из 10-и или менее кнопок, расположенных на странице кнопой, в которой в данный момент находится редактор
+
+        :return: массив кнопок
+        :rtype: list
+        """
+        button_objects_array = OBJECTS[12*self.page:12*(self.page+1)]
+        button_array = []
+        for index, text in enumerate(button_objects_array):
+            print(f'{index} {text}')
+            button_array.append(ObjectButton(RESOLUTION[0] + 28 + 84 * (index % 2), 25 + 55 * (index - index % 2), 50, 50, (0, 0, 0), EuiSettings, text, partial(self.set_name, text)))
+        return button_array
 
     def safe_exit(self):
         """Функция подготовки к безопасному выходу из редактора без потери изменений"""
         self.screen = pygame.display.set_mode((1600, 900))
         save(self.current_state)
 
-    def set_name(self, string : str):
+    def set_name(self, string: str):
         """Функция смены названия объекта, а следовательно текстур и правил.
 
         :param string: Новое название объекта
@@ -113,7 +125,7 @@ class Editor(GameStrategy):
         """
         self.name = string
 
-    def turn(self, dir : int):
+    def turn(self, dir: int):
         """Функция поворота объекта
 
         :param dir: направление, где 1 - по часовой стрелке, а -1 - против часовой
@@ -121,7 +133,7 @@ class Editor(GameStrategy):
         """
         self.direction = (self.direction + dir) % 4
 
-    def set_tool(self, n : int):
+    def set_tool(self, n: int):
         """Функция смены инструмента
 
         :param n: [0 - 2], где 0 - удалить, 1 - создать, а 2 - исследовать клетку и вывести содержимое в консоль 
@@ -166,86 +178,79 @@ class Editor(GameStrategy):
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         state = None
-        if events:
-            self.screen.fill("black")
-
-            for event in events:
-                if event.type == pygame.QUIT:
+        self.screen.fill("black")
+            
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.safe_exit()
+                state = State(GameState.back)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     self.safe_exit()
                     state = State(GameState.back)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self.safe_exit()
-                        state = State(GameState.back)
-                    if event.key == pygame.K_e:
-                        self.turn(1)
-                    if event.key == pygame.K_q:
-                        self.turn(-1)
-                    if event.key == pygame.K_t:
-                        self.is_text_swap()
-                    if event.key == pygame.K_x:
-                        self.set_tool(0)
-                    if event.key == pygame.K_c:
-                        self.set_tool(1)
-                    if event.key == pygame.K_a:
-                        self.set_tool(2)
-                    if event.key == pygame.K_TAB:
-                        self.page_turn(1)
-                    if event.key == pygame.K_z and event.mod == 4160:
-                        self.undo()
-                if event.type == pygame.MOUSEMOTION:
-                    if event.pos[0] <= 1600:
-                        self.focus = (event.pos[0] // 50, event.pos[1] // 50)
+                if event.key == pygame.K_e:
+                    self.turn(1)
+                if event.key == pygame.K_q:
+                    self.turn(-1)
+                if event.key == pygame.K_t:
+                    self.is_text_swap()
+                if event.key == pygame.K_x:
+                    self.set_tool(0)
+                if event.key == pygame.K_c:
+                    self.set_tool(1)
+                if event.key == pygame.K_a:
+                    self.set_tool(2)
+                if event.key == pygame.K_TAB:
+                    self.page_turn(1)
+                if event.key == pygame.K_z and event.mod == 4160:
+                    self.undo()
+            if event.type == pygame.MOUSEMOTION:
+                if event.pos[0] <= 1600:
+                    self.focus = (event.pos[0] // 50, event.pos[1] // 50)
+                else:
+                    self.focus = (-1, -1)
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                if self.focus[0] != -1:
+                    if self.tool == 1:
+                        self.create()
+                    elif self.tool == 0:
+                        self.delete()
                     else:
-                        self.focus = (-1, -1)
-                if event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.focus[0] != -1:
-                        if self.tool == 1:
-                            self.create()
-                        elif self.tool == 0:
-                            self.delete()
-                        else:
-                            print(self.current_state[self.focus[1]][self.focus[0]])
+                        print(self.current_state[self.focus[1]][self.focus[0]])
 
-            indicators = [
-                Button(RESOLUTION[0] + 17, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
-                       f"Obj\n{self.name}"),
-                Button(RESOLUTION[0] + 101, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
-                       f"Text\n{'True' if self.is_text == 1 else 'False'}", self.is_text_swap),
-                Button(RESOLUTION[0] + 17, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
-                       f"Tool\n{'Create' if self.tool == 1 else 'Delete' if self.tool == 0 else 'Lookup'}",
-                       partial(self.set_tool, 0 if self.tool == 1 else 1 if self.tool == 2 else 2)),
-                Button(RESOLUTION[0] + 101, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
-                       f"Dir\n{'↑' if self.direction == 0 else '→' if self.direction == 1 else '↓' if self.direction == 2 else '←'}",
-                       partial(self.turn, 1)),
-            ]
+        indicators = [
+            Button(RESOLUTION[0] + 17, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
+                    f"Obj\n{self.name}"),
+            Button(RESOLUTION[0] + 101, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
+                    f"Text\n{'True' if self.is_text == 1 else 'False'}", self.is_text_swap),
+            Button(RESOLUTION[0] + 17, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
+                    f"Tool\n{'Create' if self.tool == 1 else 'Delete' if self.tool == 0 else 'Lookup'}",
+                    partial(self.set_tool, 0 if self.tool == 1 else 1 if self.tool == 2 else 2)),
+            Button(RESOLUTION[0] + 101, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
+                    f"Dir\n{'↑' if self.direction == 0 else '→' if self.direction == 1 else '↓' if self.direction == 2 else '←'}",
+                    partial(self.turn, 1)),
+        ]
 
-            pygame.draw.rect(self.screen, (44, 44, 44), (self.focus[0] * 50, self.focus[1] * 50, 50, 50))
+        pygame.draw.rect(self.screen, (44, 44, 44), (self.focus[0] * 50, self.focus[1] * 50, 50, 50))
 
-            if SHOW_GRID:
-                for i in range(RESOLUTION[0] // 50 + 1):  # Отрисовать сетку
-                    pygame.draw.line(self.screen, (255, 255, 255), (i * 50, 0), (i * 50, RESOLUTION[1]), 1)
-                for i in range(RESOLUTION[1] // 50 + 1):
-                    pygame.draw.line(self.screen, (255, 255, 255), (0, i * 50 - (1 if i == 18 else 0)),
-                                 (RESOLUTION[0], i * 50 - (1 if i == 18 else 0)), 1)
-            
-            for button in self.buttons:
-                if state is None and button.update(events) and button.action is exit:
-                    break
-            for button in self.pagination_buttons:
-                if state is None and button.update(events):
-                    break
-            for indicator in indicators:
-                if state is None and indicator.update(events):
-                    break
+        if SHOW_GRID:
+            for i in range(RESOLUTION[0] // 50 + 1):  # Отрисовать сетку
+                pygame.draw.line(self.screen, (255, 255, 255), (i * 50, 0), (i * 50, RESOLUTION[1]), 1)
+            for i in range(RESOLUTION[1] // 50 + 1):
+                pygame.draw.line(self.screen, (255, 255, 255), (0, i * 50 - (1 if i == 18 else 0)),
+                                (RESOLUTION[0], i * 50 - (1 if i == 18 else 0)), 1)
+        
+        for button in self.buttons:
+            if state is None and button.update(events) and button.action is exit:
+                break
+            button.draw(self.screen)
+        for button in self.pagination_buttons:
+            button.update(events)
+            button.draw(self.screen)
+        for indicator in indicators:
+            indicator.update(events)
+            indicator.draw(self.screen)
 
-            for button in self.buttons:
-                button.draw(self.screen)
-            for button in self.pagination_buttons:
-                button.draw(self.screen)
-            for indicator in indicators:
-                indicator.draw(self.screen)
-            
-            if state is None:
-                state = State(GameState.flip)
+        if state is None:
+            state = State(GameState.flip)
         return state

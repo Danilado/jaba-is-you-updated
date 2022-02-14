@@ -1,15 +1,12 @@
 from typing import Union, TYPE_CHECKING, Callable, Any, Optional, List, Sequence
+from elements.global_classes import sprite_manager
 
-import pygame
 import os, os.path
+import pygame
 
-<<<<<<< HEAD
-from classes.SpriteManager import SpriteManager
-=======
 if TYPE_CHECKING:
     from elements.global_classes import COLOR, AbstractButtonSettings
 
->>>>>>> 7-develop-docs
 
 class Button:
     """
@@ -46,8 +43,6 @@ class Button:
         self.settings = settings
         self.action = action
         self.outline = outline
-        pygame.font.init() # Чтобы не инициализировать шрифт каждый раз
-        self.font = pygame.font.SysFont('segoeuisemibold', self.settings.text_size)
 
     def draw(self, screen: Union[pygame.Surface, pygame.surface.Surface]):
         """
@@ -63,10 +58,12 @@ class Button:
         pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height), 0)
 
         if self.text != "":
+            pygame.font.init()
+            font = pygame.font.SysFont('segoeuisemibold', self.settings.text_size)
             lines = self.text.split('\n')
             text_height = 0
             for index, line in enumerate(lines):
-                line = self.font.render(line, True, (255, 255, 255))
+                line = font.render(line, True, (255, 255, 255))
                 text_height += line.get_height()
                 screen.blit(
                     line,
@@ -106,9 +103,23 @@ class Button:
                 return True
         return False
 
-class Object_Button(Button):
+
+class ObjectButton(Button):
     def __init__(self, x, y, width, height, outline, settings, text="", action=None):
         super().__init__(x, y, width, height, outline, settings, text, action)
-        DIR = f'./sprites/{self.text}'
+        DIR = f'./sprites/words/{self.text}'
         self.sprite_count = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
         self.state_count = self.sprite_count // 3
+        self.frames = [sprite_manager.get(f'./sprites/words/{self.text}/{self.text}1'), sprite_manager.get(f'./sprites/words/{self.text}/{self.text}2'), sprite_manager.get(f'./sprites/words/{self.text}/{self.text}3'),]
+        self.timer = pygame.time.get_ticks()
+        self.current_frame_index = 0 # 0 1 2 ... 0 1 2
+
+    def draw(self, screen: pygame.Surface):
+        if pygame.time.get_ticks() - self.timer >= 200:
+            self.timer = pygame.time.get_ticks()
+            self.current_frame_index = (self.current_frame_index + 1) % 3
+        color = self.settings.button_color if not self.is_over(
+            pygame.mouse.get_pos()) else self.settings.button_color_hover
+        pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height), 0)
+        screen.blit(pygame.transform.scale(self.frames[self.current_frame_index], (50, 50)), (self.x, self. y))
+

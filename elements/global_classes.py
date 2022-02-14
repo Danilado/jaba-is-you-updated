@@ -35,16 +35,16 @@ class GuiSettings(AbstractButtonSettings):
 class EuiSettings(AbstractButtonSettings):
     text_size: int = 20
     button_color: "COLOR" = (0, 0, 0)
-    button_color_hover: "COLOR" = (10, 10, 10)
+    button_color_hover: "COLOR" = (30, 30, 30)
 
 
 @dataclass
 class IuiSettings(AbstractButtonSettings):
     text_size: int = 20
     button_color: "COLOR" = (0, 0, 0)
-    button_color_hover: "COLOR" = (10, 10, 10)
+    button_color_hover: "COLOR" = (30, 30, 30)
 
 
 sprite_manager = SpriteManager()
 
-COLOR = Union[pygame.Color, pygame.color.Color, int, Tuple[int, int, int], Tuple[int, int, int, int]]
+COLOR = Union[pygame.Color, pygame.color.Color, int, Tuple[int, int, int], Tuple[int, int, int, int], str]
