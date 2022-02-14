@@ -11,16 +11,31 @@ from settings import RESOLUTION, FRAMES_PER_SECOND, DEBUG
 
 
 class GameContext:
+    """
+    Основной класс игры вокруг которого всё будет крутиться.
+
+    :ivar screen: Экран на котором будет всё отрисовываться
+    """
     def __init__(self, game_strategy: Union[Callable[[pygame.surface.Surface], "GameStrategy"], Type["GameStrategy"]]):
+        """
+        Инициализация класса
+
+        :param game_strategy: GameStrategy которая будет отрисовываться по умолчанию.
+        """
         self.screen: Final[pygame.surface.Surface] = pygame.display.set_mode(RESOLUTION)
         self._running: bool = True
-        self._history: List[GameStrategy] = []
-        self._game_strategy: Optional[GameStrategy] = None
+        self._history: List["GameStrategy"] = []
+        self._game_strategy: "GameStrategy"
         self.game_strategy = game_strategy  # type: ignore
         # См. https://github.com/python/mypy/issues/3004
 
     @property
-    def game_strategy(self) -> Optional["GameStrategy"]:
+    def game_strategy(self) -> "GameStrategy":
+        """
+        :setter: Устанавливает :class:`classes.game_strategy.GameStrategy` в игру
+
+        :getter: Возвращает текущую :class:`classes.game_strategy.GameStrategy`
+        """
         return self._game_strategy
 
     @game_strategy.setter
@@ -39,6 +54,11 @@ class GameContext:
 
     @property
     def running(self) -> bool:
+        """
+        :setter: Устанавливает переменную в основном цикле игры. Если False игра выключится
+
+        :return: Запущена ли игра?
+        """
         return self._running
 
     @running.setter
@@ -47,9 +67,15 @@ class GameContext:
 
     @property
     def history(self) -> List["GameStrategy"]:
+        """
+        :setter: Изменять его нельзя, используйте State
+
+        :return: Стек вызовов GameStrategy, например [MainMenu, MainLevel, Game]
+        """
         return self._history
 
     def run(self):
+        """Функция запуска игры"""
         clock = pygame.time.Clock()
         while self.running:
             try:

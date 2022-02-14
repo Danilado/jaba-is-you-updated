@@ -1,4 +1,4 @@
-DEBUG = False
+DEBUG = True
 
 RESOLUTION = (1600, 900)  # 32x18
 SHOW_GRID = True

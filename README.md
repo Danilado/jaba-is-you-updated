@@ -45,13 +45,6 @@
 	В нём будет два(или больше) языка, и кнопка "Назад". Жаба может передвигаться между кнопками нажатиями на WASD, выбрать язык можно нажатием на Пробел, и язык сменится тут же.
 	При нажатии на кнопку "Назад", игра перемещается на меню "Настройки".
 ## Техническая часть
-### Технологии
-В данном проекте используется следующие технологии:
- - [Python](https://ru.wikipedia.org/wiki/Python) 3.8.*
- - [Pygame](https://www.pygame.org/wiki/about) 2.1.2
- - [Windows](https://ru.wikipedia.org/wiki/Windows), [Ubuntu](https://ru.wikipedia.org/wiki/Ubuntu)
- - [PyInstaller](https://pyinstaller.readthedocs.io/en/stable/#pyinstaller-manual)
- - [httpx](https://pypi.org/project/httpx/) \[ [http2](https://ru.wikipedia.org/wiki/HTTP/2) \] 0.22.0
 ### Архитектура приложения
 #### Шаблон проектирования
 Игра должна использовать [шаблон проектирования "стратегия"](https://en.wikipedia.org/wiki/Strategy_pattern) как основу.

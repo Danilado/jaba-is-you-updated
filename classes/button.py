@@ -1,10 +1,43 @@
+from typing import Union, TYPE_CHECKING, Callable, Any, Optional, List, Sequence
+
 import pygame
 import os, os.path
 
+<<<<<<< HEAD
 from classes.SpriteManager import SpriteManager
+=======
+if TYPE_CHECKING:
+    from elements.global_classes import COLOR, AbstractButtonSettings
+
+>>>>>>> 7-develop-docs
 
 class Button:
-    def __init__(self, x, y, width, height, outline, settings, text="", action=None):
+    """
+    Класс кнопки
+
+    :ivar x: Абсцисса положения
+    :ivar y: Ордината положения
+    :ivar width: Ширина в пикселях
+    :ivar height: Высота в пикселях
+    :ivar outline: Цвет контура
+    :ivar settings: Настройка цветов
+    :ivar text: Текст
+    :ivar action: Функция вызывающаяся при нажатии
+    """
+    def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR", settings: "AbstractButtonSettings",
+                 text: Union[str, bytes] = "", action: Optional[Callable[[], Any]] = None):
+        """
+        Инициализация кнопки
+
+        :param x: Абсцисса положения
+        :param y: Ордината положения
+        :param width: Ширина в пикселях
+        :param height: Высота в пикселях
+        :param outline: Цвет контура
+        :param settings: Настройка цветов
+        :param text: Текст
+        :param action: Функция вызывающаяся при нажатии
+        """
         self.x = x
         self.y = y
         self.width = width
@@ -16,7 +49,12 @@ class Button:
         pygame.font.init() # Чтобы не инициализировать шрифт каждый раз
         self.font = pygame.font.SysFont('segoeuisemibold', self.settings.text_size)
 
-    def draw(self, screen):
+    def draw(self, screen: Union[pygame.Surface, pygame.surface.Surface]):
+        """
+        Метод отрисовки кнопки
+
+        :param screen: Surface, на котором будет происходить отрисовка
+        """
         if self.outline:
             pygame.draw.rect(screen, self.outline, (self.x - 2, self.y - 2, self.width + 4, self.height + 4), 0)
 
@@ -40,7 +78,13 @@ class Button:
                     )
                 )
 
-    def update(self, events):
+    def update(self, events: List[pygame.event.Event]) -> bool:
+        """
+        Метод проверки нажатия.
+
+        :param events: Список событий полученных путём вызова pygame.event.get()
+        :return: В случае если был вызван action, True, иначе False
+        """
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN \
                     and self.is_over(pygame.mouse.get_pos()) \
@@ -49,7 +93,14 @@ class Button:
                 return True
         return False
 
-    def is_over(self, pos):
+    def is_over(self, pos: Sequence[Union[int, float]]) -> bool:
+        """
+        Проверка координат на нахождение внутри области кнопки
+
+        :param pos: Абсцисса и Ордината для проверки наведения
+
+        :return: True, если Абсцисса и Ордината находится в области кнопки, иначе False.
+        """
         if self.x < pos[0] < self.x + self.width:
             if self.y < pos[1] < self.y + self.height:
                 return True
