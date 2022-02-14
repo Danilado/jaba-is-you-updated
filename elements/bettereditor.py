@@ -7,7 +7,7 @@ import os
 
 from elements.global_classes import EuiSettings, IuiSettings
 from classes.button import Button
-from elements.objects import Object
+from classes.objects import Object
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.state import State
