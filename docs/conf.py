@@ -18,12 +18,8 @@ sys.path.insert(0, os.path.abspath('../'))
 # -- Project information -----------------------------------------------------
 
 project = 'Baba is u limited Жaba edition with new level, textures, multiplayer, open-source, and best refactored code'
-copyright = '2022, Injirneers Team, Школа программистов, Подлегаев Эдмонд Бабкенович, Горбунов Константин Сергеевич, ' \
-            'Звягин Даниил Олегович, Бердников Николай Олегович, Соин Никита Максимович, Шаронов Кирилл ' \
-            'Станиславович, Новоселов Ярослав Вячеславович, Гадлевский Максим Денисович '
-author = 'Подлегаев Эдмонд Бабкенович, Горбунов Константин Сергеевич, Звягин Даниил Олегович, Бердников Николай ' \
-         'Олегович, Соин Никита Максимович, Шаронов Кирилл Станиславович, Новоселов Ярослав Вячеславович, Гадлевский ' \
-         'Максим Денисович '
+copyright = '2022, Injirneers Team'
+author = 'Injirneers Team'
 
 # The full version, including alpha/beta/rc tags
 release = '0.0.2'

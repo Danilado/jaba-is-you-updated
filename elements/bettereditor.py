@@ -166,7 +166,7 @@ class Editor(GameStrategy):
             if not flag:
                 self.changes.append(my_deepcopy(self.current_state))
                 self.current_state[self.focus[1]][self.focus[0]].append(
-                    Object(self.focus[0], self.focus[1], self.direction, self.name, None, self.is_text))
+                    Object(self.focus[0], self.focus[1], self.direction, self.name, self.is_text))
 
     def delete(self):
         """Если в клетке есть объекты, удаляет последний созданный из них
