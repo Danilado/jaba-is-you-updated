@@ -11,7 +11,7 @@ def main():
     parser.add_argument("-d", "--debug",        help='Shows ghosts target position',    action="store_true")
     args = parser.parse_args()
     if args.debug:
-        settings.DEBUG = 1
+        settings.DEBUG = True
         print("Debug on")
 
     sprite_manager.start_download()

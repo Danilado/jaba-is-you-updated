@@ -11,6 +11,7 @@ from classes.objects import Object
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.state import State
+from classes.animation import Animation
 from settings import SHOW_GRID, RESOLUTION, OBJECTS
 
 
@@ -71,10 +72,9 @@ class Editor(GameStrategy):
         """
         super().__init__(screen)
         self.tool = 1
-        self.direction = 0
+        self.direction = 1
         self.is_text = False
         self.name = None
-        
         self.changes = []
         self.current_state = [[[] for i in range(32)] for j in range(18)]
         self.focus = (-1, -1)
@@ -108,8 +108,8 @@ class Editor(GameStrategy):
         button_objects_array = OBJECTS[12*self.page:12*(self.page+1)]
         button_array = []
         for index, text in enumerate(button_objects_array):
-            print(f'{index} {text}')
-            button_array.append(ObjectButton(RESOLUTION[0] + 28 + 84 * (index % 2), 25 + 55 * (index - index % 2), 50, 50, (0, 0, 0), EuiSettings, text, partial(self.set_name, text)))
+            # print(f'{index+1} {text}')
+            button_array.append(ObjectButton(RESOLUTION[0] + 28 + 84 * (index % 2), 25 + 55 * (index - index % 2), 50, 50, (0, 0, 0), EuiSettings, text, partial(self.set_name, text), self.is_text, self.direction))
         return button_array
 
     def safe_exit(self):
@@ -132,6 +132,7 @@ class Editor(GameStrategy):
         :type dir: _type_
         """
         self.direction = (self.direction + dir) % 4
+        self.page_turn(0)
 
     def set_tool(self, n: int):
         """Функция смены инструмента
@@ -145,6 +146,7 @@ class Editor(GameStrategy):
         """Меняет является ли объект текстом, или нет
         """
         self.is_text = False if self.is_text else True 
+        self.page_turn(0)
 
     def undo(self):
         """Отменяет последнее изменение

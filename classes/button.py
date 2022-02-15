@@ -1,5 +1,8 @@
+from multiprocessing.spawn import import_main_path
 from typing import Union, TYPE_CHECKING, Callable, Any, Optional, List, Sequence
 from elements.global_classes import sprite_manager
+from classes.animation import Animation
+from settings import TEXT_ONLY
 
 import os, os.path
 import pygame
@@ -105,21 +108,36 @@ class Button:
 
 
 class ObjectButton(Button):
-    def __init__(self, x, y, width, height, outline, settings, text="", action=None):
+    def __init__(self, x, y, width, height, outline, settings, text="", action=None, is_text = 0, direction = 1):
         super().__init__(x, y, width, height, outline, settings, text, action)
-        DIR = f'./sprites/words/{self.text}'
-        self.sprite_count = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
-        self.state_count = self.sprite_count // 3
-        self.frames = [sprite_manager.get(f'./sprites/words/{self.text}/{self.text}1'), sprite_manager.get(f'./sprites/words/{self.text}/{self.text}2'), sprite_manager.get(f'./sprites/words/{self.text}/{self.text}3'),]
-        self.timer = pygame.time.get_ticks()
-        self.current_frame_index = 0 # 0 1 2 ... 0 1 2
+        if is_text or self.text in TEXT_ONLY:
+            self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(f"sprites/words/{self.text}/{self.text}{index+1}"),
+                    (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
+        else:
+            DIR = f'./sprites/{self.text}'
+            sprite_count = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
+            state_count = sprite_count // 3
+            letterize = {
+                0: 'b',
+                1: 'r',
+                2: 'f',
+                3: 'l',
+            }
+            if state_count > 4:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.text}/{self.text}{letterize[direction]}0{index}"),
+                    (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
+            elif state_count > 1:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.text}/{self.text}{letterize[direction]}{index+1}"),
+                    (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
+            else:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.text}/{self.text}{index+1}"),
+                    (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
+
 
     def draw(self, screen: pygame.Surface):
-        if pygame.time.get_ticks() - self.timer >= 200:
-            self.timer = pygame.time.get_ticks()
-            self.current_frame_index = (self.current_frame_index + 1) % 3
-        color = self.settings.button_color if not self.is_over(
-            pygame.mouse.get_pos()) else self.settings.button_color_hover
-        pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height), 0)
-        screen.blit(pygame.transform.scale(self.frames[self.current_frame_index], (50, 50)), (self.x, self. y))
-
+        self.animation.update()
+        self.animation.draw(screen)

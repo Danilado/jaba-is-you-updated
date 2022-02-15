@@ -21,7 +21,7 @@ class Animation:
         self._current_sprites_index: int = 0
         self._timer = pygame.time.get_ticks()
 
-    @property
+    @property # Не слишком ли длинное имя для property?
     def current_sprites_index(self) -> int:
         return self._current_sprites_index
 

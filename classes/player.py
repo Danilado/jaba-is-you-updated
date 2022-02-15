@@ -1,3 +1,4 @@
+from settings import DEBUG
 from typing import List, Tuple
 
 import pygame
@@ -49,7 +50,8 @@ class Player:
             self.move_left()
         if self.turning_side == 3:
             self.move_down()
-        print(self.turning_side, self.status_of_rotate)
+        if DEBUG:
+            print(self.turning_side, self.status_of_rotate)
 
     def cancel_move(self):
         """Отмена последнего движения, если установлен status_cancel"""
