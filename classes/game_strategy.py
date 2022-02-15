@@ -4,6 +4,7 @@ from typing import List, Optional
 import pygame
 
 from classes.state import State
+from global_types import SURFACE
 
 
 class GameStrategy(abc.ABC):
@@ -12,8 +13,8 @@ class GameStrategy(abc.ABC):
 
     :ivar screen: Экран на котором будет происходить вся отрисовка.
     """
-    def __init__(self, screen: pygame.Surface):
-        self.screen: pygame.Surface = screen
+    def __init__(self, screen: SURFACE):
+        self.screen: SURFACE = screen
 
     @abc.abstractmethod
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:

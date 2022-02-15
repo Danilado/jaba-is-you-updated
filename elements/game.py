@@ -6,6 +6,7 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.player import Player
 from classes.state import State
+from global_types import SURFACE
 from settings import SHOW_GRID, RESOLUTION
 
 
@@ -15,7 +16,7 @@ class Game(GameStrategy):
 
     :ivar jaba: Игрок
     """
-    def __init__(self, screen: pygame.Surface):
+    def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self.jaba = Player(0, 0)
 

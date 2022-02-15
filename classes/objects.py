@@ -2,6 +2,8 @@ from typing import Union, Optional
 
 import pygame
 
+from global_types import SURFACE
+
 pygame.font.init()
 font = pygame.font.SysFont('segoeuisemibold', 15)
 
@@ -92,7 +94,7 @@ is_text:    {self.text}
             self.height_lines.append(self.lines[-1].get_height())
             self.text_height += self.height_lines[-1]
 
-    def draw(self, screen: Union[pygame.Surface, pygame.surface.Surface]):
+    def draw(self, screen: SURFACE):
         """
         Метод отрисовки кнопки
 

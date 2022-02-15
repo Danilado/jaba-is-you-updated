@@ -4,6 +4,7 @@ from typing import Final, TYPE_CHECKING, Callable, List, Optional, Union, Type
 import pygame
 
 from classes.game_state import GameState
+from global_types import SURFACE
 
 if TYPE_CHECKING:
     from classes.game_strategy import GameStrategy
@@ -16,13 +17,13 @@ class GameContext:
 
     :ivar screen: Экран на котором будет всё отрисовываться
     """
-    def __init__(self, game_strategy: Union[Callable[[pygame.surface.Surface], "GameStrategy"], Type["GameStrategy"]]):
+    def __init__(self, game_strategy: Union[Callable[[SURFACE], "GameStrategy"], Type["GameStrategy"]]):
         """
         Инициализация класса
 
         :param game_strategy: GameStrategy которая будет отрисовываться по умолчанию.
         """
-        self.screen: Final[pygame.surface.Surface] = pygame.display.set_mode(RESOLUTION)
+        self.screen: Final[SURFACE] = pygame.display.set_mode(RESOLUTION)
         self._running: bool = True
         self._history: List["GameStrategy"] = []
         self._game_strategy: "GameStrategy"
@@ -39,7 +40,7 @@ class GameContext:
         return self._game_strategy
 
     @game_strategy.setter
-    def game_strategy(self, game_strategy: Union[Callable[[pygame.surface.Surface], "GameStrategy"], "GameStrategy"]):
+    def game_strategy(self, game_strategy: Union[Callable[[SURFACE], "GameStrategy"], "GameStrategy"]):
         if callable(game_strategy):
             self._game_strategy = game_strategy(self.screen)
         else:

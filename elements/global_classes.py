@@ -1,10 +1,8 @@
 import abc
 from dataclasses import dataclass
-from typing import Tuple, NewType, Union, TYPE_CHECKING
-
-import pygame
 
 from classes.SpriteManager import SpriteManager
+from global_types import COLOR
 
 
 class AbstractButtonSettings(abc.ABC):
@@ -46,5 +44,3 @@ class IuiSettings(AbstractButtonSettings):
 
 
 sprite_manager = SpriteManager()
-
-COLOR = Union[pygame.Color, pygame.color.Color, int, Tuple[int, int, int], Tuple[int, int, int, int]]

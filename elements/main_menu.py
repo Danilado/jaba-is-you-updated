@@ -10,10 +10,11 @@ from classes.state import State
 from elements.editor import edit
 from elements.game import Game
 from elements.global_classes import GuiSettings
+from global_types import SURFACE
 
 
 class MainMenu(GameStrategy):
-    def __init__(self, screen: pygame.Surface):
+    def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self._state: Optional[State] = None
 

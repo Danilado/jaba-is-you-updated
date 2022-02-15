@@ -1,9 +1,10 @@
-from typing import List, Tuple
+from typing import List, Tuple, Literal
 
 import pygame
 
 import settings
 from elements.global_classes import sprite_manager
+from global_types import SURFACE
 
 
 class Player:
@@ -28,7 +29,7 @@ class Player:
         self.y = y
         self.moves: List[Tuple[int, int, int]] = []
 
-        self.status_of_rotate = 0  # TODO: Use enum, and make field private
+        self.status_of_rotate: Literal[0, 1, 2, 3] = 0  # TODO: Use enum, and make field private
 
         self.turning_side = -1
         self.status_cancel: bool = False
@@ -107,20 +108,21 @@ class Player:
                 if event.key == pygame.K_z:
                     self.status_cancel = False
 
-    def draw(self, screen):
+    def draw(self, screen: SURFACE):
         """
         Метод отрисовки персонажа
 
         :param screen: Surface, на котором будет происходить отрисовка
         """
-        img = None
         if self.status_of_rotate == 0:
             img = sprite_manager.get(f'sprites/jaba/s02')
-        if self.status_of_rotate == 1:
+        elif self.status_of_rotate == 1:
             img = sprite_manager.get(f'sprites/jaba/f12')
-        if self.status_of_rotate == 2:
+        elif self.status_of_rotate == 2:
             img = sprite_manager.get(f'sprites/jaba/f00')
-        if self.status_of_rotate == 3:
+        elif self.status_of_rotate == 3:
             img = sprite_manager.get(f'sprites/jaba/b00')
+        else:
+            raise ValueError(f"status_of_rotate: {self.status_of_rotate}")
         img = pygame.transform.scale(img, (50, 50))
         screen.blit(img, (self.x * 50, self.y * 50))

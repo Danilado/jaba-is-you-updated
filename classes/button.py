@@ -3,7 +3,8 @@ from typing import Union, TYPE_CHECKING, Callable, Any, Optional, List, Sequence
 import pygame
 
 if TYPE_CHECKING:
-    from elements.global_classes import COLOR, AbstractButtonSettings
+    from elements.global_classes import AbstractButtonSettings
+    from global_types import COLOR, SURFACE
 
 
 class Button:
@@ -20,7 +21,7 @@ class Button:
     :ivar action: Функция вызывающаяся при нажатии
     """
     def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR", settings: "AbstractButtonSettings",
-                 text: Union[str, bytes] = "", action: Optional[Callable[[], Any]] = None):
+                 text: str = "", action: Optional[Callable[[], Any]] = None):
         """
         Инициализация кнопки
 
@@ -42,7 +43,7 @@ class Button:
         self.action = action
         self.outline = outline
 
-    def draw(self, screen: Union[pygame.Surface, pygame.surface.Surface]):
+    def draw(self, screen: "SURFACE"):
         """
         Метод отрисовки кнопки
 
@@ -61,15 +62,15 @@ class Button:
             lines = self.text.split('\n')
             text_height = 0
             for index, line in enumerate(lines):
-                line = font.render(line, True, (255, 255, 255))
-                text_height += line.get_height()
+                render_line = font.render(line, True, (255, 255, 255))
+                text_height += render_line.get_height()
                 screen.blit(
-                    line,
+                    render_line,
                     (
-                        self.x + (self.width / 2 - line.get_width() / 2),
+                        self.x + (self.width / 2 - render_line.get_width() / 2),
                         self.y + (self.height / 2 + (text_height / len(lines) *
                                                      (len(lines) // 2 * -1 + index))) -
-                        (line.get_height() / 2 if len(lines) == 1 else 0)
+                        (render_line.get_height() / 2 if len(lines) == 1 else 0)
                     )
                 )
 
