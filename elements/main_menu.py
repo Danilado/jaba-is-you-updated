@@ -7,7 +7,7 @@ from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.state import State
-from elements.editor import edit
+from elements.editor import Editor
 from elements.game import Game
 from elements.global_classes import GuiSettings
 from global_types import SURFACE
@@ -21,6 +21,9 @@ class MainMenu(GameStrategy):
     def _start_the_game(self):
         self._state = State(GameState.switch, Game)
 
+    def _go_to_editor(self):
+        self._state = State(GameState.switch, Editor)
+
     def _exit_the_game(self):
         self._state = State(GameState.stop, None)
 
@@ -31,7 +34,7 @@ class MainMenu(GameStrategy):
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 60, 400, 50, (0, 0, 0),
                    GuiSettings(), "Мультиплеер"),
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Редактор уровней", edit),
+                   GuiSettings(), "Редактор уровней", self._go_to_editor),
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 60, 400, 50, (0, 0, 0),
                    GuiSettings(), "Уровни"),
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 120, 400, 50, (0, 0, 0),
