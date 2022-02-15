@@ -126,26 +126,6 @@ class Player:
                 if event.key == pygame.K_z:
                     self.status_cancel = False
 
-<<<<<<< HEAD
-    def draw(self, screen):
-        """
-        Метод отрисовки персонажа
-
-        :param screen: Surface, на котором будет происходить отрисовка
-        """
-        img = None
-        if self.status_of_rotate == 0:
-            img = sprite_manager.get(f'sprites/jaba/s02')
-        if self.status_of_rotate == 1:
-            img = sprite_manager.get(f'sprites/jaba/f12')
-        if self.status_of_rotate == 2:
-            img = sprite_manager.get(f'sprites/jaba/f00')
-        if self.status_of_rotate == 3:
-            img = sprite_manager.get(f'sprites/jaba/b00')
-        img = pygame.transform.scale(img, (50, 50))
-        screen.blit(img, (self.x * 50, self.y * 50))
-=======
     def draw(self, screen: pygame.surface.Surface):
         self.animation.update()
         self.animation.draw(screen)
->>>>>>> 9-animation-manager
