@@ -152,7 +152,6 @@ class Editor(GameStrategy):
         """Отменяет последнее изменение
         """
         if len(self.changes) != 0:
-            print(self.current_state == self.changes[-1])
             self.current_state = self.changes[-1]
             self.changes.pop()
 
@@ -252,6 +251,11 @@ class Editor(GameStrategy):
         for indicator in indicators:
             indicator.update(events)
             indicator.draw(self.screen)
+
+        for line in self.current_state:
+            for cell in line:
+                for object in cell:
+                    object.draw(self.screen)
 
         if state is None:
             state = State(GameState.flip)
