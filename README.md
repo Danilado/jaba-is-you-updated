@@ -44,34 +44,3 @@
 ![Настройки языка](https://i.imgur.com/cLMDIPk.jpeg)
 	В нём будет два(или больше) языка, и кнопка "Назад". Жаба может передвигаться между кнопками нажатиями на WASD, выбрать язык можно нажатием на Пробел, и язык сменится тут же.
 	При нажатии на кнопку "Назад", игра перемещается на меню "Настройки".
-## Техническая часть
-### Архитектура приложения
-#### Шаблон проектирования
-Игра должна использовать [шаблон проектирования "стратегия"](https://en.wikipedia.org/wiki/Strategy_pattern) как основу.
-##### Плюсы
-- Удобное переключение между меню игры.
-- [Меньше повторений кода](https://ru.wikipedia.org/w/index.php?title=Don%E2%80%99t_repeat_yourself&stable=1)
-##### Минусы
-- Большее количество [классов](https://bit.ly/3uMPiTw). 
-#### Основные Классы
-##### GameContext
-Основной класс игры вокруг которого всё будет крутиться.
-##### GameStrategy
-[Абстрактный базовый класс](https://bit.ly/3sBzdNI) (интерфейс) необходимый для определения отрисовки меню в GameContext. Его [метод](https://bit.ly/3rJrxtR) draw принимает в себя [список](https://bit.ly/3gDYHo7) [событий](https://www.pygame.org/docs/ref/event.html#pygame.event.EventType), и время прошедшее между кадрами для не зависимого от [количества кадров в секунду](https://bit.ly/33fupoF), движения, а возвращает структуру State.
-##### GameState
-Является перечислением изменений в GameContext, например возврат на прошлый GameStrategy, остановка игры, сменить GameStrategy на другой, и т.д
-##### State
-Является структурой хранящий дополнительную информацию для GameState, например какой GameStraregy необходимо сменить. Необходим просто для замены кортежа.
-##### Button
-Является [классом](https://bit.ly/3uMPiTw) кнопки, необходимом для удобного их создания. Имеет [методы](https://bit.ly/3rJrxtR):
-- draw, метод отрисовки, принимающий [surface](https://www.pygame.org/docs/ref/surface.html#pygame.Surface) на котором будет происходить отрисовка кнопки.
-- update, метод обновления, принимающий [список](https://bit.ly/3gDYHo7) [событий](https://www.pygame.org/docs/ref/event.html#pygame.event.EventType).
-##### SpriteManager
-Является [классом](https://bit.ly/3uMPiTw), необходимым для установки и кеширования спрайтов
-#### Структура файлов
-##### classes/
-В директории classes/ должны находиться [py файлы](https://ru.wikipedia.org/wiki/Python), в которых хранится не больше одного [класса](https://bit.ly/3uMPiTw). 
-##### elements/
-В директории elements/ должны находиться [py файлы](https://ru.wikipedia.org/wiki/Python), в которых хранится не больше одного [класса](https://bit.ly/3uMPiTw), реализующего [Абстрактный базовый класс](https://bit.ly/3sBzdNI) GameStrategy.
-##### sprites/
-В директории sprites/ должны находиться спрайты игры, типа [WebP](https://ru.wikipedia.org/wiki/WebP) с [альфа-каналом](https://bit.ly/3GJr7HV), сгруппированные по директориям, пример: `"sprites/keke/0_1.png, sprites/keke/0_2.png, ..., sprites/baba/0_1.png, sprites/baba/0_2.png, и т.д.`.
