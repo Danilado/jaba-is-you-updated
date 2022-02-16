@@ -3,6 +3,7 @@ from typing import List, Tuple, Union, Optional, Sequence, Dict
 import pygame
 
 from elements.global_classes import sprite_manager
+from global_types import SURFACE
 
 
 class Animation:
@@ -53,9 +54,8 @@ class Animation:
         self.current_sprites_index = index
 
     def __copy__(self) -> "Animation":
-        copy = Animation(self.sprites.copy(), self.sprite_switch_delay, self.position)
+        copy = Animation(self.sprites.copy(), self.sprite_switch_delay, self.position, self.synchronize)
         copy._timer = self._timer
-        copy.synchronize = self.synchronize
         copy.current_sprites_index = self.current_sprites_index
         return copy
 
@@ -68,5 +68,5 @@ class Animation:
                 self._timer = pygame.time.get_ticks()
             self.current_sprites_index = (self._current_sprites_index + 1) % len(self.sprites)
 
-    def draw(self, screen: pygame.Surface) -> None:
+    def draw(self, screen: SURFACE) -> None:
         screen.blit(self.current_sprite, self.position)
