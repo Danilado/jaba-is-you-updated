@@ -8,7 +8,7 @@ from elements.global_classes import sprite_manager
 
 
 class Player:
-    def __init__(self, x, y):
+    def __init__(self, x, y, animation_sync: bool = True):
         self._x = x
         self._y = y
         self.moves = []
@@ -18,8 +18,16 @@ class Player:
         self.animation = Animation(
                 [pygame.transform.scale(sprite_manager.get(f"sprites/jaba/s0{index}"), (50, 50))
                  for index in range(0, 3)],
-                200, (self.x, self.y)
+                200, (self.x, self.y), animation_sync
             )
+
+    @property
+    def animation_sync(self) -> bool:
+        return self.animation.synchronize
+
+    @animation_sync.setter
+    def animation_sync(self, value: bool):
+        self.animation.synchronize = value
 
     @property
     def x(self) -> int:

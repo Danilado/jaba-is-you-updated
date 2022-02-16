@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union, Optional, Sequence
+from typing import List, Tuple, Union, Optional, Sequence, Dict
 
 import pygame
 
@@ -6,8 +6,10 @@ from elements.global_classes import sprite_manager
 
 
 class Animation:
+    _sync: Dict[int, int] = {}  # Вот как мне не нравится всё это. ключ - задержка, значение - время
+
     def __init__(self, sprites: Sequence[Optional[Union[pygame.surface.Surface, str]]], sprite_switch_delay: int,
-                 position: Tuple[int, int]):
+                 position: Tuple[int, int], synchronize: bool):
         if len(sprites) == 0:
             raise ValueError("Sprites are empty")
         self.position: Tuple[int, int] = position
@@ -19,7 +21,13 @@ class Animation:
                 self.sprites.append(sprite)
         self.sprite_switch_delay: int = sprite_switch_delay
         self._current_sprites_index: int = 0
-        self._timer = pygame.time.get_ticks()
+        self.synchronize = synchronize
+        if synchronize:
+            if self.sprite_switch_delay not in self._sync:
+                Animation._sync[self.sprite_switch_delay] = pygame.time.get_ticks()
+            self._timer = Animation._sync[self.sprite_switch_delay]
+        else:
+            self._timer = pygame.time.get_ticks()
 
     @property
     def current_sprites_index(self) -> int:
@@ -47,12 +55,17 @@ class Animation:
     def __copy__(self) -> "Animation":
         copy = Animation(self.sprites.copy(), self.sprite_switch_delay, self.position)
         copy._timer = self._timer
+        copy.synchronize = self.synchronize
         copy.current_sprites_index = self.current_sprites_index
         return copy
 
     def update(self) -> None:
         if pygame.time.get_ticks() - self._timer >= self.sprite_switch_delay:
-            self._timer = pygame.time.get_ticks()
+            if self.synchronize:
+                Animation._sync[self.sprite_switch_delay] = pygame.time.get_ticks()
+                self._timer = Animation._sync[self.sprite_switch_delay]
+            else:
+                self._timer = pygame.time.get_ticks()
             self.current_sprites_index = (self._current_sprites_index + 1) % len(self.sprites)
 
     def draw(self, screen: pygame.Surface) -> None:
