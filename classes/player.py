@@ -3,6 +3,7 @@ from typing import List, Tuple, Literal
 import pygame
 
 import settings
+from classes.animation import Animation
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
 
@@ -18,21 +19,54 @@ class Player:
     :ivar turning_side: Текущее направление движения, 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
     :ivar status_cancel: Отменять ли последнее движение?
     """
-    def __init__(self, x: int, y: int):
+
+    def __init__(self, x, y, animation_sync: bool = True):
         """
         Инициализация игрока
 
         :param x: Абсцисса изначального положения
         :param y: Ордината изначального положения
         """
-        self.x = x
-        self.y = y
+        self._x = x
+        self._y = y
         self.moves: List[Tuple[int, int, int]] = []
 
         self.status_of_rotate: Literal[0, 1, 2, 3] = 0  # TODO: Use enum, and make field private
 
+        self.status_of_rotate = 0  # 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
         self.turning_side = -1
         self.status_cancel: bool = False
+        self.animation = Animation(
+                [pygame.transform.scale(sprite_manager.get(f"sprites/jaba/s0{index}"), (50, 50))
+                 for index in range(0, 3)],
+                200, (self.x, self.y), animation_sync
+            )
+
+    @property
+    def animation_sync(self) -> bool:
+        return self.animation.synchronize
+
+    @animation_sync.setter
+    def animation_sync(self, value: bool):
+        self.animation.synchronize = value
+
+    @property
+    def x(self) -> int:
+        return self._x
+
+    @x.setter
+    def x(self, value: int):
+        self._x = value
+        self.animation.position = (value*50, self.animation.position[1])
+
+    @property
+    def y(self) -> int:
+        return self._y
+
+    @y.setter
+    def y(self, value: int):
+        self._y = value
+        self.animation.position = (self.animation.position[0], value*50)
 
     def move(self):   # TODO: use Δt to calculate distance move
         """Метод движения персонажа"""
@@ -91,14 +125,27 @@ class Player:
         """Метод обработки событий"""
         for event in events:
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_w:
-                    self.turning_side = 1
-                if event.key == pygame.K_s:
-                    self.turning_side = 3
                 if event.key == pygame.K_d:
+                    self.animation.sprites = [
+                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/s0{index}"), (50, 50))
+                        for index in range(0, 3)
+                    ]
                     self.turning_side = 0
+                if event.key == pygame.K_w:
+                    self.animation.sprites = [
+                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/f1{index}"), (50, 50))
+                        for index in range(0, 3)]
+                    self.turning_side = 1
                 if event.key == pygame.K_a:
+                    self.animation.sprites = [
+                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/f0{index}"), (50, 50))
+                        for index in range(0, 3)]
                     self.turning_side = 2
+                if event.key == pygame.K_s:
+                    self.animation.sprites = [
+                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/b0{index}"), (50, 50))
+                        for index in range(0, 3)]
+                    self.turning_side = 3
                 if event.key == pygame.K_z:
                     self.status_cancel = True
 
@@ -114,15 +161,5 @@ class Player:
 
         :param screen: Surface, на котором будет происходить отрисовка
         """
-        if self.status_of_rotate == 0:
-            img = sprite_manager.get(f'sprites/jaba/s02')
-        elif self.status_of_rotate == 1:
-            img = sprite_manager.get(f'sprites/jaba/f12')
-        elif self.status_of_rotate == 2:
-            img = sprite_manager.get(f'sprites/jaba/f00')
-        elif self.status_of_rotate == 3:
-            img = sprite_manager.get(f'sprites/jaba/b00')
-        else:
-            raise ValueError(f"status_of_rotate: {self.status_of_rotate}")
-        img = pygame.transform.scale(img, (50, 50))
-        screen.blit(img, (self.x * 50, self.y * 50))
+        self.animation.update()
+        self.animation.draw(screen)
