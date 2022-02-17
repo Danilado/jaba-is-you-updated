@@ -1,11 +1,10 @@
-import time
 from functools import partial
 import pygame
 import os
 
 from elements.global_classes import EuiSettings, IuiSettings
 from classes.button import Button
-from elements.objects import Object
+from classes.objects import Object
 import settings
 
 left: bool = False
@@ -129,7 +128,7 @@ def edit():
                 if event.type == pygame.MOUSEBUTTONDOWN:
                     if focus[0] != -1 and focus[1] != -1:
                         flag = 0
-                        if tool == 1 and name != None:
+                        if tool == 1 and name is not None:
                             for object in current_state[focus[1]][focus[0]]:
                                 if object.name == name:
                                     flag = 1
@@ -137,7 +136,7 @@ def edit():
                             if not flag:
                                 changes.append(my_deepcopy(current_state))
                                 current_state[focus[1]][focus[0]].append(
-                                    Object(focus[0], focus[1], direction, name, None, is_text))
+                                    Object(focus[0], focus[1], direction, name, is_text))
                         elif tool == 0:
                             if len(current_state[focus[1]][focus[0]]) > 0:
                                 changes.append(my_deepcopy(current_state))
