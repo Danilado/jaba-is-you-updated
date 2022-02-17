@@ -22,24 +22,23 @@ class Game(GameStrategy):
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         state = None
-        if events:
-            self.screen.fill("black")
+        self.screen.fill("black")
 
-            for event in events:
-                if event.type == pygame.QUIT:
+        for event in events:
+            if event.type == pygame.QUIT:
+                state = State(GameState.back)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     state = State(GameState.back)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        state = State(GameState.back)
-            self.jaba.check_events(events)
-            self.jaba.move()
-            self.jaba.cancel_move()
+        self.jaba.check_events(events)
+        self.jaba.move()
+        self.jaba.cancel_move()
 
-            self.jaba.draw(self.screen)
-            if SHOW_GRID:
-                for x in range(0, RESOLUTION[0], 50):
-                    for y in range(0, RESOLUTION[1], 50):
-                        pygame.draw.rect(self.screen, (255, 255, 255), (x, y, 50, 50), 1)
-            if state is None:
-                state = State(GameState.flip)
+        self.jaba.draw(self.screen)
+        if SHOW_GRID:
+            for x in range(0, RESOLUTION[0], 50):
+                for y in range(0, RESOLUTION[1], 50):
+                    pygame.draw.rect(self.screen, (255, 255, 255), (x, y, 50, 50), 1)
+        if state is None:
+            state = State(GameState.flip)
         return state
