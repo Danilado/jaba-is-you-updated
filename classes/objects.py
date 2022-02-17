@@ -1,10 +1,12 @@
-from typing import Union, Optional
-from settings import TEXT_ONLY
-from classes.animation import Animation
-from elements.global_classes import sprite_manager
+import os
+import os.path
+from typing import Union
 
 import pygame
-import os, os.path
+
+from classes.animation import Animation
+from elements.global_classes import sprite_manager
+from settings import TEXT_ONLY
 
 pygame.font.init()
 font = pygame.font.SysFont('segoeuisemibold', 15)
@@ -99,15 +101,15 @@ is_text:    {self.name}
             }
             if state_count > 4:
                 self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{self.name}{letterize[self.direction]}0{index}"),
+                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{letterize[self.direction]}0{index}"),
                     (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
             elif state_count > 1:
                 self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{self.name}{letterize[self.direction]}{index+1}"),
+                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{letterize[self.direction]}{index+1}"),
                     (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
             else:
                 self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{self.name}{index+1}"),
+                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{index+1}"),
                     (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
 
     def draw(self, screen: Union[pygame.Surface, pygame.surface.Surface]):

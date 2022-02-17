@@ -21,7 +21,12 @@ class Animation:
         self._current_sprites_index: int = 0
         self._timer = pygame.time.get_ticks()
 
-    @property # Не слишком ли длинное имя для property?
+    @property  # Danilado: Не слишком ли длинное имя для property?
+    # quswadress: Длинное имя? Извините, в следующий раз буду называть _, csi, или просто i, а вы сами будете додумывать
+    # ...для чего этот i нужен. А если серьёзно, то сокращения порой непонятны, я придерживаюсь принципа:
+    # ...много букв, зато сразу понятно. Скажи спасибо что я назвал GameStrategy именно так, а не
+    # ...AbstractGameGraphicalUserInterfaceStrategy, или же
+    # ...абстрактная стратегия игрового графического пользовательского интерфейса.
     def current_sprites_index(self) -> int:
         return self._current_sprites_index
 

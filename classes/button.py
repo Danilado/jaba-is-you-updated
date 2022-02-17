@@ -1,10 +1,5 @@
-from multiprocessing.spawn import import_main_path
 from typing import Union, TYPE_CHECKING, Callable, Any, Optional, List, Sequence
-from elements.global_classes import sprite_manager
-from classes.animation import Animation
-from settings import TEXT_ONLY
 
-import os, os.path
 import pygame
 
 if TYPE_CHECKING:
@@ -24,6 +19,7 @@ class Button:
     :ivar text: Текст
     :ivar action: Функция вызывающаяся при нажатии
     """
+
     def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR", settings: "AbstractButtonSettings",
                  text: Union[str, bytes] = "", action: Optional[Callable[[], Any]] = None):
         """
@@ -105,39 +101,3 @@ class Button:
             if self.y < pos[1] < self.y + self.height:
                 return True
         return False
-
-
-class ObjectButton(Button):
-    def __init__(self, x, y, width, height, outline, settings, text="", action=None, is_text = 0, direction = 1):
-        super().__init__(x, y, width, height, outline, settings, text, action)
-        if is_text or self.text in TEXT_ONLY:
-            self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/words/{self.text}/{self.text}{index+1}"),
-                    (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
-        else:
-            DIR = f'./sprites/{self.text}'
-            sprite_count = len([name for name in os.listdir(DIR) if os.path.isfile(os.path.join(DIR, name))])
-            state_count = sprite_count // 3
-            letterize = {
-                0: 'b',
-                1: 'r',
-                2: 'f',
-                3: 'l',
-            }
-            if state_count > 4:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.text}/{self.text}{letterize[direction]}0{index}"),
-                    (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
-            elif state_count > 1:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.text}/{self.text}{letterize[direction]}{index+1}"),
-                    (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
-            else:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.text}/{self.text}{index+1}"),
-                    (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
-
-
-    def draw(self, screen: pygame.Surface):
-        self.animation.update()
-        self.animation.draw(screen)

@@ -1,17 +1,17 @@
-from typing import List, Optional
+import os
 from functools import partial
 from math import ceil
+from typing import List, Optional
 
 import pygame
-import os
 
-from elements.global_classes import EuiSettings, IuiSettings
-from classes.button import Button, ObjectButton
-from classes.objects import Object
+from classes.button import Button
+from classes.object_button import ObjectButton
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
+from classes.objects import Object
 from classes.state import State
-from classes.animation import Animation
+from elements.global_classes import EuiSettings, IuiSettings
 from settings import SHOW_GRID, RESOLUTION, OBJECTS
 
 
@@ -44,9 +44,9 @@ def unparse_all(state):
     counter = 0
     for row in state:
         for cell in row:
-            for object in cell:
+            for game_object in cell:
                 counter += 1
-                string += object.unparse() + '\n'
+                string += game_object.unparse() + '\n'
     return string, counter
 
 
@@ -59,7 +59,7 @@ def save(state):
     string, counter = unparse_all(state)
     if counter > 0:
         with open(f"levels/level{len(os.listdir('levels/'))}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
-                encoding='utf-8') as file:
+                  encoding='utf-8') as file:
             file.write(string)
 
 
@@ -74,19 +74,19 @@ class Editor(GameStrategy):
         self.tool = 1
         self.direction = 1
         self.is_text = False
-        self.name = None
-        self.changes = []
-        self.current_state = [[[] for i in range(32)] for j in range(18)]
+        self.name: Optional[str] = None
+        self.changes: List[List[List[List[Object]]]] = []
+        self.current_state: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
         self.focus = (-1, -1)
-        self.buttons = []
+        self.buttons: List[ObjectButton] = []
         self.page = 0
-        self.pagination_limit = ceil(len(OBJECTS)/12)
+        self.pagination_limit = ceil(len(OBJECTS) / 12)
         self.pagination_buttons = [
-                                    Button(RESOLUTION[0] + 17, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
-                                        f"<", partial(self.page_turn, -1)),
-                                    Button(RESOLUTION[0] + 101, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
-                                        f">", partial(self.page_turn, 1)),
-                                  ]
+            Button(RESOLUTION[0] + 17, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
+                   f"<", partial(self.page_turn, -1)),
+            Button(RESOLUTION[0] + 101, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
+                   f">", partial(self.page_turn, 1)),
+        ]
         self.screen = pygame.display.set_mode((1800, 900))
         self.page_turn(0)
 
@@ -100,16 +100,20 @@ class Editor(GameStrategy):
         self.buttons = self.parse_buttons()
 
     def parse_buttons(self):
-        """Даёт список из 10-и или менее кнопок, расположенных на странице кнопок (?), в которой в данный момент находится редактор
+        """
+        Даёт список из 10-и или менее кнопок, расположенных на странице кнопок (?),
+        в которой в данный момент находится редактор
 
         :return: массив кнопок
         :rtype: list
         """
-        button_objects_array = OBJECTS[12*self.page:12*(self.page+1)]
+        button_objects_array = OBJECTS[12 * self.page:12 * (self.page + 1)]
         button_array = []
         for index, text in enumerate(button_objects_array):
             # print(f'{index+1} {text}')
-            button_array.append(ObjectButton(RESOLUTION[0] + 28 + 84 * (index % 2), 25 + 55 * (index - index % 2), 50, 50, (0, 0, 0), EuiSettings, text, partial(self.set_name, text), self.is_text, self.direction))
+            button_array.append(
+                ObjectButton(RESOLUTION[0] + 28 + 84 * (index % 2), 25 + 55 * (index - index % 2), 50, 50, (0, 0, 0),
+                             EuiSettings(), text, partial(self.set_name, text), self.is_text, self.direction))
         return button_array
 
     def safe_exit(self):
@@ -125,13 +129,12 @@ class Editor(GameStrategy):
         """
         self.name = string
 
-    def turn(self, dir: int):
+    def turn(self, direction: int):
         """Функция поворота объекта
 
-        :param dir: направление, где 1 - по часовой стрелке, а -1 - против часовой
-        :type dir: _type_
+        :param direction: направление, где 1 - по часовой стрелке, а -1 - против часовой
         """
-        self.direction = (self.direction + dir) % 4
+        self.direction = (self.direction + direction) % 4
         self.page_turn(0)
 
     def set_tool(self, n: int):
@@ -156,12 +159,14 @@ class Editor(GameStrategy):
             self.changes.pop()
 
     def create(self):
-        """Если в выделенной клетке нет объекта с таким же именем, создаёт его там и записывает предыдущее состояние сетки в архивный массив
         """
-        if self.name != None:
+        Если в выделенной клетке нет объекта с таким же именем, создаёт его там и
+        записывает предыдущее состояние сетки в архивный массив
+        """
+        if self.name is not None:
             flag = 0
-            for object in self.current_state[self.focus[1]][self.focus[0]]:
-                if object.name == self.name:
+            for game_object in self.current_state[self.focus[1]][self.focus[0]]:
+                if game_object.name == self.name:
                     flag = 1
                     break
             if not flag:
@@ -180,7 +185,7 @@ class Editor(GameStrategy):
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         state = None
         self.screen.fill("black")
-            
+
         for event in events:
             if event.type == pygame.QUIT:
                 self.safe_exit()
@@ -221,15 +226,15 @@ class Editor(GameStrategy):
 
         indicators = [
             Button(RESOLUTION[0] + 17, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
-                    f"Obj\n{self.name}"),
+                   f"Obj\n{self.name}"),
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
-                    f"Text\n{'True' if self.is_text == 1 else 'False'}", self.is_text_swap),
+                   f"Text\n{'True' if self.is_text == 1 else 'False'}", self.is_text_swap),
             Button(RESOLUTION[0] + 17, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
-                    f"Tool\n{'Create' if self.tool == 1 else 'Delete' if self.tool == 0 else 'Lookup'}",
-                    partial(self.set_tool, 0 if self.tool == 1 else 1 if self.tool == 2 else 2)),
+                   f"Tool\n{'Create' if self.tool == 1 else 'Delete' if self.tool == 0 else 'Lookup'}",
+                   partial(self.set_tool, 0 if self.tool == 1 else 1 if self.tool == 2 else 2)),
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
-                    f"Dir\n{'↑' if self.direction == 0 else '→' if self.direction == 1 else '↓' if self.direction == 2 else '←'}",
-                    partial(self.turn, 1)),
+                   f"Dir\n{'↑' if self.direction == 0 else '→' if self.direction == 1 else '↓' if self.direction == 2 else '←'}",
+                   partial(self.turn, 1)),
         ]
 
         pygame.draw.rect(self.screen, (44, 44, 44), (self.focus[0] * 50, self.focus[1] * 50, 50, 50))
@@ -239,23 +244,23 @@ class Editor(GameStrategy):
                 pygame.draw.line(self.screen, (255, 255, 255), (i * 50, 0), (i * 50, RESOLUTION[1]), 1)
             for i in range(RESOLUTION[1] // 50 + 1):
                 pygame.draw.line(self.screen, (255, 255, 255), (0, i * 50 - (1 if i == 18 else 0)),
-                                (RESOLUTION[0], i * 50 - (1 if i == 18 else 0)), 1)
-        
+                                 (RESOLUTION[0], i * 50 - (1 if i == 18 else 0)), 1)
+
         for button in self.buttons:
             if state is None and button.update(events) and button.action is exit:
                 break
             button.draw(self.screen)
-        for button in self.pagination_buttons:
-            button.update(events)
-            button.draw(self.screen)
+        for pagination_button in self.pagination_buttons:
+            pagination_button.update(events)
+            pagination_button.draw(self.screen)
         for indicator in indicators:
             indicator.update(events)
             indicator.draw(self.screen)
 
         for line in self.current_state:
             for cell in line:
-                for object in cell:
-                    object.draw(self.screen)
+                for button in cell:
+                    button.draw(self.screen)
 
         if state is None:
             state = State(GameState.flip)
