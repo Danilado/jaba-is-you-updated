@@ -54,6 +54,11 @@ Objects
 .. automodule:: classes.objects
    :members:
 
+Animation
+------------
+.. automodule:: classes.animation
+   :members:
+
 .. raw:: html
 
    <hr/>
