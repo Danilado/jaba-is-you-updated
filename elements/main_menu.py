@@ -29,20 +29,31 @@ class MainMenu(GameStrategy):
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int):
         buttons = [
-            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Начать играть", self._start_the_game),
-            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 60, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Мультиплеер"),
-            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2, 400, 50, (0, 0, 0),
+            Button(414, 462, 770, 65, (0, 0, 0),
+                   GuiSettings(), "Продолжить играть на 1 слоте", self._start_the_game),
+            Button(262, 552, 492, 65, (0, 0, 0),
+                   GuiSettings(), "Чит-панель"),
+            Button(262, 619, 492, 65, (0, 0, 0),
                    GuiSettings(), "Редактор уровней", self._go_to_editor),
-            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 60, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Уровни"),
-            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 120, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Выйти", self._exit_the_game),
+            Button(262, 686, 492, 65, (0, 0, 0),
+                   GuiSettings(), "Создатели"),
+            Button(847, 552, 492, 65, (0, 0, 0),
+                   GuiSettings(), "Другие уровни"),
+            Button(847, 619, 492, 65, (0, 0, 0),
+                   GuiSettings(), "Настройки"),
+            Button(847, 686, 492, 65, (0, 0, 0),
+                   GuiSettings(), "Выйти из игры", self._exit_the_game),
         ]
         self._state = None
         if events:
-            self.screen.fill("black")
+            try:
+                background_file = "images/background.jpeg"
+                img = pygame.image.load(background_file)
+                img = pygame.transform.scale(img, settings.RESOLUTION)
+                img = img.convert_alpha()
+                self.screen.blit(img, (0, 0))
+            except:
+                self.screen.fill("black")
             for event in events:
                 if event.type == pygame.QUIT:
                     self._exit_the_game()
