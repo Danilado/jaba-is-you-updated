@@ -29,7 +29,7 @@ class AbstractButtonSettings(abc.ABC):
 
 @dataclass
 class GuiSettings(AbstractButtonSettings):
-    text_size: int = 72
+    text_size: int = 48
     text_color: "COLOR" = (16, 16, 16)
     button_color: "COLOR" = (255, 255, 255)
     button_color_hover: "COLOR" = (240, 240, 240)
