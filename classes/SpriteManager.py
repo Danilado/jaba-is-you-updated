@@ -19,7 +19,7 @@ class SpriteManager:
 
     def start_download(self):
         """Старт скачивания спрайтов"""
-        if not (self._sprites_folder.exists() or self._sprites_folder.glob("*")):
+        if not self._sprites_folder.exists() or self._sprites_folder.glob("*"):
             self._sprites_folder.mkdir(exist_ok=True)
             self._thread.start()
 
