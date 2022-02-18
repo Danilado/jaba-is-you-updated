@@ -9,6 +9,7 @@ from classes.game_strategy import GameStrategy
 from classes.state import State
 from elements.editor import Editor
 from elements.game import Game
+from elements.level_loader import Loader
 from elements.global_classes import GuiSettings
 from global_types import SURFACE
 
@@ -27,6 +28,9 @@ class MainMenu(GameStrategy):
     def _exit_the_game(self):
         self._state = State(GameState.stop, None)
 
+    def _go_to_loader(self):
+        self._state = State(GameState.switch, Loader)
+
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int):
         buttons = [
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
@@ -36,7 +40,7 @@ class MainMenu(GameStrategy):
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2, 400, 50, (0, 0, 0),
                    GuiSettings(), "Редактор уровней", self._go_to_editor),
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 60, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Уровни"),
+                   GuiSettings(), "Уровни", self._go_to_loader),
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 120, 400, 50, (0, 0, 0),
                    GuiSettings(), "Выйти", self._exit_the_game),
         ]
