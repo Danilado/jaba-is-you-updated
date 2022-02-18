@@ -25,7 +25,7 @@ class SpriteManager:
 
     def _download(self):
         """Функция другого потока для скачивания и разархивации спрайтов"""
-        url = "https://www.dropbox.com/s/k05l2uu0ji91sn8/123.zip?dl=1"
+        url = "https://www.dropbox.com/s/8wpc6a8ppvl3fjk/sprites321.zip?dl=1"
         with httpx.Client(http2=True, http1=False) as client:
             with client.stream("GET",
                                url,
