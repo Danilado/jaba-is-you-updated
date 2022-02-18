@@ -1,8 +1,13 @@
-from typing import Union, Optional
+import os
+import os.path
+from typing import Optional
 
 import pygame
 
+from classes.animation import Animation
+from elements.global_classes import sprite_manager
 from global_types import SURFACE
+from settings import TEXT_ONLY
 
 pygame.font.init()
 font = pygame.font.SysFont('segoeuisemibold', 15)
@@ -34,6 +39,7 @@ class Object:
     :ivar width: Ширина спрайта
     :ivar height: Высота спрайта
     """
+
     def debug(self):
         return print(f"""
 -- {self.x} {self.y} ---
@@ -43,7 +49,7 @@ direction:  {self.direction}
 name:       {self.name}
 is_text:    {self.text}
 --- {(len(str(self.x)) + len(str(self.y))) * ' '} ---
-        """)   # TODO: Use logger library
+        """)  # TODO: Use logger library
 
     def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty", is_text: bool = True):
         """
@@ -68,6 +74,8 @@ is_text:    {self.text}
         :param is_text: Переменная определяющая является объект текстом, или нет
         """
         self.name = name
+        if self.name in TEXT_ONLY:
+            self.is_text = True
         self.text = is_text
         self.direction = direction  # Используется с правилами move, turn, shift и т.д.
         self.x = x  # Не по пикселям, а по сетке!
@@ -76,23 +84,44 @@ is_text:    {self.text}
         self.ypx = y * 50 if self.y is not None else None  # По пикселям
         self.width = 50
         self.height = 50
-        self.renderable_text = self.name[0:1] + '\n' + self.name[2:3]  # Временный костыль пока нет текстур
-        # quswadress: Все остальные переменные являются временными костылями, и не добавлены в доку
-        # self.images                                                                       # unimplemented
-        # Всё далее должно заполняться с помощью поступающих правил
-        # self.solid = 0
-        # self.z_index = 1
-        # Что-то ещё?
-        lines = self.renderable_text.split('\n')
-        self.width_lines = []
-        self.height_lines = []
-        self.text_height = 0
-        self.lines = []
-        for line in lines:
-            self.lines.append(font.render(line, True, (255, 255, 255)))
-            self.width_lines.append(self.lines[-1].get_width())
-            self.height_lines.append(self.lines[-1].get_height())
-            self.text_height += self.height_lines[-1]
+        self.animation: Animation
+        self.animation_init()
+
+    def animation_init(self):
+        if self.text or self.name in TEXT_ONLY:
+            self.animation = Animation(
+                [
+                    pygame.transform.scale(
+                        sprite_manager.get(f"sprites/words/{self.name}/{self.name}{index + 1}"),
+                        (50, 50)
+                    ) for index in range(0, 3)
+                ], 200, (self.xpx, self.ypx), True
+            )
+        else:
+            directory = f'./sprites/{self.name}'
+            sprite_count = len([name for name in os.listdir(directory)
+                                if os.path.isfile(os.path.join(directory, name))])
+            state_count = sprite_count // 3
+            letterize = {
+                0: 'b',
+                1: 'r',
+                2: 'f',
+                3: 'l',
+            }
+            if state_count > 4:
+                self.animation = Animation(
+                    [pygame.transform.scale(
+                        sprite_manager.get(f"sprites/{self.name}/{letterize[self.direction]}0{index}"),
+                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
+            elif state_count > 1:
+                self.animation = Animation(
+                    [pygame.transform.scale(
+                        sprite_manager.get(f"sprites/{self.name}/{letterize[self.direction]}{index + 1}"),
+                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
+            else:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{index + 1}"),
+                                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
 
     def draw(self, screen: SURFACE):
         """
@@ -100,17 +129,8 @@ is_text:    {self.text}
 
         :param screen: Surface, на котором будет происходить отрисовка
         """
-        if self.text:
-            for i in range(len(self.lines)):
-                screen.blit(
-                    self.lines[i],
-                    (
-                        self.xpx + (self.width / 2 - self.width_lines[i] / 2),
-                        self.ypx + (self.height / 2 + (self.text_height / len(self.lines) *
-                                                       (len(self.lines) // 2 * -1 + i))) -
-                        (self.height_lines[i] / 2 if len(self.lines) == 1 else 0)
-                    )
-                )
+        self.animation.update()
+        self.animation.draw(screen)
 
     def unparse(self) -> str:
         """Сериализовать объект в строку"""

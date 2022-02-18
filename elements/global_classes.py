@@ -33,14 +33,14 @@ class GuiSettings(AbstractButtonSettings):
 class EuiSettings(AbstractButtonSettings):
     text_size: int = 20
     button_color: "COLOR" = (0, 0, 0)
-    button_color_hover: "COLOR" = (10, 10, 10)
+    button_color_hover: "COLOR" = (20, 20, 20)
 
 
 @dataclass
 class IuiSettings(AbstractButtonSettings):
     text_size: int = 20
     button_color: "COLOR" = (0, 0, 0)
-    button_color_hover: "COLOR" = (10, 10, 10)
+    button_color_hover: "COLOR" = (20, 20, 20)
 
 
 sprite_manager = SpriteManager()
