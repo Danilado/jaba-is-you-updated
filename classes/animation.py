@@ -5,6 +5,8 @@ import pygame
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
 
+_sync: Dict[int, int] = {}  # Вот как мне не нравится всё это. ключ - задержка, значение - время
+
 
 class Animation:
     """
@@ -15,10 +17,18 @@ class Animation:
     :ivar position: Позиция в пикселях где будет отрисовываться
     :ivar synchronize: Синхронизировать с остальными анимациями, чтобы кадры менялись одновременно в всех анимациях.
     """
-    _sync: Dict[int, int] = {}  # Вот как мне не нравится всё это. ключ - задержка, значение - время
 
     def __init__(self, sprites: Sequence[Optional[Union[pygame.surface.Surface, str]]], sprite_switch_delay: int,
-                 position: Tuple[int, int], synchronize: bool):
+                 position: Tuple[int, int], synchronize: bool = True):
+        """
+        Инициализация анимации
+
+        :param sprites:  Список картинок которые будут меняться каждые **sprite_switch_delay**
+        :param sprite_switch_delay: Задержка в миллисекундах между кадрами
+        :param position: Позиция в пикселях где будет отрисовываться
+        :param synchronize:
+            Синхронизировать ли с остальными анимациями, чтобы кадры менялись одновременно в всех анимациях.
+        """
         if len(sprites) == 0:
             raise ValueError("Sprites are empty")
         self.position: Tuple[int, int] = position
@@ -32,13 +42,18 @@ class Animation:
         self._current_sprites_index: int = 0
         self.synchronize = synchronize
         if synchronize:
-            if self.sprite_switch_delay not in self._sync:
-                Animation._sync[self.sprite_switch_delay] = pygame.time.get_ticks()
-            self._timer = Animation._sync[self.sprite_switch_delay]
+            if self.sprite_switch_delay not in _sync:
+                _sync[self.sprite_switch_delay] = pygame.time.get_ticks()
+            self._timer = _sync[self.sprite_switch_delay]
         else:
             self._timer = pygame.time.get_ticks()
 
-    @property
+    @property  # Danilado: Не слишком ли длинное имя для property?
+    # quswadress: Длинное имя? Извините, в следующий раз буду называть _, csi, или просто i, а вы сами будете додумывать
+    # ...для чего этот i нужен. А если серьёзно, то сокращения порой непонятны, я придерживаюсь принципа:
+    # ...много букв, зато сразу понятно. Скажи спасибо что я назвал GameStrategy именно так, а не
+    # ...AbstractGameGraphicalUserInterfaceStrategy, или же
+    # ...абстрактная стратегия игрового графического пользовательского интерфейса.
     def current_sprites_index(self) -> int:
         """
         :getter: Возвращает текущий номер элемента в :attr:`~.Animation.sprites` который отрисовывается на экране
@@ -89,8 +104,8 @@ class Animation:
         """
         if pygame.time.get_ticks() - self._timer >= self.sprite_switch_delay:
             if self.synchronize:
-                Animation._sync[self.sprite_switch_delay] = pygame.time.get_ticks()
-                self._timer = Animation._sync[self.sprite_switch_delay]
+                _sync[self.sprite_switch_delay] = pygame.time.get_ticks()
+                self._timer = _sync[self.sprite_switch_delay]
             else:
                 self._timer = pygame.time.get_ticks()
             self.current_sprites_index = (self._current_sprites_index + 1) % len(self.sprites)

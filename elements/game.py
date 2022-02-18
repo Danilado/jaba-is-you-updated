@@ -33,7 +33,6 @@ class Game(GameStrategy):
         self.jaba.check_events(events)
         self.jaba.move()
         self.jaba.cancel_move()
-
         self.jaba.draw(self.screen)
         if SHOW_GRID:
             for x in range(0, RESOLUTION[0], 50):

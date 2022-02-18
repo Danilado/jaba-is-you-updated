@@ -1,4 +1,5 @@
 from typing import List, Tuple, Literal
+from settings import DEBUG
 
 import pygame
 
@@ -18,7 +19,9 @@ class Player:
     :ivar status_of_rotate: Копия направления движения, изменять вне класса не рекомендуется
     :ivar turning_side: Текущее направление движения, 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
     :ivar status_cancel: Отменять ли последнее движение?
+    :ivar animation: Анимация игрока.
     """
+
     def __init__(self, x: int, y: int, animation_sync: bool = True):
         """
         Инициализация игрока
@@ -26,16 +29,16 @@ class Player:
         :param x: Абсцисса изначального положения
         :param y: Ордината изначального положения
         """
-        self.x = x
-        self.y = y
+        self._x = x
+        self._y = y
         self.moves: List[Tuple[int, int, int]] = []
 
         self.status_of_rotate: Literal[0, 1, 2, 3] = 0  # TODO: Use enum, and make field private
 
-        self.turning_side = -1
+        self.turning_side: Literal[0, 1, 2, 3, -1] = -1
         self.status_cancel: bool = False
-        self.animation = Animation(
-                [pygame.transform.scale(sprite_manager.get(f"sprites/jaba/s0{index}"), (50, 50))
+        self.animation: Animation = Animation(
+                [pygame.transform.scale(sprite_manager.get(f"sprites/jaba/r0{index}"), (50, 50))
                  for index in range(0, 3)],
                 200, (self.x, self.y), animation_sync
             )
@@ -76,7 +79,8 @@ class Player:
             self.move_left()
         if self.turning_side == 3:
             self.move_down()
-        print(self.turning_side, self.status_of_rotate)
+        if DEBUG:
+            print(self.turning_side, self.status_of_rotate)
 
     def cancel_move(self):
         """Отмена последнего движения, если установлен status_cancel"""
@@ -125,7 +129,7 @@ class Player:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_d:
                     self.animation.sprites = [
-                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/s0{index}"), (50, 50))
+                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/r0{index}"), (50, 50))
                         for index in range(0, 3)
                     ]
                     self.turning_side = 0
@@ -136,7 +140,7 @@ class Player:
                     self.turning_side = 1
                 if event.key == pygame.K_a:
                     self.animation.sprites = [
-                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/f0{index}"), (50, 50))
+                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/l0{index}"), (50, 50))
                         for index in range(0, 3)]
                     self.turning_side = 2
                 if event.key == pygame.K_s:
