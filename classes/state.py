@@ -1,5 +1,7 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union, Callable
+
+from global_types import SURFACE
 
 if TYPE_CHECKING:
     from typing import Optional, Type
@@ -18,4 +20,4 @@ class State:
     :cvar switch_to: Опциональный тип :class:`classes.game_strategy.GameStrategy`.
     """
     game_state: "GameState"
-    switch_to: "Optional[Type[GameStrategy]]" = None
+    switch_to: "Optional[Union[Type[GameStrategy], Callable[[SURFACE], GameStrategy]]]" = None

@@ -14,7 +14,7 @@ class SpriteManager:
     """Класс необходимый для установки и кеширования спрайтов"""
     def __init__(self):
         self._images: Dict[str, SURFACE] = {}
-        self._sprites_folder = Path("sprites/")
+        self._sprites_folder = Path("./sprites/")
         self._thread: Final[Thread] = Thread(target=self._download, daemon=True)
 
     def start_download(self):
