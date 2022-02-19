@@ -7,7 +7,7 @@ import pygame
 from classes.animation import Animation
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
-from settings import TEXT_ONLY
+from settings import TEXT_ONLY, PIPES, LETTERS
 
 pygame.font.init()
 font = pygame.font.SysFont('segoeuisemibold', 15)
@@ -88,7 +88,9 @@ is_text:    {self.text}
         self.animation_init()
 
     def animation_init(self):
-        if self.text or self.name in TEXT_ONLY:
+        if self.text or self.name in TEXT_ONLY \
+        and not self.name in PIPES \
+        and not self.name in LETTERS:
             self.animation = Animation(
                 [
                     pygame.transform.scale(
