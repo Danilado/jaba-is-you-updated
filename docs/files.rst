@@ -17,6 +17,13 @@ Button
 .. automodule:: classes.button
    :members:
 
+ObjectButton
+------------
+
+.. automodule:: classes.button
+   :members:
+   :show-inheritance:
+
 GameContext
 ------------
 .. automodule:: classes.game_context
