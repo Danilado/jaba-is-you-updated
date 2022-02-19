@@ -48,8 +48,6 @@ class SpriteManager:
         if self._thread.is_alive():
             print("a")
             self._thread.join(5)
-            if self._thread.is_alive():
-                raise RuntimeError("Can't join downlaod thread")
         if path not in self._images:
             if alpha:
                 self._images[path] = pygame.image.load(path).convert_alpha()
