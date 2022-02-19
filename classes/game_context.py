@@ -81,7 +81,7 @@ class GameContext:
         while self.running:
             try:
                 delta_time = clock.tick(FRAMES_PER_SECOND)
-                pygame.display.set_caption(f"FPS: {round(clock.get_fps())} in {self.game_strategy.__class__.__name__} ")
+                pygame.display.set_caption(f"{clock.get_fps()} FPS; {self.game_strategy.__class__.__name__}")
                 events = pygame.event.get()
                 draw_state = self.game_strategy.draw(events, delta_time)
                 if draw_state is not None:
