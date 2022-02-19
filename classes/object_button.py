@@ -8,7 +8,23 @@ from elements.global_classes import sprite_manager
 from settings import TEXT_ONLY
 
 
+# TODO: Use function instead of method __init__ in class
 class ObjectButton(Button):
+    """
+    Класс 2-й кнопки, предназначенной для отлавливания нажатий в редакторе карт.
+    Эта кнопка отличается от прошлой, тем что имеем свойства как и у :class:`~classes.objects.GameObject`.
+
+    :ivar x: Абсцисса положения
+    :ivar y: Ордината положения
+    :ivar width: Ширина в пикселях
+    :ivar height: Высота в пикселях
+    :ivar outline: Цвет контура
+    :ivar settings: Настройка цветов
+    :ivar text: Текст
+    :ivar action: Функция вызывающаяся при нажатии
+    :ivar is_text: Есть ли воплощение кнопки в виде блока
+    :ivar direction: Направление кнопки
+    """
     def __init__(self, x, y, width, height, outline, settings, text="", action=None, is_text=0, direction=1):
         super().__init__(x, y, width, height, outline, settings, text, action)
         if is_text or self.text in TEXT_ONLY:
