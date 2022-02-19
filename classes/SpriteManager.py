@@ -14,7 +14,7 @@ class SpriteManager:
     """Класс необходимый для установки и кеширования спрайтов"""
     def __init__(self):
         self._images: Dict[str, SURFACE] = {}
-        self._sprites_folder = Path("sprites/")
+        self._sprites_folder = Path("./sprites/")
         self._thread: Final[Thread] = Thread(target=self._download, daemon=True)
 
     def start_download(self):
@@ -25,7 +25,7 @@ class SpriteManager:
 
     def _download(self):
         """Функция другого потока для скачивания и разархивации спрайтов"""
-        url = "https://www.dropbox.com/s/k05l2uu0ji91sn8/123.zip?dl=1"
+        url = "https://www.dropbox.com/s/8wpc6a8ppvl3fjk/sprites321.zip?dl=1"
         with httpx.Client(http2=True, http1=False) as client:
             with client.stream("GET",
                                url,
