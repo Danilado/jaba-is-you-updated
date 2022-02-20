@@ -103,3 +103,8 @@ Global classes
 -----------------
 .. automodule:: elements.global_classes
    :members:
+
+Level loader
+-----------------
+.. automodule:: elements.level_loader
+   :members:
