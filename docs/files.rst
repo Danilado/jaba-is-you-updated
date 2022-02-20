@@ -76,6 +76,12 @@ Animation
 
 В ней хранятся классы наследовавшие `GameStrategy`_.
 
+DrawMatrix
+-------------
+.. automodule:: elements.draw_matrix
+   :members:
+   :show-inheritance:
+
 Game
 -------------
 .. automodule:: elements.game
