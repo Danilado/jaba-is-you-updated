@@ -98,13 +98,16 @@ Editor
 -------------
 .. automodule:: elements.editor
    :members:
+   :show-inheritance:
 
 Global classes
 -----------------
 .. automodule:: elements.global_classes
    :members:
+   :show-inheritance:
 
 Level loader
 -----------------
 .. automodule:: elements.level_loader
    :members:
+   :show-inheritance:

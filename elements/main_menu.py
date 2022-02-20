@@ -15,6 +15,9 @@ from global_types import SURFACE
 
 
 class MainMenu(GameStrategy):
+    """
+    Стратегия главного меню
+    """
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self._state: Optional[State] = None
