@@ -11,7 +11,7 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
-from elements.global_classes import EuiSettings, IuiSettings
+from elements.global_classes import EuiSettings, IuiSettings, sound_manager
 from settings import SHOW_GRID, RESOLUTION, OBJECTS
 
 
@@ -89,6 +89,7 @@ class Editor(GameStrategy):
         ]
         self.screen = pygame.display.set_mode((1800, 900))
         self.page_turn(0)
+        sound_manager.get_music("sounds/editor")
 
     def page_turn(self, n: int):
         """Меняет страницу списка объектов
@@ -186,7 +187,8 @@ class Editor(GameStrategy):
         # TODO: Refactor this. There is "Long Method"
         state = None
         self.screen.fill("black")
-
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()
         for event in events:
             if event.type == pygame.QUIT:
                 self.safe_exit()

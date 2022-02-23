@@ -10,7 +10,7 @@ from classes.state import State
 from elements.editor import Editor
 from elements.game import Game
 from elements.level_loader import Loader
-from elements.global_classes import GuiSettings
+from elements.global_classes import GuiSettings, sound_manager
 from global_types import SURFACE
 
 
@@ -18,6 +18,8 @@ class MainMenu(GameStrategy):
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self._state: Optional[State] = None
+        pygame.mixer.init()
+        sound_manager.get_music("sounds/menu")
 
     def _start_the_game(self):
         self._state = State(GameState.switch, Game)
@@ -32,6 +34,8 @@ class MainMenu(GameStrategy):
         self._state = State(GameState.switch, Loader)
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int):
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()
         buttons = [
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
                    GuiSettings(), "Начать играть", self._start_the_game),

@@ -6,6 +6,7 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.player import Player
 from classes.state import State
+from elements.global_classes import sound_manager
 from global_types import SURFACE
 from settings import SHOW_GRID, RESOLUTION
 
@@ -19,11 +20,13 @@ class Game(GameStrategy):
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self.jaba = Player(0, 0)
+        sound_manager.get_music("sounds/baba")
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         state = None
         self.screen.fill("black")
-
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()
         for event in events:
             if event.type == pygame.QUIT:
                 state = State(GameState.back)
