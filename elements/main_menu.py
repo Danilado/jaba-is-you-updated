@@ -18,8 +18,7 @@ class MainMenu(GameStrategy):
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self._state: Optional[State] = None
-        pygame.mixer.init()
-        sound_manager.get_music("sounds/menu")
+        sound_manager.get_music("sounds/Music/menu")
 
     def _start_the_game(self):
         self._state = State(GameState.switch, Game)
@@ -34,8 +33,6 @@ class MainMenu(GameStrategy):
         self._state = State(GameState.switch, Loader)
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int):
-        if not pygame.mixer.music.get_busy():
-            pygame.mixer.music.play()
         buttons = [
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
                    GuiSettings(), "Начать играть", self._start_the_game),
@@ -63,3 +60,13 @@ class MainMenu(GameStrategy):
             if self._state is None:
                 self._state = State(GameState.flip, None)
         return self._state
+
+    def music(self):
+        sound_manager.get_music("sounds/Music/menu")
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()
+
+    def replay_music(self):
+        pygame.mixer.init()
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()

@@ -1,6 +1,6 @@
 levels/*
 !.gitkeep
-
+sounds/
 # Created by https://www.toptal.com/developers/gitignore/api/visualstudiocode,python,pycharm,visualstudio
 # Edit at https://www.toptal.com/developers/gitignore?templates=visualstudiocode,python,pycharm,visualstudio
 

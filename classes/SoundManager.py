@@ -34,12 +34,12 @@ class SoundManager:
                     zip_file.extractall(self._sounds_folder)
 
     def get_music(self, path: Union[Path, str]):
+        pygame.mixer.init()
         if not isinstance(path, Path):
             path = Path(path)
         path = str(path.with_suffix(".ogg").resolve())
         if self._thread.is_alive():
-            print("a")
-            self._thread.join(5)
-        if path not in self._sound:
-            self._sound[path] = pygame.mixer.music.load(path)
+            print("b")
+            self._thread.join()
+        self._sound[path] = pygame.mixer.music.load(path)
         return self._sound[path]

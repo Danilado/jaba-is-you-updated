@@ -20,13 +20,10 @@ class Game(GameStrategy):
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self.jaba = Player(0, 0)
-        sound_manager.get_music("sounds/baba")
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         state = None
         self.screen.fill("black")
-        if not pygame.mixer.music.get_busy():
-            pygame.mixer.music.play()
         for event in events:
             if event.type == pygame.QUIT:
                 state = State(GameState.back)
@@ -44,3 +41,13 @@ class Game(GameStrategy):
         if state is None:
             state = State(GameState.flip)
         return state
+
+    def music(self):
+        sound_manager.get_music("sounds/Music/baba")
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()
+
+    def replay_music(self):
+        pygame.mixer.init()
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()
