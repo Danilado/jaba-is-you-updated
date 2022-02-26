@@ -5,7 +5,7 @@ import pygame
 
 import settings
 from classes.animation import Animation
-from elements.global_classes import sprite_manager
+from elements.global_classes import sprite_manager, sound_manager
 from global_types import SURFACE
 
 
@@ -100,6 +100,7 @@ class Player:
             self.moves.append((self.x, self.y, self.status_of_rotate))
             self.status_of_rotate = 3
             self.y += 1
+
 
     def move_left(self):
         """Метод движения персонажа влево"""

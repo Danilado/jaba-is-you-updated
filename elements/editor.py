@@ -11,7 +11,7 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
-from elements.global_classes import EuiSettings, IuiSettings
+from elements.global_classes import EuiSettings, IuiSettings, sound_manager
 from settings import SHOW_GRID, RESOLUTION, OBJECTS
 
 
@@ -186,7 +186,6 @@ class Editor(GameStrategy):
         # TODO: Refactor this. There is "Long Method"
         state = None
         self.screen.fill("black")
-
         for event in events:
             if event.type == pygame.QUIT:
                 self.safe_exit()
@@ -266,3 +265,13 @@ class Editor(GameStrategy):
         if state is None:
             state = State(GameState.flip)
         return state
+
+    def music(self):
+        sound_manager.get_music("sounds/Music/editor")
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()
+
+    def replay_music(self):
+        pygame.mixer.init()
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()

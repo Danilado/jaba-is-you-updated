@@ -1,6 +1,7 @@
 import abc
 from dataclasses import dataclass
 
+from classes.SoundManager import SoundManager
 from classes.SpriteManager import SpriteManager
 from global_types import COLOR
 
@@ -44,3 +45,4 @@ class IuiSettings(AbstractButtonSettings):
 
 
 sprite_manager = SpriteManager()
+sound_manager = SoundManager()
