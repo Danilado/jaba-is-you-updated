@@ -29,3 +29,11 @@ class GameStrategy(abc.ABC):
             Для обновления экрана, верните State(GameState.flip)
         """
         ...
+
+    @abc.abstractmethod
+    def music(self):
+        ...
+
+    @abc.abstractmethod
+    def replay_music(self):
+        ...

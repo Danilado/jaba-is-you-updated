@@ -84,16 +84,19 @@ class GameContext:
                 pygame.display.set_caption(f"{clock.get_fps()} FPS; {self.game_strategy.__class__.__name__}")
                 events = pygame.event.get()
                 draw_state = self.game_strategy.draw(events, delta_time)
+                self.game_strategy.replay_music()
                 if draw_state is not None:
                     if draw_state.game_state is GameState.stop:
                         raise KeyboardInterrupt
                     elif draw_state.game_state is GameState.switch:
                         self.game_strategy = draw_state.switch_to
+                        self.game_strategy.music()
                     elif draw_state.game_state is GameState.flip:
                         pygame.display.flip()
                     elif draw_state.game_state is GameState.back:
                         if len(self.history) > 1:
                             self.game_strategy = self.history[-2]
+                            self.game_strategy.music()
                         else:
                             raise ValueError("Can't back; Use debug to show the history of strategies; ")
                     else:

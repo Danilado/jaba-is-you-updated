@@ -2,7 +2,7 @@ import argparse
 
 import settings
 from classes.game_context import GameContext
-from elements.global_classes import sprite_manager
+from elements.global_classes import sprite_manager, sound_manager
 from elements.main_menu import MainMenu
 
 
@@ -14,6 +14,7 @@ def main():
         settings.DEBUG = True
         print("Debug on")
 
+    sound_manager.start_download()
     sprite_manager.start_download()
 
 
