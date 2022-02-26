@@ -1,6 +1,5 @@
 import os
 import os.path
-from typing import Optional
 
 import pygame
 
@@ -38,6 +37,8 @@ class Object:
 
     :ivar width: Ширина спрайта
     :ivar height: Высота спрайта
+
+    :ivar animation: Анимация объекта
     """
 
     def debug(self):
@@ -73,23 +74,27 @@ is_text:    {self.text}
 
         :param is_text: Переменная определяющая является объект текстом, или нет
         """
-        self.name = name
+        self.name: str = name
         if self.name in TEXT_ONLY:
-            self.is_text = True
-        self.text = is_text
-        self.direction = direction  # Используется с правилами move, turn, shift и т.д.
-        self.x = x  # Не по пикселям, а по сетке!
-        self.y = y  # Не по пикселям, а по сетке!
-        self.xpx = x * 50 if self.x is not None else None  # По пикселям
-        self.ypx = y * 50 if self.y is not None else None  # По пикселям
-        self.width = 50
-        self.height = 50
-        self.animation: Animation
-        self.animation_init()
+            self.is_text: bool = True
+        self.text: bool = is_text
+        self.direction: int = direction  # Используется с правилами move, turn, shift и т.д.
+        self.x: int = x  # Не по пикселям, а по сетке!
+        self.y: int = y  # Не по пикселям, а по сетке!
+        self.xpx: int = x * 50 if self.x is not None else None  # По пикселям
+        self.ypx: int = y * 50 if self.y is not None else None  # По пикселям
+        self.width: int = 50
+        self.height: int = 50
+        self.animation: Animation = self.animation_init()
 
-    def animation_init(self):
+    def animation_init(self) -> Animation:
+        """
+        Инициализация анимации и спрайтов
+
+        :return: Анимацию
+        """
         if self.text or self.name in TEXT_ONLY:
-            self.animation = Animation(
+            animation = Animation(
                 [
                     pygame.transform.scale(
                         sprite_manager.get(f"sprites/words/{self.name}/{self.name}{index + 1}"),
@@ -109,19 +114,20 @@ is_text:    {self.text}
                 3: 'l',
             }
             if state_count > 4:
-                self.animation = Animation(
+                animation = Animation(
                     [pygame.transform.scale(
                         sprite_manager.get(f"sprites/{self.name}/{letterize[self.direction]}0{index}"),
                         (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
             elif state_count > 1:
-                self.animation = Animation(
+                animation = Animation(
                     [pygame.transform.scale(
                         sprite_manager.get(f"sprites/{self.name}/{letterize[self.direction]}{index + 1}"),
                         (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
             else:
-                self.animation = Animation(
+                animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{index + 1}"),
                                             (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
+        return animation
 
     def draw(self, screen: SURFACE):
         """

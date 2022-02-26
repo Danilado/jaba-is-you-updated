@@ -15,6 +15,11 @@ from settings import RESOLUTION
 
 
 class Loader(GameStrategy):
+    """
+    Стратегия загрузки уровня.
+
+    :ivar buttons: Список кнопок
+    """
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self._state: Optional[State] = None
@@ -29,14 +34,25 @@ class Loader(GameStrategy):
             )
 
     def go_to_game(self, level_name: str):
+        """
+        Смена стратегии на :attr:`~elements.draw_matrix.Draw`.
+
+        :param level_name: Название уровня в папке levels
+        """
         self._state = State(GameState.switch, partial(Draw, level_name))
 
     def go_back(self):
+        """Вернуться на прошлую стратегию"""
         self._state = State(GameState.back)
 
     @staticmethod
-    def find_levels():
-        levels_arr = []
+    def find_levels() -> List[str]:
+        """
+        Поиск уровней в папке levels
+
+        :return: Список с путями к уровням в виде строк
+        """
+        levels_arr: List[str] = []
         for entry in glob.glob("levels/*.omegapog_map_file_type_MLG_1337_228_100500_69_420"):
             levels_arr.append(entry.split('.')[0].split('\\')[1])
         return levels_arr

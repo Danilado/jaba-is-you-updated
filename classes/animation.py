@@ -9,8 +9,26 @@ _sync: Dict[int, int] = {}  # Вот как мне не нравится всё 
 
 
 class Animation:
+    """
+    Класс анимации
+
+    :ivar sprites: Список картинок которые будут меняться каждые :attr:`~.Animation.sprite_switch_delay`
+    :ivar sprite_switch_delay: Задержка в миллисекундах между кадрами
+    :ivar position: Позиция в пикселях где будет отрисовываться
+    :ivar synchronize: Синхронизировать с остальными анимациями, чтобы кадры менялись одновременно в всех анимациях.
+    """
+
     def __init__(self, sprites: Sequence[Optional[Union[pygame.surface.Surface, str]]], sprite_switch_delay: int,
                  position: Tuple[int, int], synchronize: bool = True):
+        """
+        Инициализация анимации
+
+        :param sprites:  Список картинок которые будут меняться каждые **sprite_switch_delay**
+        :param sprite_switch_delay: Задержка в миллисекундах между кадрами
+        :param position: Позиция в пикселях где будет отрисовываться
+        :param synchronize:
+            Синхронизировать ли с остальными анимациями, чтобы кадры менялись одновременно в всех анимациях.
+        """
         if len(sprites) == 0:
             raise ValueError("Sprites are empty")
         self.position: Tuple[int, int] = position
@@ -37,17 +55,31 @@ class Animation:
     # ...AbstractGameGraphicalUserInterfaceStrategy, или же
     # ...абстрактная стратегия игрового графического пользовательского интерфейса.
     def current_sprites_index(self) -> int:
+        """
+        :getter: Возвращает текущий номер элемента в :attr:`~.Animation.sprites` который отрисовывается на экране
+
+        :setter:
+            Устанавливает текущий номер элемента который отрисовывается на экране в :attr:`~.Animation.sprites`,
+            если номер > длины :attr:`~.Animation.sprites`, или номер отрицательный, возбуждается исключение
+        """
         return self._current_sprites_index
 
     @current_sprites_index.setter
     def current_sprites_index(self, value: int):
-        if value > len(self.sprites):
+        if value > len(self.sprites) or value < 0:
             raise ValueError("current sprites index should be lower than length of sprites. "
                              "You might want to use `% len(object.sprites)`")
         self._current_sprites_index = value
 
     @property
     def current_sprite(self) -> pygame.surface.Surface:
+        """
+        :getter: Возвращает текущий спрайт который отрисовывается на экране
+
+        :setter:
+            Устанавливает текущий спрайт который отрисовывается на экране в :attr:`~.Animation.sprites`,
+            если спрайта не существует в :attr:`~.Animation.sprites`, тогда возбуждается исключение.
+        """
         return self.sprites[self.current_sprites_index]
 
     @current_sprite.setter
@@ -65,6 +97,11 @@ class Animation:
         return copy
 
     def update(self) -> None:
+        """
+        Обновление :attr:`~.Animation.current_sprite`.
+
+        :return: Ничего
+        """
         if pygame.time.get_ticks() - self._timer >= self.sprite_switch_delay:
             if self.synchronize:
                 _sync[self.sprite_switch_delay] = pygame.time.get_ticks()
@@ -74,4 +111,10 @@ class Animation:
             self.current_sprites_index = (self._current_sprites_index + 1) % len(self.sprites)
 
     def draw(self, screen: SURFACE) -> None:
+        """
+        Отрисовка :attr:`~.Animation.current_sprite` на :attr:`~.Animation.position` в ``screen``
+
+        :param screen: Экран на котором будет отрисовываться :attr:`~.Animation.current_sprite`
+        :return:
+        """
         screen.blit(self.current_sprite, self.position)

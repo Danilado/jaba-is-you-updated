@@ -1,5 +1,5 @@
-from settings import DEBUG
 from typing import List, Tuple, Literal
+from settings import DEBUG
 
 import pygame
 
@@ -19,9 +19,10 @@ class Player:
     :ivar status_of_rotate: Копия направления движения, изменять вне класса не рекомендуется
     :ivar turning_side: Текущее направление движения, 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
     :ivar status_cancel: Отменять ли последнее движение?
+    :ivar animation: Анимация игрока.
     """
 
-    def __init__(self, x, y, animation_sync: bool = True):
+    def __init__(self, x: int, y: int, animation_sync: bool = True):
         """
         Инициализация игрока
 
@@ -34,10 +35,9 @@ class Player:
 
         self.status_of_rotate: Literal[0, 1, 2, 3] = 0  # TODO: Use enum, and make field private
 
-        self.status_of_rotate = 0  # 0 - вправо, 1 - вверх, 2 - влево, 3 - вниз
-        self.turning_side = -1
+        self.turning_side: Literal[0, 1, 2, 3, -1] = -1
         self.status_cancel: bool = False
-        self.animation = Animation(
+        self.animation: Animation = Animation(
                 [pygame.transform.scale(sprite_manager.get(f"sprites/jaba/r0{index}"), (50, 50))
                  for index in range(0, 3)],
                 200, (self.x, self.y), animation_sync
