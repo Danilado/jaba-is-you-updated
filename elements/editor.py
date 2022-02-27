@@ -2,6 +2,7 @@ import os
 from functools import partial
 from math import ceil
 from typing import List, Optional
+from datetime import datetime
 
 import pygame
 
@@ -11,7 +12,9 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
-from elements.global_classes import EuiSettings, IuiSettings, sound_manager
+from elements.game import Game
+from elements.global_classes import EuiSettings, IuiSettings
+from elements.overlay import EditorOverlay
 from settings import SHOW_GRID, RESOLUTION, OBJECTS
 
 
@@ -50,19 +53,6 @@ def unparse_all(state):
     return string, counter
 
 
-def save(state):
-    """Сохранение трёхмерного массива в память
-
-    :param state: Трёхмерный массив состояния сетки
-    :type state: list
-    """
-    string, counter = unparse_all(state)
-    if counter > 0:
-        with open(f"levels/level{len(os.listdir('levels/'))}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
-                  encoding='utf-8') as file:
-            file.write(string)
-
-
 class Editor(GameStrategy):
     def __init__(self, screen: pygame.Surface):
         """Класс редактора уровней
@@ -76,7 +66,8 @@ class Editor(GameStrategy):
         self.is_text = False
         self.name: Optional[str] = None
         self.changes: List[List[List[List[Object]]]] = []
-        self.current_state: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
+        self.current_state: List[List[List[Object]]] = [
+            [[] for _ in range(32)] for _ in range(18)]
         self.focus = (-1, -1)
         self.buttons: List[ObjectButton] = []
         self.page = 0
@@ -88,7 +79,27 @@ class Editor(GameStrategy):
                    f">", partial(self.page_turn, 1)),
         ]
         self.screen = pygame.display.set_mode((1800, 900))
+        self.exit_flag = False
+        self.discard = False
         self.page_turn(0)
+        self.level_name = None
+        self.state = None
+        self.entering = True
+
+    def save(self, state, name=None):
+        """Сохранение трёхмерного массива в память
+
+        :param state: Трёхмерный массив состояния сетки
+        :type state: list
+        """
+        string, counter = unparse_all(state)
+        if counter > 0:
+            print(name)
+            if name is None:
+                name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+            with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
+                      encoding='utf-8') as file:
+                file.write(string)
 
     def page_turn(self, n: int):
         """Меняет страницу списка объектов
@@ -116,10 +127,22 @@ class Editor(GameStrategy):
                              EuiSettings(), text, partial(self.set_name, text), self.is_text, self.direction))
         return button_array
 
+    def unresize(self):
+        """Меняет разрешение экрана с расширенного на изначальное через 
+        магические константы 1600х900 \n
+        Gospodin: Вызывает удар Кости по моей голове"""
+        self.screen = pygame.display.set_mode((1600, 900))
+
     def safe_exit(self):
         """Функция подготовки к безопасному выходу из редактора без потери изменений"""
-        self.screen = pygame.display.set_mode((1600, 900))
-        save(self.current_state)
+        print(self.level_name)
+        self.save(self.current_state, self.level_name)
+        self.unresize()
+
+    def extreme_exit(self):
+        """Функция подготовки к безопасному выходу из редактора без потери изменений"""
+        self.save(self.current_state, None)
+        self.unresize()
 
     def set_name(self, string: str):
         """Функция смены названия объекта, а следовательно текстур и правил.
@@ -132,7 +155,8 @@ class Editor(GameStrategy):
     def turn(self, direction: int):
         """Функция поворота объекта
 
-        :param direction: направление, где 1 - по часовой стрелке, а -1 - против часовой
+        :param direction: направление, где 1 - по часовой стрелке, 
+        а -1 - против часовой
         """
         self.direction = (self.direction + direction) % 4
         self.page_turn(0)
@@ -140,7 +164,8 @@ class Editor(GameStrategy):
     def set_tool(self, n: int):
         """Функция смены инструмента
 
-        :param n: [0 - 2], где 0 - удалить, 1 - создать, а 2 - исследовать клетку и вывести содержимое в консоль 
+        :param n: [0 - 2], где 0 - удалить, 1 - создать, а 2 - исследовать 
+        клетку и вывести содержимое в консоль 
         :type n: int
         """
         self.tool = n
@@ -148,7 +173,7 @@ class Editor(GameStrategy):
     def is_text_swap(self):
         """Меняет является ли объект текстом, или нет
         """
-        self.is_text = False if self.is_text else True 
+        self.is_text = False if self.is_text else True
         self.page_turn(0)
 
     def undo(self):
@@ -175,25 +200,48 @@ class Editor(GameStrategy):
                     Object(self.focus[0], self.focus[1], self.direction, self.name, self.is_text))
 
     def delete(self):
-        """Если в клетке есть объекты, удаляет последний созданный из них
-        """
+        """Если в клетке есть объекты, удаляет последний созданный из них"""
         # ? Нужно ли выбирать что удалять?
         if len(self.current_state[self.focus[1]][self.focus[0]]) > 0:
             self.changes.append(my_deepcopy(self.current_state))
             self.current_state[self.focus[1]][self.focus[0]].pop()
 
+    def overlay(self):
+        """Вызывает меню управления редактора"""
+        self.unresize()
+        self.state = State(GameState.switch, partial(
+            EditorOverlay, self.screen, self))
+
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
+        """Отрисовывает редактор (включая все его элементы) и 
+        обрабатывает все действия пользователя
+
+        :param events: События, собранные окном pygame
+        :type events: List[pygame.event.Event]
+        :param delta_time_in_milliseconds: Время между нынешним 
+        и предыдущим кадром (unused)
+        :type delta_time_in_milliseconds: int
+        :return: Возвращает состояние для правильной работы game_context
+        :rtype: Optional[State]
+        """
         # TODO: Refactor this. There is "Long Method"
-        state = None
+        self.state = None
+        if self.entering:
+            self.entering = False
+            self.overlay()
+        if self.exit_flag:
+            if not self.discard:
+                self.safe_exit()
+            self.state = State(GameState.back)
+            self.unresize()
         self.screen.fill("black")
         for event in events:
             if event.type == pygame.QUIT:
-                self.safe_exit()
-                state = State(GameState.back)
+                self.extreme_exit()
+                self.state = State(GameState.back)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.safe_exit()
-                    state = State(GameState.back)
+                    self.overlay()
                 if event.key == pygame.K_e:
                     self.turn(1)
                 if event.key == pygame.K_q:
@@ -237,17 +285,19 @@ class Editor(GameStrategy):
                    partial(self.turn, 1)),
         ]
 
-        pygame.draw.rect(self.screen, (44, 44, 44), (self.focus[0] * 50, self.focus[1] * 50, 50, 50))
+        pygame.draw.rect(self.screen, (44, 44, 44),
+                         (self.focus[0] * 50, self.focus[1] * 50, 50, 50))
 
         if SHOW_GRID:
             for i in range(RESOLUTION[0] // 50 + 1):  # Отрисовать сетку
-                pygame.draw.line(self.screen, (255, 255, 255), (i * 50, 0), (i * 50, RESOLUTION[1]), 1)
+                pygame.draw.line(self.screen, (255, 255, 255),
+                                 (i * 50, 0), (i * 50, RESOLUTION[1]), 1)
             for i in range(RESOLUTION[1] // 50 + 1):
                 pygame.draw.line(self.screen, (255, 255, 255), (0, i * 50 - (1 if i == 18 else 0)),
                                  (RESOLUTION[0], i * 50 - (1 if i == 18 else 0)), 1)
 
         for button in self.buttons:
-            if state is None and button.update(events) and button.action is exit:
+            if self.state is None and button.update(events) and button.action is exit:
                 break
             button.draw(self.screen)
         for pagination_button in self.pagination_buttons:
@@ -262,9 +312,9 @@ class Editor(GameStrategy):
                 for object_button in cell:
                     object_button.draw(self.screen)
 
-        if state is None:
-            state = State(GameState.flip)
-        return state
+        if self.state is None:
+            self.state = State(GameState.flip)
+        return self.state
 
     def music(self):
         sound_manager.get_music("sounds/Music/editor")
