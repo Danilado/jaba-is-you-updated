@@ -5,7 +5,8 @@ import pygame
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
 
-_sync: Dict[int, int] = {}  # Вот как мне не нравится всё это. ключ - задержка, значение - время
+# Вот как мне не нравится всё это. ключ - задержка, значение - время
+_sync: Dict[int, int] = {}
 
 
 class Animation:
@@ -91,7 +92,8 @@ class Animation:
         self.current_sprites_index = index
 
     def __copy__(self) -> "Animation":
-        copy = Animation(self.sprites.copy(), self.sprite_switch_delay, self.position, self.synchronize)
+        copy = Animation(
+            self.sprites.copy(), self.sprite_switch_delay, self.position, self.synchronize)
         copy._timer = self._timer
         copy.current_sprites_index = self.current_sprites_index
         return copy
@@ -108,7 +110,8 @@ class Animation:
                 self._timer = _sync[self.sprite_switch_delay]
             else:
                 self._timer = pygame.time.get_ticks()
-            self.current_sprites_index = (self._current_sprites_index + 1) % len(self.sprites)
+            self.current_sprites_index = (
+                self._current_sprites_index + 1) % len(self.sprites)
 
     def draw(self, screen: SURFACE) -> None:
         """

@@ -17,6 +17,7 @@ class Game(GameStrategy):
 
     :ivar jaba: Игрок
     """
+
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self.jaba = Player(0, 0)
@@ -37,7 +38,8 @@ class Game(GameStrategy):
         if SHOW_GRID:
             for x in range(0, RESOLUTION[0], 50):
                 for y in range(0, RESOLUTION[1], 50):
-                    pygame.draw.rect(self.screen, (255, 255, 255), (x, y, 50, 50), 1)
+                    pygame.draw.rect(
+                        self.screen, (255, 255, 255), (x, y, 50, 50), 1)
         if state is None:
             state = State(GameState.flip)
         return state

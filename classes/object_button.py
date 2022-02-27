@@ -27,14 +27,17 @@ class ObjectButton(Button):
     """
     def __init__(self, x, y, width, height, outline, settings, text="", action=None, is_text=0, direction=1):
         super().__init__(x, y, width, height, outline, settings, text, action)
-        if is_text or self.text in TEXT_ONLY:
+        if (is_text or self.text in TEXT_ONLY)\
+                and not self.text in PIPES \
+                and not self.text in LETTERS:
             self.animation = Animation(
                 [pygame.transform.scale(sprite_manager.get(f"sprites/words/{self.text}/{self.text}{index + 1}"),
                                         (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
         else:
             directory = f'./sprites/{self.text}'
             sprite_count = len(
-                [name for name in os.listdir(directory) if os.path.isfile(os.path.join(directory, name))]
+                [name for name in os.listdir(directory) if os.path.isfile(
+                    os.path.join(directory, name))]
             )
             state_count = sprite_count // 3
             letterize = {
@@ -50,7 +53,8 @@ class ObjectButton(Button):
             elif state_count > 1:
                 self.animation = Animation(
                     [pygame.transform.scale(
-                        sprite_manager.get(f"sprites/{self.text}/{letterize[direction]}{index + 1}"),
+                        sprite_manager.get(
+                            f"sprites/{self.text}/{letterize[direction]}{index + 1}"),
                         (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
             else:
                 self.animation = Animation(

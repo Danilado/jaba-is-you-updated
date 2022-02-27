@@ -17,6 +17,7 @@ class GameContext:
 
     :ivar screen: Экран на котором будет всё отрисовываться
     """
+
     def __init__(self, game_strategy: Union[Callable[[SURFACE], "GameStrategy"], Type["GameStrategy"]]):
         """
         Инициализация класса
@@ -50,8 +51,10 @@ class GameContext:
         else:
             self._history.append(self._game_strategy)
         if DEBUG:
-            print(f'Current game strategy is {self._game_strategy.__class__.__name__}; History a.k.a stack: ', end="")
-            pprint([game_strategy.__class__.__name__ for game_strategy in self._history], indent=4)
+            print(
+                f'Current game strategy is {self._game_strategy.__class__.__name__}; History a.k.a stack: ', end="")
+            pprint(
+                [game_strategy.__class__.__name__ for game_strategy in self._history], indent=4)
 
     @property
     def running(self) -> bool:
@@ -81,7 +84,8 @@ class GameContext:
         while self.running:
             try:
                 delta_time = clock.tick(FRAMES_PER_SECOND)
-                pygame.display.set_caption(f"{clock.get_fps()} FPS; {self.game_strategy.__class__.__name__}")
+                pygame.display.set_caption(
+                    f"FPS: {round(clock.get_fps())} in {self.game_strategy.__class__.__name__} ")
                 events = pygame.event.get()
                 draw_state = self.game_strategy.draw(events, delta_time)
                 self.game_strategy.replay_music()
@@ -98,8 +102,10 @@ class GameContext:
                             self.game_strategy = self.history[-2]
                             self.game_strategy.music()
                         else:
-                            raise ValueError("Can't back; Use debug to show the history of strategies; ")
+                            raise ValueError(
+                                "Can't back; Use debug to show the history of strategies; ")
                     else:
-                        raise ValueError(f"draw_state.game_state: {draw_state.game_state}. WTF is this!?")
+                        raise ValueError(
+                            f"draw_state.game_state: {draw_state.game_state}. WTF is this!?")
             except KeyboardInterrupt:
                 self.running = False

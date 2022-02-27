@@ -33,15 +33,16 @@ class Player:
         self._y = y
         self.moves: List[Tuple[int, int, int]] = []
 
-        self.status_of_rotate: Literal[0, 1, 2, 3] = 0  # TODO: Use enum, and make field private
+        # TODO: Use enum, and make field private
+        self.status_of_rotate: Literal[0, 1, 2, 3] = 0
 
         self.turning_side: Literal[0, 1, 2, 3, -1] = -1
         self.status_cancel: bool = False
-        self.animation: Animation = Animation(
-                [pygame.transform.scale(sprite_manager.get(f"sprites/jaba/r0{index}"), (50, 50))
-                 for index in range(0, 3)],
-                200, (self.x, self.y), animation_sync
-            )
+        self.animation = Animation(
+            [pygame.transform.scale(sprite_manager.get(f"sprites/jaba/r0{index}"), (50, 50))
+             for index in range(0, 3)],
+            200, (self.x, self.y), animation_sync
+        )
 
     @property
     def animation_sync(self) -> bool:
@@ -130,23 +131,27 @@ class Player:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_d:
                     self.animation.sprites = [
-                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/r0{index}"), (50, 50))
+                        pygame.transform.scale(sprite_manager.get(
+                            f"sprites/jaba/r0{index}"), (50, 50))
                         for index in range(0, 3)
                     ]
                     self.turning_side = 0
                 if event.key == pygame.K_w:
                     self.animation.sprites = [
-                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/f1{index}"), (50, 50))
+                        pygame.transform.scale(sprite_manager.get(
+                            f"sprites/jaba/f1{index}"), (50, 50))
                         for index in range(0, 3)]
                     self.turning_side = 1
                 if event.key == pygame.K_a:
                     self.animation.sprites = [
-                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/l0{index}"), (50, 50))
+                        pygame.transform.scale(sprite_manager.get(
+                            f"sprites/jaba/l0{index}"), (50, 50))
                         for index in range(0, 3)]
                     self.turning_side = 2
                 if event.key == pygame.K_s:
                     self.animation.sprites = [
-                        pygame.transform.scale(sprite_manager.get(f"sprites/jaba/b0{index}"), (50, 50))
+                        pygame.transform.scale(sprite_manager.get(
+                            f"sprites/jaba/b0{index}"), (50, 50))
                         for index in range(0, 3)]
                     self.turning_side = 3
                 if event.key == pygame.K_z:

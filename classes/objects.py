@@ -76,28 +76,28 @@ is_text:    {self.text}
         """
         self.name: str = name
         if self.name in TEXT_ONLY:
-            self.is_text: bool = True
-        self.text: bool = is_text
-        self.direction: int = direction  # Используется с правилами move, turn, shift и т.д.
-        self.x: int = x  # Не по пикселям, а по сетке!
-        self.y: int = y  # Не по пикселям, а по сетке!
-        self.xpx: int = x * 50 if self.x is not None else None  # По пикселям
-        self.ypx: int = y * 50 if self.y is not None else None  # По пикселям
-        self.width: int = 50
-        self.height: int = 50
-        self.animation: Animation = self.animation_init()
+            self.is_text = True
+        self.text = is_text
+        # Используется с правилами move, turn, shift и т.д.
+        self.direction = direction
+        self.x = x  # Не по пикселям, а по сетке!
+        self.y = y  # Не по пикселям, а по сетке!
+        self.xpx = x * 50 if self.x is not None else None  # По пикселям
+        self.ypx = y * 50 if self.y is not None else None  # По пикселям
+        self.width = 50
+        self.height = 50
+        self.animation: Animation
+        self.animation_init()
 
-    def animation_init(self) -> Animation:
-        """
-        Инициализация анимации и спрайтов
-
-        :return: Анимацию
-        """
-        if self.text or self.name in TEXT_ONLY:
-            animation = Animation(
+    def animation_init(self):
+        if self.text or self.name in TEXT_ONLY \
+                and not self.name in PIPES \
+                and not self.name in LETTERS:
+            self.animation = Animation(
                 [
                     pygame.transform.scale(
-                        sprite_manager.get(f"sprites/words/{self.name}/{self.name}{index + 1}"),
+                        sprite_manager.get(
+                            f"sprites/words/{self.name}/{self.name}{index + 1}"),
                         (50, 50)
                     ) for index in range(0, 3)
                 ], 200, (self.xpx, self.ypx), True
@@ -116,12 +116,14 @@ is_text:    {self.text}
             if state_count > 4:
                 animation = Animation(
                     [pygame.transform.scale(
-                        sprite_manager.get(f"sprites/{self.name}/{letterize[self.direction]}0{index}"),
+                        sprite_manager.get(
+                            f"sprites/{self.name}/{letterize[self.direction]}0{index}"),
                         (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
             elif state_count > 1:
                 animation = Animation(
                     [pygame.transform.scale(
-                        sprite_manager.get(f"sprites/{self.name}/{letterize[self.direction]}{index + 1}"),
+                        sprite_manager.get(
+                            f"sprites/{self.name}/{letterize[self.direction]}{index + 1}"),
                         (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
             else:
                 animation = Animation(

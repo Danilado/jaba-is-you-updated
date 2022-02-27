@@ -8,7 +8,8 @@ from elements.main_menu import MainMenu
 
 def main():
     parser = argparse.ArgumentParser(description='Jaba')
-    parser.add_argument("-d", "--debug",        help='Shows ghosts target position',    action="store_true")
+    parser.add_argument("-d", "--debug",
+                        help='Shows ghosts target position',    action="store_true")
     args = parser.parse_args()
     if args.debug:
         settings.DEBUG = True

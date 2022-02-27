@@ -22,19 +22,19 @@ PIPES: Final[Sequence[str]] = (
     'pipe/pipe_lf', 'pipe/pipe_lrf', 'pipe/pipe_r', 'pipe/pipe_rf',
 )
 
-LETTERS: Final[Sequence[str]] = ('words/a', 'words/b', 'words/c', 'words/d', 'words/e', 'words/f', 'words/g', 'words/h', 'words/i', 'words/l'
+LETTERS: Final[Sequence[str]] = ('ring', 'words/a', 'skull_map', 'trash', 'mount_map', 'medusa', 'whitecircle',
+                                 'fir-tree', 'snow_map', 'castle', 'words/b', 'words/c', 'words/d', 'words/e',
+                                 'words/f', 'words/g', 'words/h', 'words/i', 'words/l'
                                  )
 
 
 OBJECTS: Final[Sequence[str]] = (*TEXT_ONLY, *PIPES, *LETTERS, 'cake', 'fire', 'ghost',
-                                 'rock', 'door', 'skull', 'tile', 'bat', 'bird', 'bug', 'rocket', 'fruit', 'love',
-                                 'power',
-                                 'rose', 'bat', 'cursor', 'flag', 'hand', 'key', 'sun', 'stump', 'star', 'moon', 'fungi', 'ufo',
-                                 'reed', 'cash',
-                                 'ladder', 'fear', 'door', 'bubble', 'dust', 'cog', 'flower', 'cup', 'fungus',
-                                 'box', 'shirt', 'tree',
-                                 'castle', 'skull_map', 'medusa', 'fir-tree', 'leaf', 'trash', 'whitecircle', 'violet', 'mount_map', 'snow_map',
-                                 'ring'
+                                 'rock', 'door', 'skull', 'tile', 'bat', 'bird', 'bug',
+                                 'rocket', 'fruit', 'love', 'power', 'rose', 'bat', 'cursor',
+                                 'flag', 'hand', 'key', 'sun', 'stump', 'star', 'moon', 'fungi',
+                                 'ufo', 'reed', 'cash', 'ladder', 'fear', 'door', 'bubble', 'dust',
+                                 'cog', 'flower', 'cup', 'fungus', 'box', 'shirt', 'tree', 'leaf',
+                                 'violet',
                                  )
 
 

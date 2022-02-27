@@ -13,6 +13,7 @@ class GameStrategy(abc.ABC):
 
     :ivar screen: Экран на котором будет происходить вся отрисовка.
     """
+
     def __init__(self, screen: SURFACE):
         self.screen: SURFACE = screen
 
