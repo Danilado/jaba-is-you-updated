@@ -21,19 +21,23 @@ class SpriteManager:
 
     def start_download(self):
         """Старт скачивания спрайтов"""
-        if not self._sprites_folder.exists() or self._sprites_folder.glob("*"):
-            self._sprites_folder.mkdir(exist_ok=True)
-            self._thread.start()
+        # if not self._sprites_folder.exists() or self._sprites_folder.glob("*"):
+        #     self._sprites_folder.mkdir(exist_ok=True)
+        #     self._thread.start()
+        # ЗАПРЕЩЕНО
+        ...
 
     def _download(self):
         """Функция другого потока для скачивания и разархивации спрайтов"""
-        url = "https://www.dropbox.com/s/8wpc6a8ppvl3fjk/sprites321.zip?dl=1"
-        with httpx.Client(http2=True, http1=False) as client:
-            with client.stream("GET",
-                               url,
-                               follow_redirects=True) as stream:
-                with zipfile.ZipFile(io.BytesIO(b"".join(stream.iter_bytes()))) as zip_file:
-                    zip_file.extractall(self._sprites_folder)
+        # url = "https://www.dropbox.com/s/8wpc6a8ppvl3fjk/sprites321.zip?dl=1"
+        # with httpx.Client(http2=True, http1=False) as client:
+        #     with client.stream("GET",
+        #                        url,
+        #                        follow_redirects=True) as stream:
+        #         with zipfile.ZipFile(io.BytesIO(b"".join(stream.iter_bytes()))) as zip_file:
+        #             zip_file.extractall(self._sprites_folder)
+        # ЗАПРЕЩЕНО
+        ...
 
     def get(self, path: Union[Path, str], alpha: bool = True) -> SURFACE:
         """
@@ -46,7 +50,7 @@ class SpriteManager:
         """
         if not isinstance(path, Path):
             path = Path(path)
-        path = str(path.with_suffix(".webp").resolve())
+        path = str(path.with_suffix(".png").resolve())
         if self._thread.is_alive():
             print("a")
             self._thread.join(5)

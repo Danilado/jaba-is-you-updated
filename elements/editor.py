@@ -61,14 +61,19 @@ class Editor(GameStrategy):
         :type screen: pygame.Surface
         """
         super().__init__(screen)
+        # tools
         self.tool = 1
         self.direction = 1
         self.is_text = False
         self.name: Optional[str] = None
+        # history
         self.changes: List[List[List[List[Object]]]] = []
+        # matrix state
         self.current_state: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
+        # focused cell
         self.focus = (-1, -1)
+        # buttons
         self.buttons: List[ObjectButton] = []
         self.page = 0
         self.pagination_limit = ceil(len(OBJECTS) / 12)
@@ -78,6 +83,7 @@ class Editor(GameStrategy):
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
                    f">", partial(self.page_turn, 1)),
         ]
+        # features
         self.screen = pygame.display.set_mode((1800, 900))
         self.exit_flag = False
         self.discard = False
@@ -112,7 +118,7 @@ class Editor(GameStrategy):
 
     def parse_buttons(self):
         """
-        Даёт список из 10-и или менее кнопок, расположенных на странице кнопок (?),
+        Даёт список из 12-и или менее кнопок, расположенных на странице кнопок (?),
         в которой в данный момент находится редактор
 
         :return: массив кнопок
@@ -123,8 +129,8 @@ class Editor(GameStrategy):
         for index, text in enumerate(button_objects_array):
             # print(f'{index+1} {text}')
             button_array.append(
-                ObjectButton(RESOLUTION[0] + 28 + 84 * (index % 2), 25 + 55 * (index - index % 2), 50, 50, (0, 0, 0),
-                             EuiSettings(), text, partial(self.set_name, text), self.is_text, self.direction))
+                ObjectButton(x=RESOLUTION[0] + 28 + 84 * (index % 2), y=25 + 55 * (index - index % 2), width=50, height=50, outline=(0, 0, 0),
+                             settings=EuiSettings(), text=text, action=partial(self.set_name, text), is_text=self.is_text, direction=self.direction, movement_state=0))
         return button_array
 
     def unresize(self):
@@ -158,7 +164,7 @@ class Editor(GameStrategy):
         :param direction: направление, где 1 - по часовой стрелке, 
         а -1 - против часовой
         """
-        self.direction = (self.direction + direction) % 4
+        self.direction = (self.direction - direction) % 4
         self.page_turn(0)
 
     def set_tool(self, n: int):
@@ -281,7 +287,7 @@ class Editor(GameStrategy):
                    f"Tool\n{'Create' if self.tool == 1 else 'Delete' if self.tool == 0 else 'Lookup'}",
                    partial(self.set_tool, 0 if self.tool == 1 else 1 if self.tool == 2 else 2)),
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
-                   f"Dir\n{'↑' if self.direction == 0 else '→' if self.direction == 1 else '↓' if self.direction == 2 else '←'}",
+                   f"Dir\n{'→' if self.direction == 0 else '↑' if self.direction == 1 else '←' if self.direction == 2 else '↓'}",
                    partial(self.turn, 1)),
         ]
 
@@ -318,10 +324,5 @@ class Editor(GameStrategy):
 
     def music(self):
         sound_manager.get_music("sounds/Music/editor")
-        if not pygame.mixer.music.get_busy():
-            pygame.mixer.music.play()
-
-    def replay_music(self):
-        pygame.mixer.init()
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play()

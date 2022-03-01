@@ -5,7 +5,7 @@ import pygame
 from classes.animation import Animation
 from classes.button import Button
 from elements.global_classes import sprite_manager
-from settings import TEXT_ONLY, PIPES, LETTERS
+from settings import TEXT_ONLY, SPRITE_ONLY
 
 
 # TODO: Use function instead of method __init__ in class
@@ -26,41 +26,49 @@ class ObjectButton(Button):
     :ivar direction: Направление кнопки
     """
 
-    def __init__(self, x, y, width, height, outline, settings, text="", action=None, is_text=0, direction=1):
+    def __init__(self, x, y, width, height, outline, settings, text="", action=None, is_text=0, direction=0, movement_state=0):
         super().__init__(x, y, width, height, outline, settings, text, action)
-        if (is_text or self.text in TEXT_ONLY)\
-                and not self.text in PIPES \
-                and not self.text in LETTERS:
+        if (is_text or text in TEXT_ONLY) and not text in SPRITE_ONLY:
+            path = os.path.join('./', 'sprites', 'text')
             self.animation = Animation(
-                [pygame.transform.scale(sprite_manager.get(f"sprites/words/{self.text}/{self.text}{index + 1}"),
+                [pygame.transform.scale(sprite_manager.get(os.path.join(f"{path}", text, f"{text}_0_{index + 1}")),
                                         (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
         else:
-            directory = f'./sprites/{self.text}'
-            sprite_count = len(
-                [name for name in os.listdir(directory) if os.path.isfile(
-                    os.path.join(directory, name))]
-            )
-            state_count = sprite_count // 3
-            letterize = {
-                0: 'b',
-                1: 'r',
-                2: 'f',
-                3: 'l',
-            }
-            if state_count > 4:
+            path = os.path.join('./', 'sprites', text)
+            try:
+                states = [int(name.split('_')[1]) for name in os.listdir(path) if os.path.isfile(
+                    os.path.join(path, name))]
+                state_max = max(states)
+            except:
+                print(f'{text} somehow fucked up while counting')
+
+            if state_max == 0 or state_max == 15:
                 self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.text}/{letterize[direction]}0{index}"),
-                                            (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
-            elif state_count > 1:
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path, f'{text}_0_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
+            elif state_max == 3:
                 self.animation = Animation(
-                    [pygame.transform.scale(
-                        sprite_manager.get(
-                            f"sprites/{self.text}/{letterize[direction]}{index + 1}"),
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path, f'{text}_{movement_state % 4}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
+            elif state_max == 24:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path, f'{text}_{direction * 8}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
+            elif state_max == 27:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path, f'{text}_{movement_state % 4 + direction * 8}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
+            elif state_max == 31:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path, f'{text}_{movement_state % 4 + max(direction * 8, 0)}_{index + 1}')),
                         (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
             else:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.text}/{index + 1}"),
-                                            (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
+                print(f'{text} somehow fucked up while setting animation')
 
     def draw(self, screen: pygame.surface.Surface):
         self.animation.update()
