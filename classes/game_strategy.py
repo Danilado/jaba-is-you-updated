@@ -31,10 +31,16 @@ class GameStrategy(abc.ABC):
         """
         ...
 
-    @abc.abstractmethod
+    # Gospodin: Насколько я понимаю, если такого метода нет,
+    # будет выполняться то, что написано здесь.
+    # Это нужно для предотвращения вылета в случае если в самой
+    # стратегии музыка не прописана. Тогда она наследует музыку
+    # из предыдущей стратегии без прерывания, или проигрывания её заново.
+    # Мне кажется, что это вполне приемлимо.
     def music(self):
         ...
 
-    @abc.abstractmethod
     def replay_music(self):
-        ...
+        pygame.mixer.init()
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()

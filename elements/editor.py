@@ -13,7 +13,7 @@ from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
 from elements.game import Game
-from elements.global_classes import EuiSettings, IuiSettings
+from elements.global_classes import EuiSettings, IuiSettings, sound_manager
 from elements.overlay import EditorOverlay
 from settings import SHOW_GRID, RESOLUTION, OBJECTS
 

@@ -6,7 +6,7 @@ import pygame
 from classes.animation import Animation
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
-from settings import TEXT_ONLY
+from settings import TEXT_ONLY, PIPES, LETTERS
 
 pygame.font.init()
 font = pygame.font.SysFont('segoeuisemibold', 15)
@@ -114,22 +114,21 @@ is_text:    {self.text}
                 3: 'l',
             }
             if state_count > 4:
-                animation = Animation(
+                self.animation = Animation(
                     [pygame.transform.scale(
                         sprite_manager.get(
                             f"sprites/{self.name}/{letterize[self.direction]}0{index}"),
                         (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
             elif state_count > 1:
-                animation = Animation(
+                self.animation = Animation(
                     [pygame.transform.scale(
                         sprite_manager.get(
                             f"sprites/{self.name}/{letterize[self.direction]}{index + 1}"),
                         (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
             else:
-                animation = Animation(
+                self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{index + 1}"),
                                             (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
-        return animation
 
     def draw(self, screen: SURFACE):
         """

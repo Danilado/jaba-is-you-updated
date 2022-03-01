@@ -5,7 +5,7 @@ import pygame
 from classes.animation import Animation
 from classes.button import Button
 from elements.global_classes import sprite_manager
-from settings import TEXT_ONLY
+from settings import TEXT_ONLY, PIPES, LETTERS
 
 
 # TODO: Use function instead of method __init__ in class
@@ -25,6 +25,7 @@ class ObjectButton(Button):
     :ivar is_text: Есть ли воплощение кнопки в виде блока
     :ivar direction: Направление кнопки
     """
+
     def __init__(self, x, y, width, height, outline, settings, text="", action=None, is_text=0, direction=1):
         super().__init__(x, y, width, height, outline, settings, text, action)
         if (is_text or self.text in TEXT_ONLY)\
