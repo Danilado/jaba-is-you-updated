@@ -1,14 +1,13 @@
 from typing import List, Optional
 
 import pygame
-import glob
-import os
 
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.rule import Rule
 from classes.state import State
+from elements.global_classes import sound_manager
 from global_types import SURFACE
 from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
 
@@ -21,6 +20,9 @@ class Draw(GameStrategy):
     :ivar screen: Экран на котором будет происходить вся отрисовка.
     """
 
+    def music(self):
+        sound_manager.load_music("sounds/Music/ruin")
+
     def __init__(self, level_name: str, screen: SURFACE):
         super().__init__(screen)
         self.matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
@@ -30,6 +32,7 @@ class Draw(GameStrategy):
     def parse_file(self, level_name: str):
         """
         Парсинг уровней. Добавляет объекты в :attr:`~.Draw.matrix`.
+
         .. note::
             Если вы хотите перезаписать карту, не забудьте удалить объекты из :attr:`~.Draw.matrix`
 
@@ -38,17 +41,18 @@ class Draw(GameStrategy):
         """
         with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as leve_file:
             for line in leve_file.readlines():
-                parameters = line.split(' ')
+                parameters = line.strip().split(' ')
                 if len(parameters) > 1:
                     self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
                         int(parameters[0]),
                         int(parameters[1]),
                         int(parameters[2]),
                         parameters[3],
-                        False if parameters[4] == 'False' else True
+                        parameters[4].lower() == 'true'
                     ))
 
-    def obj_is_noun(self, obj: Object):
+    @staticmethod
+    def obj_is_noun(obj: Object):
         return obj.name not in OPERATORS and ((obj.name in NOUNS and obj.text) or obj.name in PROPERTIES)
 
     def check_horizontally(self, i, j):
@@ -67,7 +71,8 @@ class Draw(GameStrategy):
                                     if self.obj_is_noun(third_object):
                                         self.level_rules.append(
                                             Rule(
-                                                f'{first_object.name} {operator.name} {second_object.name} {third_object.name}',
+                                                f'{first_object.name} {operator.name} {second_object.name} '
+                                                f'{third_object.name}',
                                                 [first_object, operator, second_object, third_object]))
                                         return len(self.level_rules)
 
@@ -105,7 +110,8 @@ class Draw(GameStrategy):
                                     if self.obj_is_noun(third_object):
                                         self.level_rules.append(
                                             Rule(
-                                                f'{first_object.name} {operator.name} {second_object.name} {third_object.name}',
+                                                f'{first_object.name} {operator.name} {second_object.name} '
+                                                f'{third_object.name}',
                                                 [first_object, operator, second_object, third_object]))
                                         return len(self.level_rules)
                     elif operator.name == 'and':
@@ -143,8 +149,8 @@ class Draw(GameStrategy):
 
         for line in self.matrix:
             for cell in line:
-                for object in cell:
-                    object.draw(self.screen)
+                for game_object in cell:
+                    game_object.draw(self.screen)
 
         if state is None:
             state = State(GameState.flip, None)

@@ -34,7 +34,3 @@ class GameStrategy(abc.ABC):
     @abc.abstractmethod
     def music(self):
         ...
-
-    @abc.abstractmethod
-    def replay_music(self):
-        ...
