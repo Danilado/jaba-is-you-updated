@@ -21,7 +21,7 @@ class MainMenu(GameStrategy):
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self._state: Optional[State] = None
-        sound_manager.get_music("sounds/Music/menu")
+        sound_manager.load_music("sounds/Music/menu")
 
     def _start_the_game(self):
         self._state = State(GameState.switch, Game)
@@ -65,11 +65,6 @@ class MainMenu(GameStrategy):
         return self._state
 
     def music(self):
-        sound_manager.get_music("sounds/Music/menu")
-        if not pygame.mixer.music.get_busy():
-            pygame.mixer.music.play()
-
-    def replay_music(self):
-        pygame.mixer.init()
+        sound_manager.load_music("sounds/Music/menu")
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play()

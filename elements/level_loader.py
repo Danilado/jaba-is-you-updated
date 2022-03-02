@@ -7,33 +7,34 @@ import pygame
 from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
+from classes.objects import Object
 from classes.state import State
 from elements.draw_matrix import Draw
 from elements.global_classes import GuiSettings
 from global_types import SURFACE
 from settings import RESOLUTION
-from classes.objects import Object
 
 
 class Loader(GameStrategy):
-    """Класс загрузчика уровней. На данный момент используется для 
-    поиска файлов уровней в папке и их первичной обработки
-
-    :param GameStrategy: Наследуется от базового класса игровой 
-    стратегии
     """
+    Класс загрузчика уровней. На данный момент используется для
+    поиска файлов уровней в папке и их первичной обработки
+    """
+
+    def music(self):
+        pass
 
     def __init__(self, screen: SURFACE, from_editor_overlay=None, plug=None):
         """Инициализация загрузчика
 
         :param screen: На какую поверхность отрисовываться
         :type screen: SURFACE
-        :param from_editor_overlay: Показывает пришёл игрок из редактора 
-        или меню, defaults to None
-        :type from_editor_overlay: _type_, optional
-        :param plug: Параметр - затычка. Используется во избежание крашей 
-        игры при входе из редактора (unused), defaults to None
-        :type plug: ???, optional
+        :param from_editor_overlay: Показывает пришёл игрок из редактора или меню, defaults to None
+        :type from_editor_overlay: EditorOverlay, optional
+        :param plug:
+            Параметр - затычка. Используется во избежание крашей
+            игры при входе из редактора (unused), defaults to None
+        :type plug: Any, optional
         """
         super().__init__(screen)
         self.overlay = from_editor_overlay
@@ -45,49 +46,49 @@ class Loader(GameStrategy):
         for index, level in enumerate(self.find_levels()):
             self.buttons.append(
                 Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 350 + 50 * index, 1200, 50, (0, 0, 0),
-                       GuiSettings(), level, partial(self.go_to_game if self.overlay is None else self.return_and_quit, level)),
+                       GuiSettings(), level,
+                       partial(self.go_to_game if self.overlay is None else self.return_and_quit, level)),
             )
 
     def go_to_game(self, level_name: str):
-        """Осуществляет переход в игровую стратегию отрисовки матрицы. 
-        Надеюсь, когда-нибудь это будет игрой.
+        """
+        Осуществляет переход в игровую стратегию отрисовки матрицы.
 
         :param level_name: Название желаемого уровня
         :type level_name: str
         """
+        # Gospodin: Надеюсь, когда-нибудь это будет игрой.
         self._state = State(GameState.switch, partial(Draw, level_name))
 
     def go_back(self):
-        """Простая отмена (выход в предыдущее меню)
-        """
+        """Простая отмена (выход в предыдущее меню)"""
         self._state = State(GameState.back)
 
-    def return_and_quit(self, levelname: str):
-        """Метод, использующийся для взаимодействия с редактором. 
-        Парсит необходимый уровень из файла в матрицу и 
+    def return_and_quit(self, level_name: str):
+        """
+        Метод, использующийся для взаимодействия с редактором.
+        Парсит необходимый уровень из файла в матрицу и
         передаёт её в редактор через его оверлей управления
 
-        :param levelname: Название желаемого уровня
-        :type levelname: str
+        :param level_name: Название желаемого уровня
         """
         self.overlay.loaded_flag = True
-        self.overlay.editor.current_state = self.parse_file(levelname)
-        self.overlay.editor.level_name = levelname
+        self.overlay.editor.current_state = self.parse_file(level_name)
+        self.overlay.editor.level_name = level_name
         self._state = State(GameState.back)
 
-    def parse_file(self, levelname: str):
-        """Преобразует записанную в файле уровня информацию в 
-        матрицу
+    @staticmethod
+    def parse_file(level_name: str) -> List[List[List[Object]]]:
+        """
+        Преобразует записанную в файле уровня информацию в матрицу
 
-        :param levelname: Название желаемого уровня
-        :type levelname: str
+        :param level_name: Название желаемого уровня
         :return: Возвращает преобразованную из файла матрицу
-        :rtype: List[List[List[Object]]]
         """
         matrix: List[List[List[Object]]] = [[[]
                                              for _ in range(32)] for _ in range(18)]
         leve_file = open(
-            f'./levels/{levelname}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r')
+            f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r')
         lines = leve_file.read().split('\n')
         for line in lines:
             parameters = line.split(' ')
@@ -118,8 +119,7 @@ class Loader(GameStrategy):
 
         :param events: События, собранные окном pygame
         :type events: List[pygame.event.Event]
-        :param delta_time_in_milliseconds: Время между нынешним 
-        и предыдущим кадром (unused)
+        :param delta_time_in_milliseconds: Время между нынешним и предыдущим кадром (unused)
         :type delta_time_in_milliseconds: int
         :return: Возвращает состояние для правильной работы game_context
         """

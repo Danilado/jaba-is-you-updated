@@ -1,5 +1,5 @@
 from pprint import pprint
-from typing import Final, TYPE_CHECKING, Callable, List, Optional, Union, Type
+from typing import Final, TYPE_CHECKING, Callable, List, Union, Type
 
 import pygame
 
@@ -27,9 +27,14 @@ class GameContext:
         self.screen: Final[SURFACE] = pygame.display.set_mode(RESOLUTION)
         self._running: bool = True
         self._history: List["GameStrategy"] = []
+
         self._game_strategy: "GameStrategy"
         self.game_strategy = game_strategy  # type: ignore
         # См. https://github.com/python/mypy/issues/3004
+
+        pygame.init()
+        pygame.font.init()
+        pygame.mixer.init()
 
     @property
     def game_strategy(self) -> "GameStrategy":
@@ -88,7 +93,10 @@ class GameContext:
                     f"FPS: {round(clock.get_fps())} in {self.game_strategy.__class__.__name__} ")
                 events = pygame.event.get()
                 draw_state = self.game_strategy.draw(events, delta_time)
-                self.game_strategy.replay_music()
+
+                if not pygame.mixer.music.get_busy():
+                    pygame.mixer.music.play()
+
                 if draw_state is not None:
                     if draw_state.game_state is GameState.stop:
                         raise KeyboardInterrupt

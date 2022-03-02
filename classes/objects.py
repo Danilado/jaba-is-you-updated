@@ -1,12 +1,13 @@
 import os
 import os.path
+from typing import Optional
 
 import pygame
 
 from classes.animation import Animation
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
-from settings import TEXT_ONLY
+from settings import TEXT_ONLY, LETTERS, PIPES
 
 pygame.font.init()
 font = pygame.font.SysFont('segoeuisemibold', 15)
@@ -82,17 +83,16 @@ is_text:    {self.text}
         self.direction = direction
         self.x = x  # Не по пикселям, а по сетке!
         self.y = y  # Не по пикселям, а по сетке!
-        self.xpx = x * 50 if self.x is not None else None  # По пикселям
-        self.ypx = y * 50 if self.y is not None else None  # По пикселям
+        self.xpx = x * 50  # По пикселям
+        self.ypx = y * 50  # По пикселям
         self.width = 50
         self.height = 50
-        self.animation: Animation
-        self.animation_init()
+        self.animation: Animation = self.animation_init()
 
     def animation_init(self):
         if self.text or self.name in TEXT_ONLY \
-                and not self.name in PIPES \
-                and not self.name in LETTERS:
+                and self.name not in PIPES \
+                and self.name not in LETTERS:
             self.animation = Animation(
                 [
                     pygame.transform.scale(
@@ -114,22 +114,22 @@ is_text:    {self.text}
                 3: 'l',
             }
             if state_count > 4:
-                animation = Animation(
+                self.animation = Animation(
                     [pygame.transform.scale(
                         sprite_manager.get(
                             f"sprites/{self.name}/{letterize[self.direction]}0{index}"),
                         (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
             elif state_count > 1:
-                animation = Animation(
+                self.animation = Animation(
                     [pygame.transform.scale(
                         sprite_manager.get(
                             f"sprites/{self.name}/{letterize[self.direction]}{index + 1}"),
                         (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
             else:
-                animation = Animation(
+                self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{index + 1}"),
                                             (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
-        return animation
+        return self.animation
 
     def draw(self, screen: SURFACE):
         """
