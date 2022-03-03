@@ -1,18 +1,16 @@
-import os
+from datetime import datetime
 from functools import partial
 from math import ceil
 from typing import List, Optional
-from datetime import datetime
 
 import pygame
 
 from classes.button import Button
-from classes.object_button import ObjectButton
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
+from classes.object_button import ObjectButton
 from classes.objects import Object
 from classes.state import State
-from elements.game import Game
 from elements.global_classes import EuiSettings, IuiSettings, sound_manager
 from elements.overlay import EditorOverlay
 from settings import SHOW_GRID, RESOLUTION, OBJECTS
@@ -53,6 +51,20 @@ def unparse_all(state):
     return string, counter
 
 
+def direction_to_unicode(direction: int) -> str:
+    """
+    Направление в юникод-стрелку
+
+    :param direction:
+        0 - Вверх
+        1 - Вправо
+        2 - Вниз
+        3 - Влево
+    :return: Один символ - Юникод-стрелка
+    """
+    return '↑' if direction == 0 else '→' if direction == 1 else '↓' if direction == 2 else '←'
+
+
 class Editor(GameStrategy):
     def __init__(self, screen: pygame.Surface):
         """Класс редактора уровней
@@ -90,9 +102,9 @@ class Editor(GameStrategy):
         self.page_turn(0)
         self.level_name = None
         self.state = None
-        self.entering = True
 
-    def save(self, state, name=None):
+    @staticmethod
+    def save(state, name=None):
         """Сохранение трёхмерного массива в память
 
         :param state: Трёхмерный массив состояния сетки
@@ -134,9 +146,8 @@ class Editor(GameStrategy):
         return button_array
 
     def unresize(self):
-        """Меняет разрешение экрана с расширенного на изначальное через 
-        магические константы 1600х900 \n
-        Gospodin: Вызывает удар Кости по моей голове"""
+        """Меняет разрешение экрана с расширенного на изначальное через магические константы 1600х900"""
+        # Gospodin: Вызывает удар Кости по моей голове
         self.screen = pygame.display.set_mode((1600, 900))
 
     def safe_exit(self):
@@ -161,8 +172,7 @@ class Editor(GameStrategy):
     def turn(self, direction: int):
         """Функция поворота объекта
 
-        :param direction: направление, где 1 - по часовой стрелке, 
-        а -1 - против часовой
+        :param direction: направление, где 1 - по часовой стрелке, а -1 - против часовой
         """
         self.direction = (self.direction - direction) % 4
         self.page_turn(0)
@@ -170,8 +180,7 @@ class Editor(GameStrategy):
     def set_tool(self, n: int):
         """Функция смены инструмента
 
-        :param n: [0 - 2], где 0 - удалить, 1 - создать, а 2 - исследовать 
-        клетку и вывести содержимое в консоль 
+        :param n: [0 - 2], где 0 - удалить, 1 - создать, а 2 - исследовать клетку и вывести содержимое в консоль
         :type n: int
         """
         self.tool = n
@@ -215,26 +224,22 @@ class Editor(GameStrategy):
     def overlay(self):
         """Вызывает меню управления редактора"""
         self.unresize()
-        self.state = State(GameState.switch, partial(
-            EditorOverlay, self.screen, self))
+        self.state = State(GameState.switch, partial(EditorOverlay, self))
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
-        """Отрисовывает редактор (включая все его элементы) и 
-        обрабатывает все действия пользователя
+        """Отрисовывает редактор (включая все его элементы) и обрабатывает все действия пользователя
 
         :param events: События, собранные окном pygame
         :type events: List[pygame.event.Event]
-        :param delta_time_in_milliseconds: Время между нынешним 
-        и предыдущим кадром (unused)
+        :param delta_time_in_milliseconds:
+            Время между нынешним
+            и предыдущим кадром (unused)
         :type delta_time_in_milliseconds: int
         :return: Возвращает состояние для правильной работы game_context
         :rtype: Optional[State]
         """
         # TODO: Refactor this. There is "Long Method"
         self.state = None
-        if self.entering:
-            self.entering = False
-            self.overlay()
         if self.exit_flag:
             if not self.discard:
                 self.safe_exit()
@@ -282,12 +287,12 @@ class Editor(GameStrategy):
             Button(RESOLUTION[0] + 17, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
                    f"Obj\n{self.name}"),
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
-                   f"Text\n{'True' if self.is_text == 1 else 'False'}", self.is_text_swap),
+                   f"Text\n{'True' if self.is_text else 'False'}", self.is_text_swap),
             Button(RESOLUTION[0] + 17, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
                    f"Tool\n{'Create' if self.tool == 1 else 'Delete' if self.tool == 0 else 'Lookup'}",
                    partial(self.set_tool, 0 if self.tool == 1 else 1 if self.tool == 2 else 2)),
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
-                   f"Dir\n{'→' if self.direction == 0 else '↑' if self.direction == 1 else '←' if self.direction == 2 else '↓'}",
+                   f"Dir\n{direction_to_unicode(self.direction)}",
                    partial(self.turn, 1)),
         ]
 
@@ -323,6 +328,6 @@ class Editor(GameStrategy):
         return self.state
 
     def music(self):
-        sound_manager.get_music("sounds/Music/editor")
+        sound_manager.load_music("sounds/Music/editor")
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play()

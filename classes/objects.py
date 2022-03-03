@@ -1,5 +1,6 @@
 import os
 import os.path
+from typing import Optional
 
 import pygame
 
@@ -82,8 +83,8 @@ is_text:    {self.text}
         self.direction = direction
         self.x = x  # Не по пикселям, а по сетке!
         self.y = y  # Не по пикселям, а по сетке!
-        self.xpx = x * 50 if self.x is not None else None  # По пикселям
-        self.ypx = y * 50 if self.y is not None else None  # По пикселям
+        self.xpx = x * 50  # По пикселям
+        self.ypx = y * 50  # По пикселям
         self.width = 50
         self.height = 50
         self.animation: Animation

@@ -1,4 +1,10 @@
+from dataclasses import dataclass
+from typing import List
+
+from classes.objects import Object
+
+
+@dataclass
 class Rule:
-    def __init__(self, text, objects):
-        self.text_rule = text
-        self.objects_in_rule = objects
+    text_rule: str
+    objects_in_rule: List[Object]
