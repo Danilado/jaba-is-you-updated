@@ -234,6 +234,7 @@ class Editor(GameStrategy):
             if not flag:
                 neighbours = []
                 if self.name in STICKY and not self.is_text:
+                    # ЭТО НУЖНО ДЕЛАТЬ ДО ДОБАВЛЕНИЯ В МАТРИЦУ
                     neighbours = self.get_neighbours(
                         self.focus[0], self.focus[1])
                 self.changes.append(my_deepcopy(self.current_state))
@@ -255,6 +256,14 @@ class Editor(GameStrategy):
         if len(self.current_state[self.focus[1]][self.focus[0]]) > 0:
             self.changes.append(my_deepcopy(self.current_state))
             self.current_state[self.focus[1]][self.focus[0]].pop()
+            neighbours = self.get_neighbours(
+                self.focus[0], self.focus[1])
+            for array in neighbours:
+                for neighbour in array:
+                    if neighbour.name in STICKY and not neighbour.text:
+                        neighbour.neighbours = self.get_neighbours(
+                            neighbour.x, neighbour.y)
+                        neighbour.animation_init()
 
     def overlay(self):
         """Вызывает меню управления редактора"""
