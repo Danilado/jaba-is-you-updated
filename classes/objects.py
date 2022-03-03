@@ -3,11 +3,13 @@ import os.path
 from typing import Optional
 
 import pygame
+from typing import List, Tuple, Literal
 
 from classes.animation import Animation
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
-from settings import TEXT_ONLY, LETTERS, PIPES
+from settings import TEXT_ONLY, LETTERS, PIPES, DEBUG, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
+
 
 pygame.font.init()
 font = pygame.font.SysFont('segoeuisemibold', 15)
@@ -89,6 +91,12 @@ is_text:    {self.text}
         self.height = 50
         self.animation: Animation = self.animation_init()
 
+        # TODO: Use enum, and make field private
+        self.status_of_rotate: Literal[0, 1, 2, 3] = 0
+
+        self.turning_side: Literal[0, 1, 2, 3, -1] = -1
+        self.status_cancel: bool = False
+
     def animation_init(self):
         if self.text or self.name in TEXT_ONLY \
                 and self.name not in PIPES \
@@ -143,3 +151,268 @@ is_text:    {self.text}
     def unparse(self) -> str:
         """Сериализовать объект в строку"""
         return f'{self.x} {self.y} {self.direction} {self.name} {self.text}'
+
+    def move(self, matrix, level_rules, history_of_matrix):  # TODO: use Δt to calculate distance move
+        """Метод движения персонажа"""
+        if self.turning_side == 0:
+            self.move_right(matrix, level_rules, history_of_matrix)
+        if self.turning_side == 1:
+            self.move_up(matrix, level_rules, history_of_matrix)
+        if self.turning_side == 2:
+            self.move_left(matrix, level_rules, history_of_matrix)
+        if self.turning_side == 3:
+            self.move_down(matrix, level_rules, history_of_matrix)
+        #if DEBUG:
+        #    print(self.turning_side, self.status_of_rotate)
+        self.animation_init()
+
+
+    def move_up(self, matrix, level_rules, history_of_matrix, status_push=None):
+        """Метод движения объекта вверх"""
+        if self.y > 0:
+            for objects in matrix[self.y - 1][self.x]:
+                if objects.move_up(matrix, level_rules, history_of_matrix, 'push'):
+                    for i in range(len(matrix[self.y][self.x])):
+                        if matrix[self.y][self.x][i].name == self.name:
+                            matrix[self.y][self.x].pop(i)
+                    self.status_of_rotate = 1
+                    self.y -= 1
+                    self.ypx -= 50
+                    self.direction = 0
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.text
+                    ))
+                    return True
+                return False
+            for rule in level_rules:
+                if f'{self.name} is push' in rule.text_rule and status_push == 'push':
+                    for i in range(len(matrix[self.y][self.x])):
+                        if matrix[self.y][self.x][i].name == self.name:
+                            matrix[self.y][self.x].pop(i)
+                    self.status_of_rotate = 1
+                    self.y -= 1
+                    self.ypx -= 50
+                    self.direction = 0
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.text
+                    ))
+                    return True
+            if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
+                    self.name in NOUNS and self.text):
+                history_of_matrix.append(matrix)
+                for i in range(len(matrix[self.y][self.x])):
+                    if matrix[self.y][self.x][i].name == self.name:
+                        matrix[self.y][self.x].pop(i)
+                self.status_of_rotate = 1
+                self.y -= 1
+                self.ypx -= 50
+                self.direction = 0
+                matrix[self.y][self.x].append(Object(
+                    self.x,
+                    self.y,
+                    self.direction,
+                    self.name,
+                    self.text
+                ))
+            return True
+
+
+    def move_down(self, matrix, level_rules, history_of_matrix, status_push=None):
+        """Метод движения объекта вниз"""
+        if self.y < RESOLUTION[1] // 50 - 1:
+            for objects in matrix[self.y + 1][self.x]:
+                if objects.move_down(matrix, level_rules, history_of_matrix, 'push'):
+                    for i in range(len(matrix[self.y][self.x])):
+                        if matrix[self.y][self.x][i].name == self.name:
+                            matrix[self.y][self.x].pop(i)
+                    self.status_of_rotate = 3
+                    self.y += 1
+                    self.ypx += 50
+                    self.direction = 2
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.text
+                    ))
+                    return True
+                return False
+            for rule in level_rules:
+                if f'{self.name} is push' in rule.text_rule and status_push == 'push':
+                    for i in range(len(matrix[self.y][self.x])):
+                        if matrix[self.y][self.x][i].name == self.name:
+                            matrix[self.y][self.x].pop(i)
+                    self.status_of_rotate = 3
+                    self.y += 1
+                    self.ypx += 50
+                    self.direction = 2
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.text
+                    ))
+                    return True
+            if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
+                    self.name in NOUNS and self.text):
+                for i in range(len(matrix[self.y][self.x])):
+                    if matrix[self.y][self.x][i].name == self.name:
+                        matrix[self.y][self.x].pop(i)
+                self.status_of_rotate = 3
+                self.y += 1
+                self.ypx += 50
+                self.direction = 2
+                matrix[self.y][self.x].append(Object(
+                    self.x,
+                    self.y,
+                    self.direction,
+                    self.name,
+                    self.text
+                ))
+            return True
+
+
+    def move_left(self, matrix, level_rules, history_of_matrix, status_push=None):
+        """Метод движения персонажа влево"""
+        if self.x > 0:
+            for objects in matrix[self.y][self.x - 1]:
+                if objects.move_left(matrix, level_rules, history_of_matrix, 'push'):
+                    for i in range(len(matrix[self.y][self.x])):
+                        if matrix[self.y][self.x][i].name == self.name:
+                            matrix[self.y][self.x].pop(i)
+                    self.status_of_rotate = 2
+                    self.x -= 1
+                    self.xpx -= 50
+                    self.direction = 3
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.text
+                    ))
+                    return True
+                return False
+            for rule in level_rules:
+                if f'{self.name} is push' in rule.text_rule and status_push == 'push':
+                    for i in range(len(matrix[self.y][self.x])):
+                        if matrix[self.y][self.x][i].name == self.name:
+                            matrix[self.y][self.x].pop(i)
+                    self.status_of_rotate = 2
+                    self.x -= 1
+                    self.xpx -= 50
+                    self.direction = 3
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.text
+                    ))
+                    return True
+            if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
+                    self.name in NOUNS and self.text):
+                history_of_matrix.append(matrix)
+                for i in range(len(matrix[self.y][self.x])):
+                    if matrix[self.y][self.x][i].name == self.name:
+                        matrix[self.y][self.x].pop(i)
+                self.status_of_rotate = 2
+                self.x -= 1
+                self.xpx -= 50
+                self.direction = 3
+                matrix[self.y][self.x].append(Object(
+                    self.x,
+                    self.y,
+                    self.direction,
+                    self.name,
+                    self.text
+                ))
+            return True
+
+
+
+    def move_right(self, matrix, level_rules, history_of_matrix, status_push=None):
+        """Метод движения объекта вправо"""
+        if self.x < RESOLUTION[0] // 50 - 1:
+            for objects in matrix[self.y][self.x + 1]:
+                if objects.move_right(matrix, level_rules, history_of_matrix, 'push'):
+                    for i in range(len(matrix[self.y][self.x])):
+                        if matrix[self.y][self.x][i].name == self.name:
+                            matrix[self.y][self.x].pop(i)
+                    self.status_of_rotate = 0
+                    self.x += 1
+                    self.xpx += 50
+                    self.direction = 1
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.text
+                    ))
+                    return True
+                return False
+            for rule in level_rules:
+                if f'{self.name} is push' in rule.text_rule and status_push == 'push':
+                    for i in range(len(matrix[self.y][self.x])):
+                        if matrix[self.y][self.x][i].name == self.name:
+                            matrix[self.y][self.x].pop(i)
+                    self.status_of_rotate = 0
+                    self.x += 1
+                    self.xpx += 50
+                    self.direction = 1
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.text
+                    ))
+                    return True
+            if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
+                    self.name in NOUNS and self.text):
+                history_of_matrix.append(matrix)
+                for i in range(len(matrix[self.y][self.x])):
+                    if matrix[self.y][self.x][i].name == self.name:
+                        matrix[self.y][self.x].pop(i)
+                self.status_of_rotate = 0
+                self.x += 1
+                self.xpx += 50
+                self.direction = 1
+                matrix[self.y][self.x].append(Object(
+                    self.x,
+                    self.y,
+                    self.direction,
+                    self.name,
+                    self.text
+                ))
+            return True
+
+
+    def check_events(self, events: List[pygame.event.Event]):
+        """Метод обработки событий"""
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_d:
+                    self.turning_side = 0
+                if event.key == pygame.K_w:
+                    self.turning_side = 1
+                if event.key == pygame.K_a:
+                    self.turning_side = 2
+                if event.key == pygame.K_s:
+                    self.turning_side = 3
+
+            if event.type == pygame.KEYUP:
+                if event.key in [pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a]:
+                    self.turning_side = -1
+

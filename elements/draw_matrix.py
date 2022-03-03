@@ -11,6 +11,14 @@ from elements.global_classes import sound_manager
 from global_types import SURFACE
 from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
 
+def my_deepcopy(arr):
+    new_arr = []
+    for val in arr:
+        if isinstance(val, list):
+            new_arr.append(my_deepcopy(val))
+        else:
+            new_arr.append(val)
+    return new_arr
 
 class Draw(GameStrategy):
     """
@@ -28,6 +36,9 @@ class Draw(GameStrategy):
         self.matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
         self.parse_file(level_name)
         self.level_rules = []
+        self.copy_matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
+        self.history_of_matrix = []
+        self.status_cancel = False
 
     def parse_file(self, level_name: str):
         """
@@ -50,10 +61,23 @@ class Draw(GameStrategy):
                         parameters[3],
                         parameters[4].lower() == 'true'
                     ))
+            self.history_of_matrix = []
+            self.history_of_matrix.append(self.matrix)
+
 
     @staticmethod
     def obj_is_noun(obj: Object):
-        return obj.name not in OPERATORS and ((obj.name in NOUNS and obj.text) or obj.name in PROPERTIES)
+        return obj.name not in OPERATORS and obj.name in NOUNS and obj.text
+
+    @staticmethod
+    def remove_copies_rules(arr):
+        new_arr = []
+        arr_text_rules = []
+        for var in arr:
+            if var.text_rule not in arr_text_rules:
+                new_arr.append(var)
+                arr_text_rules.append(var.text_rule)
+        return new_arr
 
     def check_horizontally(self, i, j):
         for first_object in self.matrix[i][j]:
@@ -61,14 +85,14 @@ class Draw(GameStrategy):
                 for operator in self.matrix[i][j + 1]:
                     if operator.name in OPERATORS and (operator.name != 'and'):
                         for second_object in self.matrix[i][j + 2]:
-                            if self.obj_is_noun(second_object):
+                            if self.obj_is_noun(second_object) or second_object.name in PROPERTIES:
                                 self.level_rules.append(
                                     Rule(f'{first_object.name} {operator.name} {second_object.name}',
                                          [first_object, operator, second_object]))
                                 return len(self.level_rules)
                             elif second_object.name == 'not' and len(self.matrix[i]) - j > 3:
                                 for third_object in self.matrix[i][j + 3]:
-                                    if self.obj_is_noun(third_object):
+                                    if self.obj_is_noun(third_object) or third_object.name in PROPERTIES:
                                         self.level_rules.append(
                                             Rule(
                                                 f'{first_object.name} {operator.name} {second_object.name} '
@@ -100,14 +124,14 @@ class Draw(GameStrategy):
                 for operator in self.matrix[i + 1][j]:
                     if operator.name in OPERATORS and operator.name != 'and':
                         for second_object in self.matrix[i + 2][j]:
-                            if self.obj_is_noun(second_object):
+                            if self.obj_is_noun(second_object) or second_object.name in PROPERTIES:
                                 self.level_rules.append(
                                     Rule(f'{first_object.name} {operator.name} {second_object.name}',
                                          [first_object, operator, second_object]))
                                 return len(self.level_rules)
                             elif second_object.name == 'not' and len(self.matrix) - i > 3:
                                 for third_object in self.matrix[i + 3][j]:
-                                    if self.obj_is_noun(third_object):
+                                    if self.obj_is_noun(third_object) or third_object.name in PROPERTIES:
                                         self.level_rules.append(
                                             Rule(
                                                 f'{first_object.name} {operator.name} {second_object.name} '
@@ -140,7 +164,28 @@ class Draw(GameStrategy):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     state = State(GameState.back)
+                if event.key == pygame.K_z:
+                    self.status_cancel = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_z:
+                    self.status_cancel = False
 
+        if len(self.history_of_matrix) > 0 and self.status_cancel:
+            self.matrix = self.history_of_matrix[-1]
+            self.history_of_matrix = self.history_of_matrix[:-1]
+            print(len(self.history_of_matrix))
+
+        copy_matrix = my_deepcopy(self.matrix)
+        for rule in self.level_rules:
+            if 'is you' in rule.text_rule:
+                obj_name = rule.text_rule.split(' ')[0]
+                for i in range(len(self.matrix)):
+                    for j in range(len(self.matrix[i])):
+                        for object in self.matrix[i][j]:
+                            if object.name == obj_name and object.text == False:
+                                object.check_events(events)
+                                object.move(copy_matrix, self.level_rules, self.history_of_matrix)
+        self.matrix = my_deepcopy(copy_matrix)
         if SHOW_GRID:
             for x in range(0, RESOLUTION[0], 50):
                 for y in range(0, RESOLUTION[1], 50):
@@ -152,6 +197,7 @@ class Draw(GameStrategy):
                 for game_object in cell:
                     game_object.draw(self.screen)
 
+
         if state is None:
             state = State(GameState.flip, None)
 
@@ -160,5 +206,9 @@ class Draw(GameStrategy):
             for j in range(len(self.matrix[i])):
                 self.check_horizontally(i, j)
                 self.check_vertically(i, j)
+
+        self.level_rules = self.remove_copies_rules(self.level_rules)
+
+
 
         return state
