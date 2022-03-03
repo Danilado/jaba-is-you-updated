@@ -45,11 +45,6 @@ class Game(GameStrategy):
         return state
 
     def music(self):
-        sound_manager.get_music("sounds/Music/baba")
-        if not pygame.mixer.music.get_busy():
-            pygame.mixer.music.play()
-
-    def replay_music(self):
-        pygame.mixer.init()
+        sound_manager.load_music("sounds/Music/baba")
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play()

@@ -1,12 +1,12 @@
 from typing import List, Tuple, Literal
-from settings import DEBUG
 
 import pygame
 
 import settings
 from classes.animation import Animation
-from elements.global_classes import sprite_manager, sound_manager
+from elements.global_classes import sprite_manager
 from global_types import SURFACE
+from settings import DEBUG
 
 
 class Player:
@@ -59,7 +59,7 @@ class Player:
     @x.setter
     def x(self, value: int):
         self._x = value
-        self.animation.position = (value*50, self.animation.position[1])
+        self.animation.position = (value * 50, self.animation.position[1])
 
     @property
     def y(self) -> int:
@@ -68,9 +68,9 @@ class Player:
     @y.setter
     def y(self, value: int):
         self._y = value
-        self.animation.position = (self.animation.position[0], value*50)
+        self.animation.position = (self.animation.position[0], value * 50)
 
-    def move(self):   # TODO: use Δt to calculate distance move
+    def move(self):  # TODO: use Δt to calculate distance move
         """Метод движения персонажа"""
         if self.turning_side == 0:
             self.move_right()
@@ -101,7 +101,6 @@ class Player:
             self.moves.append((self.x, self.y, self.status_of_rotate))
             self.status_of_rotate = 3
             self.y += 1
-
 
     def move_left(self):
         """Метод движения персонажа влево"""

@@ -5,7 +5,7 @@ import pygame
 from classes.animation import Animation
 from classes.button import Button
 from elements.global_classes import sprite_manager
-from settings import TEXT_ONLY, PIPES, LETTERS
+from settings import TEXT_ONLY, LETTERS, PIPES
 
 
 # TODO: Use function instead of method __init__ in class
@@ -28,9 +28,9 @@ class ObjectButton(Button):
 
     def __init__(self, x, y, width, height, outline, settings, text="", action=None, is_text=0, direction=1):
         super().__init__(x, y, width, height, outline, settings, text, action)
-        if (is_text or self.text in TEXT_ONLY)\
-                and not self.text in PIPES \
-                and not self.text in LETTERS:
+        if (is_text or self.text in TEXT_ONLY) \
+                and self.text not in PIPES \
+                and self.text not in LETTERS:
             self.animation = Animation(
                 [pygame.transform.scale(sprite_manager.get(f"sprites/words/{self.text}/{self.text}{index + 1}"),
                                         (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))

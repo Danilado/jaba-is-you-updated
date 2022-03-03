@@ -1,45 +1,38 @@
-import os
 from functools import partial
-from math import ceil
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 
 import pygame
 
 from classes.button import Button
-from classes.input import Input
-from classes.object_button import ObjectButton
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
-from classes.objects import Object
+from classes.input import Input
 from classes.state import State
-from elements import editor
 from elements.global_classes import GuiSettings, EuiSettings
 from elements.level_loader import Loader
 from settings import RESOLUTION
 
+if TYPE_CHECKING:
+    from elements.editor import Editor
+
 
 class EditorOverlay(GameStrategy):
-    """Оверлей управления редактором уровней
-
-    :param GameStrategy: Наследуется от базового класса игровой 
-    стратегии
+    """
+    Оверлей управления редактором уровней
     """
 
-    def __init__(self, screen: pygame.Surface, editor, plug=None):
+    def music(self):
+        pass
+
+    def __init__(self, editor: "Editor", screen: pygame.Surface):
         """Инициализирует оверлей
 
         :param screen: На какой поверхности отрисовывать
-        :type screen: pygame.Surface
-        :param editor: Экземпляр класса Editor, который и управляет 
-        оверлей
-        :type editor: Editor
-        :param plug: Параметр - затычка. Используется во избежание 
-        крашей игры (unused), defaults to None
-        :type plug: _type_, optional
+        :param editor: Экземпляр класса Editor, который и управляет оверлей
         """
         super().__init__(screen)
         self.state = None
-        self.editor = editor
+        self.editor: Editor = editor
         self.loaded_flag = False
         self.label = self.editor.level_name
         print(self.editor.level_name, self.label)
@@ -74,8 +67,10 @@ class EditorOverlay(GameStrategy):
         self.state = State(GameState.back)
 
     def load(self):
-        """Делает автосейв изменений в редакторе, если они есть, и 
-        вызывает загрузчик для загрузки уровня в редактор"""
+        """
+        Делает автоматическое сохранение изменений в редакторе, если они есть,
+        и вызывает загрузчик для загрузки уровня в редактор
+        """
         self.editor.extreme_exit()
         self.state = State(GameState.switch, partial(
             Loader, self.screen, self))
@@ -96,8 +91,7 @@ class EditorOverlay(GameStrategy):
 
         :param events: События, собранные окном pygame
         :type events: List[pygame.event.Event]
-        :param delta_time_in_milliseconds: Время между нынешним 
-        и предыдущим кадром (unused)
+        :param delta_time_in_milliseconds: Время между нынешним и предыдущим кадром (unused)
         :type delta_time_in_milliseconds: int
         :return: Возвращает состояние для правильной работы game_context
         """
@@ -109,10 +103,10 @@ class EditorOverlay(GameStrategy):
                 self.state = State(GameState.back)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.editor.levelname = str(self.buttons[3])
+                    self.editor.level_name = str(self.buttons[3])
                     self.state = State(GameState.back)
             if event.type == pygame.KEYUP:
-                if str(self.buttons[3]) != '' and str(self.buttons[3]) != None:
+                if str(self.buttons[3]):
                     self.label = str(self.buttons[3])
                 self.buttons[0] = Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 180, 400, 50, (0, 0, 0),
                                          EuiSettings(), f"Вы изменяете {self.label}")
@@ -122,8 +116,8 @@ class EditorOverlay(GameStrategy):
                 break
             button.draw(self.screen)
 
-        if self.state != None:
-            if str(self.buttons[3]) != '' and str(self.buttons[3]) != None:
+        if self.state is not None:
+            if str(self.buttons[3]) != '':
                 self.editor.level_name = str(self.buttons[3])
                 if self.editor.level_name == '':
                     self.editor.level_name = None

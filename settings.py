@@ -27,7 +27,6 @@ LETTERS: Final[Sequence[str]] = ('ring', 'words/a', 'skull_map', 'trash', 'mount
                                  'words/f', 'words/g', 'words/h', 'words/i', 'words/l'
                                  )
 
-
 OBJECTS: Final[Sequence[str]] = (*TEXT_ONLY, *PIPES, *LETTERS, 'cake', 'fire', 'ghost',
                                  'rock', 'door', 'skull', 'tile', 'bat', 'bird', 'bug',
                                  'rocket', 'fruit', 'love', 'power', 'rose', 'bat', 'cursor',
@@ -36,8 +35,6 @@ OBJECTS: Final[Sequence[str]] = (*TEXT_ONLY, *PIPES, *LETTERS, 'cake', 'fire', '
                                  'cog', 'flower', 'cup', 'fungus', 'box', 'shirt', 'tree', 'leaf',
                                  'violet',
                                  )
-
-
 
 NOUNS = [
     'algaе', 'all', 'anni', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom',
@@ -56,25 +53,20 @@ NOUNS = [
     'reed',
     'ring', 'road', 'robot', 'rock', 'rocket', 'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel',
     'sign', 'skull', 'spike', 'sprout', 'square', 'star', 'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth',
-    'text', 'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle', 'ufo',
-    'vase',
-    'vine', 'wall', 'water', 'what', 'wind', 'worm'
+    'text', 'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle',
+    'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm'
 ]
 
 OPERATORS = [
     'and', 'eat', 'facing', 'fear', 'follow', 'has', 'idle', 'is', 'lonely', 'make', 'mimic', 'near', 'never', 'not',
-    'on',
-    'operator', 'play', 'powered', 'seldom', 'sharp', 'without', 'write'
+    'on', 'operator', 'play', 'powered', 'seldom', 'sharp', 'without', 'write'
 ]
-
-
 
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver', 'white',
-    'defeat', 'deturn', 'done',
-    'directions', 'end', 'fall', 'float', 'hide', 'hold', 'hot', 'locked', 'melt', 'more', 'move', 'nudge', 'open',
-    'party',
-    'pet', 'phantom', 'power', 'pull', 'push', 'reverse', 'revert', 'sad', 'safe', 'scary', 'select', 'shift', 'shut',
-    'sink', 'sleep', 'stick', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win', 'wonder', 'word', 'you', 'you2'
+    'defeat', 'return', 'done', 'directions', 'end', 'fall', 'float', 'hide', 'hold', 'hot', 'locked', 'melt',
+    'more', 'move', 'nudge', 'open', 'party', 'pet', 'phantom', 'power', 'pull', 'push', 'reverse', 'revert', 'sad',
+    'safe', 'scary', 'select', 'shift', 'shut', 'sink', 'sleep', 'stick', 'still', 'stop', 'swap', 'tele', 'turn',
+    'weak', 'win', 'wonder', 'word', 'you', 'you2'
 ]

@@ -1,5 +1,4 @@
-from logging import PlaceHolder
-from typing import Union, TYPE_CHECKING, Callable, Any, Optional, List, Sequence
+from typing import Union, TYPE_CHECKING, List, Sequence
 
 import pygame
 
@@ -27,8 +26,8 @@ class Input:
         :type outline: COLOR
         :param settings: Настройки отрисовки и оформления поля ввода
         :type settings: AbstractButtonSettings
-        :param placeholder: Содержимое поля ввода до ввода со стороны игрока, 
-        defaults to empty string
+        :param placeholder:
+            Содержимое поля ввода до ввода со стороны игрока, defaults to empty string
         :type placeholder: str, optional
         """
         self.x = x
@@ -40,7 +39,6 @@ class Input:
         self.placeholder = placeholder
         self.settings = settings
         self.outline = outline
-        pygame.font.init()
         self.font = pygame.font.SysFont(
             'segoeuisemibold', self.settings.text_size)
         self.focused = False
@@ -92,8 +90,7 @@ class Input:
         """
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN:
-                self.pressed = True if self.is_over(
-                    pygame.mouse.get_pos()) else False
+                self.pressed = self.is_over(pygame.mouse.get_pos())
             if event.type == pygame.KEYDOWN and self.pressed:
                 if event.key == pygame.K_BACKSPACE:
                     self.text = self.text[:-1]
@@ -101,6 +98,7 @@ class Input:
                     self.pressed = False
                 else:
                     self.text += pygame.key.name(event.key)
+        return self.pressed
 
     def is_over(self, pos: Sequence[Union[int, float]]) -> bool:
         """
