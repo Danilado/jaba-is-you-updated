@@ -96,6 +96,7 @@ class EditorOverlay(GameStrategy):
         :return: Возвращает состояние для правильной работы game_context
         """
         self.state = State(GameState.back) if self.loaded_flag else None
+        self.editor.new_loaded = True if self.loaded_flag else False
         self.screen.fill('black')
 
         for event in events:

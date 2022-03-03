@@ -80,6 +80,7 @@ class Editor(GameStrategy):
         self.level_name = None
         self.state = None
         self.first_iteration = True
+        self.new_loaded = False
         # tools
         self.tool = 1
         self.direction = 1
@@ -292,6 +293,18 @@ class Editor(GameStrategy):
                 self.safe_exit()
             self.state = State(GameState.back)
             self.unresize()
+        if self.new_loaded:
+            self.changes.clear()
+            self.new_loaded = False
+            for line in self.current_state:
+                for cell in line:
+                    for game_object in cell:
+                        if game_object.name in STICKY and not game_object.text:
+                            neighbours = self.get_neighbours(
+                                game_object.x, game_object.y)
+                            game_object.neighbours = neighbours
+                            game_object.animation_init()
+
         self.screen.fill("black")
         for event in events:
             if event.type == pygame.QUIT:
