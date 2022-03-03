@@ -1,3 +1,4 @@
+from ast import Str
 from datetime import datetime
 from functools import partial
 from math import ceil
@@ -13,7 +14,7 @@ from classes.objects import Object
 from classes.state import State
 from elements.global_classes import EuiSettings, IuiSettings, sound_manager
 from elements.overlay import EditorOverlay
-from settings import SHOW_GRID, RESOLUTION, OBJECTS
+from settings import SHOW_GRID, RESOLUTION, OBJECTS, STICKY
 
 
 def my_deepcopy(arr):
@@ -62,7 +63,7 @@ def direction_to_unicode(direction: int) -> str:
         3 - Влево
     :return: Один символ - Юникод-стрелка
     """
-    return '↑' if direction == 0 else '→' if direction == 1 else '↓' if direction == 2 else '←'
+    return '↑' if direction == 1 else '→' if direction == 0 else '↓' if direction == 3 else '←'
 
 
 class Editor(GameStrategy):
@@ -73,6 +74,12 @@ class Editor(GameStrategy):
         :type screen: pygame.Surface
         """
         super().__init__(screen)
+        # overlay related
+        self.exit_flag = False
+        self.discard = False
+        self.level_name = None
+        self.state = None
+        self.first_iteration = True
         # tools
         self.tool = 1
         self.direction = 1
@@ -97,11 +104,8 @@ class Editor(GameStrategy):
         ]
         # features
         self.screen = pygame.display.set_mode((1800, 900))
-        self.exit_flag = False
-        self.discard = False
         self.page_turn(0)
-        self.level_name = None
-        self.state = None
+        self.empty_object = Object(-1, -1, 0, 'empty', False)
 
     @staticmethod
     def save(state, name=None):
@@ -139,7 +143,6 @@ class Editor(GameStrategy):
         button_objects_array = OBJECTS[12 * self.page:12 * (self.page + 1)]
         button_array = []
         for index, text in enumerate(button_objects_array):
-            # print(f'{index+1} {text}')
             button_array.append(
                 ObjectButton(x=RESOLUTION[0] + 28 + 84 * (index % 2), y=25 + 55 * (index - index % 2), width=50, height=50, outline=(0, 0, 0),
                              settings=EuiSettings(), text=text, action=partial(self.set_name, text), is_text=self.is_text, direction=self.direction, movement_state=0))
@@ -147,7 +150,6 @@ class Editor(GameStrategy):
 
     def unresize(self):
         """Меняет разрешение экрана с расширенного на изначальное через магические константы 1600х900"""
-        # Gospodin: Вызывает удар Кости по моей голове
         self.screen = pygame.display.set_mode((1600, 900))
 
     def safe_exit(self):
@@ -186,17 +188,37 @@ class Editor(GameStrategy):
         self.tool = n
 
     def is_text_swap(self):
-        """Меняет является ли объект текстом, или нет
-        """
-        self.is_text = False if self.is_text else True
+        """Меняет является ли объект текстом, или нет"""
+        self.is_text = not self.is_text
         self.page_turn(0)
 
     def undo(self):
-        """Отменяет последнее изменение
-        """
+        """Отменяет последнее изменение"""
         if len(self.changes) != 0:
             self.current_state = self.changes[-1]
             self.changes.pop()
+
+    def get_neighbours(self, y, x) -> List[Object]:
+        offsets = [
+            (0, -1),
+            (1,  0),
+            (0,  1),
+            (-1, 0),
+        ]
+        neighbours = [None for _ in range(4)]
+        if x == 0:
+            neighbours[0] = [self.empty_object]
+        elif x == RESOLUTION[1]//50-1:
+            neighbours[2] = [self.empty_object]
+        if y == 0:
+            neighbours[3] = [self.empty_object]
+        elif y == RESOLUTION[0]//50-1:
+            neighbours[1] = [self.empty_object]
+        for index, offset in enumerate(offsets):
+            if neighbours[index] is None:
+                neighbours[index] = self.current_state[x +
+                                                       offset[1]][y + offset[0]]
+        return neighbours
 
     def create(self):
         """
@@ -210,9 +232,22 @@ class Editor(GameStrategy):
                     flag = 1
                     break
             if not flag:
+                neighbours = []
+                if self.name in STICKY and not self.is_text:
+                    neighbours = self.get_neighbours(
+                        self.focus[0], self.focus[1])
                 self.changes.append(my_deepcopy(self.current_state))
                 self.current_state[self.focus[1]][self.focus[0]].append(
-                    Object(self.focus[0], self.focus[1], self.direction, self.name, self.is_text))
+                    Object(x=self.focus[0], y=self.focus[1], direction=self.direction, name=self.name,
+                           is_text=self.is_text, movement_state=0, neighbours=neighbours))
+                if self.name in STICKY and not self.is_text:
+                    # ЭТО НУЖНО ДЕЛАТЬ ПОСЛЕ ДОБАВЛЕНИЯ ОБЪЕКТА В МАТРИЦУ
+                    for array in neighbours:
+                        for neighbour in array:
+                            if neighbour.name in STICKY and not neighbour.text:
+                                neighbour.neighbours = self.get_neighbours(
+                                    neighbour.x, neighbour.y)
+                                neighbour.animation_init()
 
     def delete(self):
         """Если в клетке есть объекты, удаляет последний созданный из них"""
@@ -238,8 +273,11 @@ class Editor(GameStrategy):
         :return: Возвращает состояние для правильной работы game_context
         :rtype: Optional[State]
         """
-        # TODO: Refactor this. There is "Long Method"
+
         self.state = None
+        if self.first_iteration:
+            self.first_iteration = False
+            self.overlay()
         if self.exit_flag:
             if not self.discard:
                 self.safe_exit()

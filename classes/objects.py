@@ -1,3 +1,4 @@
+from http.client import UnimplementedFileMode
 import os
 import os.path
 from typing import Optional
@@ -53,7 +54,7 @@ is_text:    {self.text}
 --- {(len(str(self.x)) + len(str(self.y))) * ' '} ---
         """)  # TODO: Use logger library
 
-    def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty", is_text: bool = True, movement_state: int = 0):
+    def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty", is_text: bool = True, movement_state: int = 0, neighbours=[]):
         """
         Инициализация объекта
 
@@ -89,7 +90,36 @@ is_text:    {self.text}
         self.height = 50
         self.animation: Animation
         self.movement_state = movement_state
-        self.animation_init()
+        self.neighbours = neighbours
+        if self.name != 'empty':
+            self.animation_init()
+
+    def investigate_neighbours(self):
+        key_dict = {
+            '': 0,
+            'r': 1,
+            'u': 2,
+            'ur': 3,
+            'l': 4,
+            'rl': 5,
+            'ul': 6,
+            'url': 7,
+            'b': 8,
+            'rb': 9,
+            'ub': 10,
+            'urb': 11,
+            'bl': 12,
+            'rbl': 13,
+            'ubl': 14,
+            'urbl': 15
+        }
+        char_dict = ['u', 'r', 'b', 'l']
+        key = ''
+        for index, array in enumerate(self.neighbours):
+            for object in array:
+                if not object.text and object.name == self.name:
+                    key += char_dict[index]
+        return key_dict[key]
 
     def animation_init(self):
         if (self.text or self.name in TEXT_ONLY) and not self.name in SPRITE_ONLY:
@@ -106,10 +136,16 @@ is_text:    {self.text}
             except:
                 print(f'{self.name} somehow fucked up while counting')
 
-            if state_max == 0 or state_max == 15:
+            if state_max == 0:
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path, f'{self.name}_0_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+            elif state_max == 15:
+                frame = self.investigate_neighbours()
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path, f'{self.name}_{frame}_{index + 1}')),
                         (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
             elif state_max == 3:
                 self.animation = Animation(

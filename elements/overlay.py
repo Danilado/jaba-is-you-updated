@@ -112,8 +112,7 @@ class EditorOverlay(GameStrategy):
                                          EuiSettings(), f"Вы изменяете {self.label}")
 
         for button in self.buttons:
-            if self.state is None and button.update(events) and button.action is exit:
-                break
+            button.update(events)
             button.draw(self.screen)
 
         if self.state is not None:

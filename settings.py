@@ -16,7 +16,7 @@ TEXT_ONLY = [
     'e', 'eat', 'empty', 'end', 'f', 'facing', 'fall', 'falldown', 'fallleft',
     'fallright', 'fallup', 'fear', 'feeling', 'flat', 'float', 'follow', 'g', 'green',
     'grey', 'group', 'group2', 'group3', 'h', 'has', 'hide', 'hot', 'i', 'idle',
-    'is', 'j', 'k', 'l', 'lava', 'left', 'level', 'lime', 'lockeddown', 'lockedleft',
+    'is', 'j', 'k', 'l', 'left', 'level', 'lime', 'lockeddown', 'lockedleft',
     'lockedright', 'lockedup', 'lonely', 'm', 'make', 'melt', 'mimic', 'more', 'move',
     'n', 'near', 'nextto', 'not', 'nudgedown', 'nudgeleft', 'nudgeright', 'nudgeup',
     'o', 'often', 'on', 'open', 'orange', 'p', 'p1', 'p2', 'party', 'pet', 'phantom', 'pink',
@@ -31,6 +31,10 @@ SPRITE_ONLY = [
     'blossom', 'default', 'error', 'ico', 'nope', 'seastar', 'tree2',
 ]
 
+STICKY = [
+    'lava', 'wall', 'cloud', 'brick', 'plank', 'rubble', 'hedge', 'cliff', 'grass', 'ice', 'line', 'road', 'track', 'water'
+]
+
 OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt',
            'bird', 'blob', 'blossom', 'boat', 'boba', 'bolt', 'bomb', 'book', 'bottle', 'box', 'brick',
            'bubble', 'bucket', 'bug', 'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair',
@@ -38,7 +42,7 @@ OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed
            'dog', 'donut', 'door', 'dot', 'drink', 'drum', 'dust', 'ear', 'egg', 'error', 'eye', 'fence', 'fire',
            'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi', 'fungus', 'gate',
            'gem', 'ghost', 'grass', 'guitar', 'hand', 'hedge', 'hihat', 'house', 'husk', 'husks', 'ice',
-           'it', 'jelly', 'jiji', 'keke', 'key', 'knight', 'ladder', 'lamp', 'leaf', 'lever', 'lift', 'lily',
+           'it', 'jelly', 'jiji', 'keke', 'key', 'knight', 'lava', 'ladder', 'lamp', 'leaf', 'lever', 'lift', 'lily',
            'line', 'lizard', 'lock', 'love', 'me', 'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb',
            'pants', 'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato',
            'pumpkin', 'reed', 'ring', 'road', 'robot', 'rock', 'rocket', 'rose', 'rubble', 'sax', 'seed',
