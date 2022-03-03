@@ -1,4 +1,3 @@
-from distutils.command.build_scripts import first_line_re
 from typing import List, Optional
 
 import pygame
@@ -56,7 +55,17 @@ class Draw(GameStrategy):
                         parameters[4].lower() == 'true'
                     ))
 
-    def get_neighbours(self, y, x) -> List[Object]:
+    def get_neighbours(self, y, x) -> List:
+        """Ищет соседей клетки сверху, справа, снизу и слева
+
+        :param y: координата на матрице по оси y идёт первым, 
+        потому что ориентирование на матрице происходит зеркально относительно нормального
+        :type y: int
+        :param x: координата на матрице по оси x
+        :type x: int
+        :return: Массив с четырьмя клетками-соседями в порядке сверху, справа, снизу, слева
+        :rtype: List[]
+        """
         offsets = [
             (0, -1),
             (1,  0),

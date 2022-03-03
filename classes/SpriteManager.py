@@ -27,7 +27,7 @@ class SpriteManager:
 
     def _download(self):
         """Функция другого потока для скачивания и разархивации спрайтов"""
-        url = "https://www.dropbox.com/s/jpj9b4ghivzj037/sprites1000000.zip?dl=1"
+        url = "???"
         with httpx.Client(http2=True, http1=False) as client:
             with client.stream("GET",
                                url,
@@ -46,7 +46,7 @@ class SpriteManager:
         """
         if not isinstance(path, Path):
             path = Path(path)
-        path = str(path.with_suffix(".png").resolve())
+        path = str(path.with_suffix(".webp").resolve())
         if self._thread.is_alive():
             print("a")
             self._thread.join(5)
