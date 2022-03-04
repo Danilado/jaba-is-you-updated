@@ -1,4 +1,3 @@
-from http.client import UnimplementedFileMode
 import os
 import os.path
 from typing import Optional
