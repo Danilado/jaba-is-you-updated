@@ -46,7 +46,7 @@ class SpriteManager:
         """
         if not isinstance(path, Path):
             path = Path(path)
-        path = str(path.with_suffix(".webp").resolve())
+        path = str(path.with_suffix(".png").resolve())
         if self._thread.is_alive():
             print("a")
             self._thread.join(5)
