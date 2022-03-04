@@ -1,0 +1,11 @@
+27 1 1 cup True
+28 1 1 is False
+29 1 1 push False
+27 3 1 cup True
+28 3 1 is False
+29 3 1 stop False
+16 5 1 cup False
+27 6 1 flower True
+28 6 1 is False
+29 6 1 you False
+22 9 1 flower False

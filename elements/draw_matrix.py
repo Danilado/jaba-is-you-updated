@@ -37,8 +37,6 @@ class Draw(GameStrategy):
         self.parse_file(level_name)
         self.level_rules = []
         self.copy_matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
-        self.history_of_matrix = []
-        self.status_cancel = False
 
     def parse_file(self, level_name: str):
         """
@@ -61,8 +59,6 @@ class Draw(GameStrategy):
                         parameters[3],
                         parameters[4].lower() == 'true'
                     ))
-            self.history_of_matrix = []
-            self.history_of_matrix.append(self.matrix)
 
 
     @staticmethod
@@ -164,17 +160,6 @@ class Draw(GameStrategy):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     state = State(GameState.back)
-                if event.key == pygame.K_z:
-                    self.status_cancel = True
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_z:
-                    self.status_cancel = False
-
-        if len(self.history_of_matrix) > 0 and self.status_cancel:
-            self.matrix = self.history_of_matrix[-1]
-            self.history_of_matrix = self.history_of_matrix[:-1]
-            print(len(self.history_of_matrix))
-
         copy_matrix = my_deepcopy(self.matrix)
         for rule in self.level_rules:
             if 'is you' in rule.text_rule:
@@ -184,7 +169,7 @@ class Draw(GameStrategy):
                         for object in self.matrix[i][j]:
                             if object.name == obj_name and object.text == False:
                                 object.check_events(events)
-                                object.move(copy_matrix, self.level_rules, self.history_of_matrix)
+                                object.move(copy_matrix, self.level_rules)
         self.matrix = my_deepcopy(copy_matrix)
         if SHOW_GRID:
             for x in range(0, RESOLUTION[0], 50):
@@ -208,7 +193,11 @@ class Draw(GameStrategy):
                 self.check_vertically(i, j)
 
         self.level_rules = self.remove_copies_rules(self.level_rules)
-
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix[i])):
+                for o in self.matrix[i][j]:
+                    if o.name == 'flower':
+                        print(o.turning_side)
 
 
         return state

@@ -55,7 +55,8 @@ is_text:    {self.text}
 --- {(len(str(self.x)) + len(str(self.y))) * ' '} ---
         """)  # TODO: Use logger library
 
-    def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty", is_text: bool = True):
+    def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
+                 is_text: bool = True, turning_side: int = -1):
         """
         Инициализация объекта
 
@@ -90,12 +91,9 @@ is_text:    {self.text}
         self.width = 50
         self.height = 50
         self.animation: Animation = self.animation_init()
-
         # TODO: Use enum, and make field private
         self.status_of_rotate: Literal[0, 1, 2, 3] = 0
-
-        self.turning_side: Literal[0, 1, 2, 3, -1] = -1
-        self.status_cancel: bool = False
+        self.turning_side: Literal[0, 1, 2, 3, -1] = turning_side
 
     def animation_init(self):
         if self.text or self.name in TEXT_ONLY \
@@ -152,26 +150,26 @@ is_text:    {self.text}
         """Сериализовать объект в строку"""
         return f'{self.x} {self.y} {self.direction} {self.name} {self.text}'
 
-    def move(self, matrix, level_rules, history_of_matrix):  # TODO: use Δt to calculate distance move
+    def move(self, matrix, level_rules):  # TODO: use Δt to calculate distance move
         """Метод движения персонажа"""
         if self.turning_side == 0:
-            self.move_right(matrix, level_rules, history_of_matrix)
+            self.move_right(matrix, level_rules)
         if self.turning_side == 1:
-            self.move_up(matrix, level_rules, history_of_matrix)
+            self.move_up(matrix, level_rules)
         if self.turning_side == 2:
-            self.move_left(matrix, level_rules, history_of_matrix)
+            self.move_left(matrix, level_rules)
         if self.turning_side == 3:
-            self.move_down(matrix, level_rules, history_of_matrix)
+            self.move_down(matrix, level_rules)
         #if DEBUG:
         #    print(self.turning_side, self.status_of_rotate)
         self.animation_init()
 
 
-    def move_up(self, matrix, level_rules, history_of_matrix, status_push=None):
+    def move_up(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вверх"""
         if self.y > 0:
             for objects in matrix[self.y - 1][self.x]:
-                if objects.move_up(matrix, level_rules, history_of_matrix, 'push'):
+                if objects.move_up(matrix, level_rules, 'push'):
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
@@ -184,10 +182,14 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text
+                        self.text,
+                        1
                     ))
                     return True
                 return False
+            for rule in level_rules:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
+                    return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
                     for i in range(len(matrix[self.y][self.x])):
@@ -202,12 +204,12 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text
+                        self.text,
+                        1
                     ))
                     return True
             if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
                     self.name in NOUNS and self.text):
-                history_of_matrix.append(matrix)
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
@@ -220,16 +222,17 @@ is_text:    {self.text}
                     self.y,
                     self.direction,
                     self.name,
-                    self.text
+                    self.text,
+                    1
                 ))
             return True
 
 
-    def move_down(self, matrix, level_rules, history_of_matrix, status_push=None):
+    def move_down(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вниз"""
         if self.y < RESOLUTION[1] // 50 - 1:
             for objects in matrix[self.y + 1][self.x]:
-                if objects.move_down(matrix, level_rules, history_of_matrix, 'push'):
+                if objects.move_down(matrix, level_rules, 'push'):
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
@@ -242,10 +245,14 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text
+                        self.text,
+                        3
                     ))
                     return True
                 return False
+            for rule in level_rules:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
+                    return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
                     for i in range(len(matrix[self.y][self.x])):
@@ -260,7 +267,8 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text
+                        self.text,
+                        3
                     ))
                     return True
             if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
@@ -277,16 +285,17 @@ is_text:    {self.text}
                     self.y,
                     self.direction,
                     self.name,
-                    self.text
+                    self.text,
+                    3
                 ))
             return True
 
 
-    def move_left(self, matrix, level_rules, history_of_matrix, status_push=None):
+    def move_left(self, matrix, level_rules, status_push=None):
         """Метод движения персонажа влево"""
         if self.x > 0:
             for objects in matrix[self.y][self.x - 1]:
-                if objects.move_left(matrix, level_rules, history_of_matrix, 'push'):
+                if objects.move_left(matrix, level_rules, 'push'):
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
@@ -299,10 +308,14 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text
+                        self.text,
+                        2
                     ))
                     return True
                 return False
+            for rule in level_rules:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
+                    return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
                     for i in range(len(matrix[self.y][self.x])):
@@ -317,12 +330,12 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text
+                        self.text,
+                        2
                     ))
                     return True
             if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
                     self.name in NOUNS and self.text):
-                history_of_matrix.append(matrix)
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
@@ -335,17 +348,18 @@ is_text:    {self.text}
                     self.y,
                     self.direction,
                     self.name,
-                    self.text
+                    self.text,
+                    2
                 ))
             return True
 
 
 
-    def move_right(self, matrix, level_rules, history_of_matrix, status_push=None):
+    def move_right(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вправо"""
         if self.x < RESOLUTION[0] // 50 - 1:
             for objects in matrix[self.y][self.x + 1]:
-                if objects.move_right(matrix, level_rules, history_of_matrix, 'push'):
+                if objects.move_right(matrix, level_rules, 'push'):
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
@@ -358,10 +372,14 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text
+                        self.text,
+                        0
                     ))
                     return True
                 return False
+            for rule in level_rules:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
+                    return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
                     for i in range(len(matrix[self.y][self.x])):
@@ -376,12 +394,12 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text
+                        self.text,
+                        0
                     ))
                     return True
             if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
                     self.name in NOUNS and self.text):
-                history_of_matrix.append(matrix)
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
@@ -394,7 +412,8 @@ is_text:    {self.text}
                     self.y,
                     self.direction,
                     self.name,
-                    self.text
+                    self.text,
+                    0
                 ))
             return True
 
@@ -412,7 +431,9 @@ is_text:    {self.text}
                 if event.key == pygame.K_s:
                     self.turning_side = 3
 
+
             if event.type == pygame.KEYUP:
                 if event.key in [pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a]:
                     self.turning_side = -1
+
 
