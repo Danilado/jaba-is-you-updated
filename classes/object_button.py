@@ -41,6 +41,7 @@ class ObjectButton(Button):
                 state_max = max(states)
             except:
                 print(f'{text} somehow fucked up while counting')
+                state_max = 0
 
             if state_max == 0 or state_max == 15:
                 self.animation = Animation(
