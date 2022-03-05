@@ -31,5 +31,6 @@ class GameStrategy(abc.ABC):
         """
         ...
 
+    @abc.abstractmethod
     def music(self):
         ...
