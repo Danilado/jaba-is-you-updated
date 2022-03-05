@@ -16,7 +16,6 @@ def main():
         print("Debug on")
 
     sound_manager.start_download()
-    sprite_manager.start_download()
 
 
 if __name__ == '__main__':

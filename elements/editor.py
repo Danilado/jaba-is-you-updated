@@ -1,4 +1,3 @@
-from ast import Str
 from datetime import datetime
 from functools import partial
 from math import ceil
@@ -67,6 +66,12 @@ def direction_to_unicode(direction: int) -> str:
 
 
 class Editor(GameStrategy):
+    """Класс редактора уровней
+
+    :param GameStrategy: Является игровой стратегией и наследуется
+    от соответственного класса
+    """
+
     def __init__(self, screen: pygame.Surface):
         """Класс редактора уровней
 
@@ -99,9 +104,9 @@ class Editor(GameStrategy):
         self.pagination_limit = ceil(len(OBJECTS) / 12)
         self.pagination_buttons = [
             Button(RESOLUTION[0] + 17, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
-                   f"<", partial(self.page_turn, -1)),
+                   "<", partial(self.page_turn, -1)),
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
-                   f">", partial(self.page_turn, 1)),
+                   ">", partial(self.page_turn, 1)),
         ]
         # features
         self.screen = pygame.display.set_mode((1800, 900))
@@ -124,13 +129,13 @@ class Editor(GameStrategy):
                       encoding='utf-8') as file:
                 file.write(string)
 
-    def page_turn(self, n: int):
+    def page_turn(self, number: int):
         """Меняет страницу списка объектов
 
         :param n: Вперёд или назад перелистывать и на какое количество страниц
         :type n: int
         """
-        self.page = (self.page + n) % self.pagination_limit
+        self.page = (self.page + number) % self.pagination_limit
         self.buttons = self.parse_buttons()
 
     def parse_buttons(self):
@@ -145,8 +150,10 @@ class Editor(GameStrategy):
         button_array = []
         for index, text in enumerate(button_objects_array):
             button_array.append(
-                ObjectButton(x=RESOLUTION[0] + 28 + 84 * (index % 2), y=25 + 55 * (index - index % 2), width=50, height=50, outline=(0, 0, 0),
-                             settings=EuiSettings(), text=text, action=partial(self.set_name, text), is_text=self.is_text, direction=self.direction, movement_state=0))
+                ObjectButton(x=RESOLUTION[0] + 28 + 84 * (index % 2),
+                             y=25 + 55 * (index - index % 2), width=50, height=50, outline=(0, 0, 0),
+                             settings=EuiSettings(), text=text, action=partial(self.set_name, text),
+                             is_text=self.is_text, direction=self.direction, movement_state=0))
         return button_array
 
     def unresize(self):
@@ -180,13 +187,13 @@ class Editor(GameStrategy):
         self.direction = (self.direction - direction) % 4
         self.page_turn(0)
 
-    def set_tool(self, n: int):
+    def set_tool(self, number: int):
         """Функция смены инструмента
 
         :param n: [0 - 2], где 0 - удалить, 1 - создать, а 2 - исследовать клетку и вывести содержимое в консоль
         :type n: int
         """
-        self.tool = n
+        self.tool = number
 
     def is_text_swap(self):
         """Меняет является ли объект текстом, или нет"""
@@ -208,6 +215,16 @@ class Editor(GameStrategy):
                             game_object.animation_init()
 
     def get_neighbours(self, y, x) -> List[Object]:
+        """Ищет соседей клетки сверху, справа, снизу и слева
+
+        :param y: координата на матрице по оси y идёт первым,
+        потому что ориентирование на матрице происходит зеркально относительно нормального
+        :type y: int
+        :param x: координата на матрице по оси x
+        :type x: int
+        :return: Массив с четырьмя клетками-соседями в порядке сверху, справа, снизу, слева
+        :rtype: List[]
+        """
         offsets = [
             (0, -1),
             (1,  0),
@@ -219,10 +236,12 @@ class Editor(GameStrategy):
             neighbours[0] = [self.empty_object]
         elif x == RESOLUTION[1]//50-1:
             neighbours[2] = [self.empty_object]
+
         if y == 0:
             neighbours[3] = [self.empty_object]
         elif y == RESOLUTION[0]//50-1:
             neighbours[1] = [self.empty_object]
+
         for index, offset in enumerate(offsets):
             if neighbours[index] is None:
                 neighbours[index] = self.current_state[x +

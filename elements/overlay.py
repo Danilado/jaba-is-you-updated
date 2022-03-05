@@ -32,7 +32,7 @@ class EditorOverlay(GameStrategy):
         """
         super().__init__(screen)
         self.state = None
-        self.editor: Editor = editor
+        self.editor: "Editor" = editor
         self.loaded_flag = False
         self.label = self.editor.level_name
         print(self.editor.level_name, self.label)
@@ -96,7 +96,7 @@ class EditorOverlay(GameStrategy):
         :return: Возвращает состояние для правильной работы game_context
         """
         self.state = State(GameState.back) if self.loaded_flag else None
-        self.editor.new_loaded = True if self.loaded_flag else False
+        self.editor.new_loaded = bool(self.loaded_flag)
         self.screen.fill('black')
 
         for event in events:

@@ -43,8 +43,8 @@ class Draw(GameStrategy):
         :param level_name: Название уровня в папке levels
         :raises OSError: Если какая либо проблема с открытием файла.
         """
-        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as leve_file:
-            for line in leve_file.readlines():
+        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as level_file:
+            for line in level_file.readlines():
                 parameters = line.strip().split(' ')
                 if len(parameters) > 1:
                     self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
@@ -58,7 +58,7 @@ class Draw(GameStrategy):
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева
 
-        :param y: координата на матрице по оси y идёт первым, 
+        :param y: координата на матрице по оси y идёт первым,
         потому что ориентирование на матрице происходит зеркально относительно нормального
         :type y: int
         :param x: координата на матрице по оси x
@@ -77,10 +77,12 @@ class Draw(GameStrategy):
             neighbours[0] = [self.empty_object]
         elif x == RESOLUTION[1]//50-1:
             neighbours[2] = [self.empty_object]
+
         if y == 0:
             neighbours[3] = [self.empty_object]
         elif y == RESOLUTION[0]//50-1:
             neighbours[1] = [self.empty_object]
+
         for index, offset in enumerate(offsets):
             if neighbours[index] is None:
                 neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]

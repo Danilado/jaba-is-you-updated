@@ -26,9 +26,10 @@ class ObjectButton(Button):
     :ivar direction: Направление кнопки
     """
 
-    def __init__(self, x, y, width, height, outline, settings, text="", action=None, is_text=0, direction=0, movement_state=0):
+    def __init__(self, x, y, width, height, outline, settings, text="", action=None,
+                 is_text=0, direction=0, movement_state=0):
         super().__init__(x, y, width, height, outline, settings, text, action)
-        if (is_text or text in TEXT_ONLY) and not text in SPRITE_ONLY:
+        if (is_text or text in TEXT_ONLY) and text not in SPRITE_ONLY:
             path = os.path.join('./', 'sprites', 'text')
             self.animation = Animation(
                 [pygame.transform.scale(sprite_manager.get(os.path.join(f"{path}", text, f"{text}_0_{index + 1}")),
@@ -39,11 +40,17 @@ class ObjectButton(Button):
                 states = [int(name.split('_')[1]) for name in os.listdir(path) if os.path.isfile(
                     os.path.join(path, name))]
                 state_max = max(states)
-            except:
-                print(f'{text} somehow fucked up while counting')
+            except IndexError:
+                print(
+                    f'{text} fucked up while counting states -> probably filename is invalid')
+                state_max = 0
+            except FileNotFoundError:
+                print(
+                    f"{text} fucked up while searching for files. Probably folder is corrupt or \
+                    does not exist. This shouldn't happen in any circumstances")
                 state_max = 0
 
-            if state_max == 0 or state_max == 15:
+            if state_max in (0, 15):
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path, f'{text}_0_{index + 1}')),

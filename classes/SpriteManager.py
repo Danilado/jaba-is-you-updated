@@ -16,24 +16,6 @@ class SpriteManager:
     def __init__(self):
         self._images: Dict[str, SURFACE] = {}
         self._sprites_folder = Path("./sprites/")
-        self._thread: Final[Thread] = Thread(
-            target=self._download, daemon=True)
-
-    def start_download(self):
-        """Старт скачивания спрайтов"""
-        if not self._sprites_folder.exists() or not set(self._sprites_folder.glob("*")):
-            self._sprites_folder.mkdir(exist_ok=True)
-            self._thread.start()
-
-    def _download(self):
-        """Функция другого потока для скачивания и разархивации спрайтов"""
-        url = "???"
-        with httpx.Client(http2=True, http1=False) as client:
-            with client.stream("GET",
-                               url,
-                               follow_redirects=True) as stream:
-                with zipfile.ZipFile(io.BytesIO(b"".join(stream.iter_bytes()))) as zip_file:
-                    zip_file.extractall(self._sprites_folder)
 
     def get(self, path: Union[Path, str], alpha: bool = True) -> SURFACE:
         """
@@ -47,11 +29,6 @@ class SpriteManager:
         if not isinstance(path, Path):
             path = Path(path)
         path = str(path.with_suffix(".png").resolve())
-        if self._thread.is_alive():
-            print("a")
-            self._thread.join(5)
-            if self._thread.is_alive():
-                raise RuntimeError("Can't join download thread")
         if path not in self._images:
             if alpha:
                 self._images[path] = pygame.image.load(path).convert_alpha()
