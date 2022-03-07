@@ -1,10 +1,6 @@
-import io
-import zipfile
 from pathlib import Path
-from threading import Thread
-from typing import Final, Dict, Union
+from typing import Dict, Union
 
-import httpx
 import pygame
 
 from global_types import SURFACE
