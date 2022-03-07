@@ -5,7 +5,6 @@ DEBUG: bool = True
 RESOLUTION: Final[Tuple[int, int]] = (1600, 900)  # 32x18
 SHOW_GRID: Final[bool] = True
 FRAMES_PER_SECOND: Final[int] = 60  # Свободно дополняйте.
-LEVELS_PASSED = 15
 
 TEXT_ONLY: Final[Sequence[str]] = (
     'is', 'and', 'stop', 'push', 'defeat', 'win', 'you', 'move', 'not', 'me', 'ok', 'back', 'best',
