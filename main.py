@@ -3,7 +3,7 @@ import argparse
 import settings
 from classes.game_context import GameContext
 from elements.global_classes import sprite_manager, sound_manager
-from elements.main_menu import MainMenu
+from elements.progressbar_menu import ProgressBarMenu
 
 
 def main():
@@ -21,4 +21,4 @@ def main():
 
 if __name__ == '__main__':
     main()
-    GameContext(MainMenu).run()
+    GameContext(ProgressBarMenu).run()
