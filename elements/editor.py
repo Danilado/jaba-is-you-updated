@@ -13,7 +13,7 @@ from classes.objects import Object
 from classes.state import State
 from elements.global_classes import EuiSettings, IuiSettings, sound_manager
 from elements.overlay import EditorOverlay
-from settings import SHOW_GRID, RESOLUTION, OBJECTS
+from settings import SHOW_GRID, RESOLUTION, OBJECTS, STICKY
 
 
 def my_deepcopy(arr):
@@ -62,10 +62,16 @@ def direction_to_unicode(direction: int) -> str:
         3 - Влево
     :return: Один символ - Юникод-стрелка
     """
-    return '↑' if direction == 0 else '→' if direction == 1 else '↓' if direction == 2 else '←'
+    return '↑' if direction == 1 else '→' if direction == 0 else '↓' if direction == 3 else '←'
 
 
 class Editor(GameStrategy):
+    """Класс редактора уровней
+
+    :param GameStrategy: Является игровой стратегией и наследуется
+    от соответственного класса
+    """
+
     def __init__(self, screen: pygame.Surface):
         """Класс редактора уровней
 
@@ -73,29 +79,39 @@ class Editor(GameStrategy):
         :type screen: pygame.Surface
         """
         super().__init__(screen)
+        # overlay related
+        self.exit_flag = False
+        self.discard = False
+        self.level_name = None
+        self.state = None
+        self.first_iteration = True
+        self.new_loaded = False
+        # tools
         self.tool = 1
         self.direction = 1
         self.is_text = False
         self.name: Optional[str] = None
+        # history
         self.changes: List[List[List[List[Object]]]] = []
+        # matrix state
         self.current_state: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
+        # focused cell
         self.focus = (-1, -1)
+        # buttons
         self.buttons: List[ObjectButton] = []
         self.page = 0
         self.pagination_limit = ceil(len(OBJECTS) / 12)
         self.pagination_buttons = [
             Button(RESOLUTION[0] + 17, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
-                   f"<", partial(self.page_turn, -1)),
+                   "<", partial(self.page_turn, -1)),
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
-                   f">", partial(self.page_turn, 1)),
+                   ">", partial(self.page_turn, 1)),
         ]
+        # features
         self.screen = pygame.display.set_mode((1800, 900))
-        self.exit_flag = False
-        self.discard = False
         self.page_turn(0)
-        self.level_name = None
-        self.state = None
+        self.empty_object = Object(-1, -1, 0, 'empty', False)
 
     @staticmethod
     def save(state, name=None):
@@ -113,18 +129,18 @@ class Editor(GameStrategy):
                       encoding='utf-8') as file:
                 file.write(string)
 
-    def page_turn(self, n: int):
+    def page_turn(self, number: int):
         """Меняет страницу списка объектов
 
         :param n: Вперёд или назад перелистывать и на какое количество страниц
         :type n: int
         """
-        self.page = (self.page + n) % self.pagination_limit
+        self.page = (self.page + number) % self.pagination_limit
         self.buttons = self.parse_buttons()
 
     def parse_buttons(self):
         """
-        Даёт список из 10-и или менее кнопок, расположенных на странице кнопок (?),
+        Даёт список из 12-и или менее кнопок, расположенных на странице кнопок (?),
         в которой в данный момент находится редактор
 
         :return: массив кнопок
@@ -133,15 +149,15 @@ class Editor(GameStrategy):
         button_objects_array = OBJECTS[12 * self.page:12 * (self.page + 1)]
         button_array = []
         for index, text in enumerate(button_objects_array):
-            # print(f'{index+1} {text}')
             button_array.append(
-                ObjectButton(RESOLUTION[0] + 28 + 84 * (index % 2), 25 + 55 * (index - index % 2), 50, 50, (0, 0, 0),
-                             EuiSettings(), text, partial(self.set_name, text), self.is_text, self.direction))
+                ObjectButton(x=RESOLUTION[0] + 28 + 84 * (index % 2),
+                             y=25 + 55 * (index - index % 2), width=50, height=50, outline=(0, 0, 0),
+                             settings=EuiSettings(), text=text, action=partial(self.set_name, text),
+                             is_text=self.is_text, direction=self.direction, movement_state=0))
         return button_array
 
     def unresize(self):
         """Меняет разрешение экрана с расширенного на изначальное через магические константы 1600х900"""
-        # Gospodin: Вызывает удар Кости по моей голове
         self.screen = pygame.display.set_mode((1600, 900))
 
     def safe_exit(self):
@@ -168,29 +184,69 @@ class Editor(GameStrategy):
 
         :param direction: направление, где 1 - по часовой стрелке, а -1 - против часовой
         """
-        self.direction = (self.direction + direction) % 4
+        self.direction = (self.direction - direction) % 4
         self.page_turn(0)
 
-    def set_tool(self, n: int):
+    def set_tool(self, number: int):
         """Функция смены инструмента
 
         :param n: [0 - 2], где 0 - удалить, 1 - создать, а 2 - исследовать клетку и вывести содержимое в консоль
         :type n: int
         """
-        self.tool = n
+        self.tool = number
 
     def is_text_swap(self):
-        """Меняет является ли объект текстом, или нет
-        """
-        self.is_text = False if self.is_text else True
+        """Меняет является ли объект текстом, или нет"""
+        self.is_text = not self.is_text
         self.page_turn(0)
 
     def undo(self):
-        """Отменяет последнее изменение
-        """
+        """Отменяет последнее изменение"""
         if len(self.changes) != 0:
             self.current_state = self.changes[-1]
             self.changes.pop()
+            for line in self.current_state:
+                for cell in line:
+                    for game_object in cell:
+                        if game_object.name in STICKY and not game_object.text:
+                            neighbours = self.get_neighbours(
+                                game_object.x, game_object.y)
+                            game_object.neighbours = neighbours
+                            game_object.animation_init()
+
+    def get_neighbours(self, y, x) -> List[Object]:
+        """Ищет соседей клетки сверху, справа, снизу и слева
+
+        :param y: координата на матрице по оси y идёт первым,
+        потому что ориентирование на матрице происходит зеркально относительно нормального
+        :type y: int
+        :param x: координата на матрице по оси x
+        :type x: int
+        :return: Массив с четырьмя клетками-соседями в порядке сверху, справа, снизу, слева
+        :rtype: List[]
+        """
+        offsets = [
+            (0, -1),
+            (1,  0),
+            (0,  1),
+            (-1, 0),
+        ]
+        neighbours = [None for _ in range(4)]
+        if x == 0:
+            neighbours[0] = [self.empty_object]
+        elif x == RESOLUTION[1]//50-1:
+            neighbours[2] = [self.empty_object]
+
+        if y == 0:
+            neighbours[3] = [self.empty_object]
+        elif y == RESOLUTION[0]//50-1:
+            neighbours[1] = [self.empty_object]
+
+        for index, offset in enumerate(offsets):
+            if neighbours[index] is None:
+                neighbours[index] = self.current_state[x +
+                                                       offset[1]][y + offset[0]]
+        return neighbours
 
     def create(self):
         """
@@ -204,9 +260,23 @@ class Editor(GameStrategy):
                     flag = 1
                     break
             if not flag:
+                neighbours = []
+                if self.name in STICKY and not self.is_text:
+                    # ЭТО НУЖНО ДЕЛАТЬ ДО ДОБАВЛЕНИЯ В МАТРИЦУ
+                    neighbours = self.get_neighbours(
+                        self.focus[0], self.focus[1])
                 self.changes.append(my_deepcopy(self.current_state))
                 self.current_state[self.focus[1]][self.focus[0]].append(
-                    Object(self.focus[0], self.focus[1], self.direction, self.name, self.is_text))
+                    Object(x=self.focus[0], y=self.focus[1], direction=self.direction, name=self.name,
+                           is_text=self.is_text, movement_state=0, neighbours=neighbours))
+                if self.name in STICKY and not self.is_text:
+                    # ЭТО НУЖНО ДЕЛАТЬ ПОСЛЕ ДОБАВЛЕНИЯ ОБЪЕКТА В МАТРИЦУ
+                    for array in neighbours:
+                        for neighbour in array:
+                            if neighbour.name in STICKY and not neighbour.text:
+                                neighbour.neighbours = self.get_neighbours(
+                                    neighbour.x, neighbour.y)
+                                neighbour.animation_init()
 
     def delete(self):
         """Если в клетке есть объекты, удаляет последний созданный из них"""
@@ -214,6 +284,14 @@ class Editor(GameStrategy):
         if len(self.current_state[self.focus[1]][self.focus[0]]) > 0:
             self.changes.append(my_deepcopy(self.current_state))
             self.current_state[self.focus[1]][self.focus[0]].pop()
+            neighbours = self.get_neighbours(
+                self.focus[0], self.focus[1])
+            for array in neighbours:
+                for neighbour in array:
+                    if neighbour.name in STICKY and not neighbour.text:
+                        neighbour.neighbours = self.get_neighbours(
+                            neighbour.x, neighbour.y)
+                        neighbour.animation_init()
 
     def overlay(self):
         """Вызывает меню управления редактора"""
@@ -232,13 +310,28 @@ class Editor(GameStrategy):
         :return: Возвращает состояние для правильной работы game_context
         :rtype: Optional[State]
         """
-        # TODO: Refactor this. There is "Long Method"
+
         self.state = None
+        if self.first_iteration:
+            self.first_iteration = False
+            self.overlay()
         if self.exit_flag:
             if not self.discard:
                 self.safe_exit()
             self.state = State(GameState.back)
             self.unresize()
+        if self.new_loaded:
+            self.changes.clear()
+            self.new_loaded = False
+            for line in self.current_state:
+                for cell in line:
+                    for game_object in cell:
+                        if game_object.name in STICKY and not game_object.text:
+                            neighbours = self.get_neighbours(
+                                game_object.x, game_object.y)
+                            game_object.neighbours = neighbours
+                            game_object.animation_init()
+
         self.screen.fill("black")
         for event in events:
             if event.type == pygame.QUIT:

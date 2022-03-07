@@ -27,11 +27,9 @@ class SpriteManager(BaseDownloadManager):
         """
         if not isinstance(path, Path):
             path = Path(path)
-        path = str(path.with_suffix(".webp").resolve())
+        path = str(path.with_suffix(".png").resolve())
         if self.thread.is_alive():
-            self.thread.join(5)
-            if self.thread.is_alive():
-                raise RuntimeError("Can't join download thread")
+            self.thread.join()
         if path not in self._images:
             if alpha:
                 self._images[path] = pygame.image.load(path).convert_alpha()

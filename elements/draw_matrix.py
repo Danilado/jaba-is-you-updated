@@ -9,7 +9,7 @@ from classes.rule import Rule
 from classes.state import State
 from elements.global_classes import sound_manager
 from global_types import SURFACE
-from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
+from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY
 
 
 class Draw(GameStrategy):
@@ -25,9 +25,13 @@ class Draw(GameStrategy):
 
     def __init__(self, level_name: str, screen: SURFACE):
         super().__init__(screen)
-        self.matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
+        self.matrix: List[List[List[Object]]] = [[[]
+                                                  for _ in range(32)] for _ in range(18)]
         self.parse_file(level_name)
         self.level_rules = []
+        self.empty_object = Object(-1, -1, 0, 'empty', False)
+        self.first_iteration = True
+        self.moved = False
 
     def parse_file(self, level_name: str):
         """
@@ -39,8 +43,8 @@ class Draw(GameStrategy):
         :param level_name: Название уровня в папке levels
         :raises OSError: Если какая либо проблема с открытием файла.
         """
-        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as leve_file:
-            for line in leve_file.readlines():
+        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as level_file:
+            for line in level_file.readlines():
                 parameters = line.strip().split(' ')
                 if len(parameters) > 1:
                     self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
@@ -50,6 +54,39 @@ class Draw(GameStrategy):
                         parameters[3],
                         parameters[4].lower() == 'true'
                     ))
+
+    def get_neighbours(self, y, x) -> List:
+        """Ищет соседей клетки сверху, справа, снизу и слева
+
+        :param y: координата на матрице по оси y идёт первым,
+        потому что ориентирование на матрице происходит зеркально относительно нормального
+        :type y: int
+        :param x: координата на матрице по оси x
+        :type x: int
+        :return: Массив с четырьмя клетками-соседями в порядке сверху, справа, снизу, слева
+        :rtype: List[]
+        """
+        offsets = [
+            (0, -1),
+            (1,  0),
+            (0,  1),
+            (-1, 0),
+        ]
+        neighbours = [None for _ in range(4)]
+        if x == 0:
+            neighbours[0] = [self.empty_object]
+        elif x == RESOLUTION[1]//50-1:
+            neighbours[2] = [self.empty_object]
+
+        if y == 0:
+            neighbours[3] = [self.empty_object]
+        elif y == RESOLUTION[0]//50-1:
+            neighbours[1] = [self.empty_object]
+
+        for index, offset in enumerate(offsets):
+            if neighbours[index] is None:
+                neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
+        return neighbours
 
     @staticmethod
     def obj_is_noun(obj: Object):
@@ -150,7 +187,18 @@ class Draw(GameStrategy):
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:
+                    if self.first_iteration or self.moved:
+                        if game_object.name in STICKY and not game_object.text:
+                            neighbours = self.get_neighbours(
+                                game_object.x, game_object.y)
+                            game_object.neighbours = neighbours
+                            game_object.animation_init()
                     game_object.draw(self.screen)
+
+        if self.first_iteration:
+            self.first_iteration = False
+        if self.moved:
+            self.moved = False
 
         if state is None:
             state = State(GameState.flip, None)
