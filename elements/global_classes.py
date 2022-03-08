@@ -1,8 +1,8 @@
 import abc
 from dataclasses import dataclass
 
-from classes.SoundManager import SoundManager
-from classes.SpriteManager import SpriteManager
+from classes.sound_manager import SoundManager
+from classes.sprite_manager import SpriteManager
 from global_types import COLOR
 
 

@@ -680,5 +680,6 @@ FodyWeavers.xsd
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,python,pycharm,visualstudio
 
-sprites/*/*
+levels/*
+.vscode
 sounds/*/*
