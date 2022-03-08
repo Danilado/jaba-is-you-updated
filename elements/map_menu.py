@@ -6,7 +6,7 @@ import pygame
 from elements.global_classes import sound_manager
 from elements.draw_matrix import Draw
 
-from settings import SHOW_GRID, RESOLUTION
+from settings import SHOW_GRID, RESOLUTION, STICKY
 from global_types import SURFACE
 
 from classes.cursor import MoveCursor
@@ -21,9 +21,67 @@ class MapMenu(GameStrategy):
         super().__init__(screen)
         self.levels_passed = 0
         self.matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
-        self.matrix = self.parse_file(self.find_map_menu())
         self.cursor = MoveCursor()
         self._state: Optional[State] = None
+        self.first_iteration = True
+        self.moved = False
+        self.parse_file(self.find_map_menu())
+        self.empty_object = Object(-1, -1, 0, 'empty', False)
+
+    def parse_file(self, level_name: str):
+        """
+        Парсинг уровней. Добавляет объекты в :attr:`~.Draw.matrix`.
+
+        .. note::
+            Если вы хотите перезаписать карту, не забудьте удалить объекты из :attr:`~.Draw.matrix`
+
+        :param level_name: Название уровня в папке levels
+        :raises OSError: Если какая либо проблема с открытием файла.
+        """
+        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as level_file:
+            for line in level_file.readlines():
+                parameters = line.strip().split(' ')
+                if len(parameters) > 1:
+                    self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
+                        int(parameters[0]),
+                        int(parameters[1]),
+                        int(parameters[2]),
+                        parameters[3],
+                        parameters[4].lower() == 'true'
+                    ))
+
+    def get_neighbours(self, y, x) -> List:
+        """Ищет соседей клетки сверху, справа, снизу и слева
+
+        :param y: координата на матрице по оси y идёт первым,
+        потому что ориентирование на матрице происходит зеркально относительно нормального
+        :type y: int
+        :param x: координата на матрице по оси x
+        :type x: int
+        :return: Массив с четырьмя клетками-соседями в порядке сверху, справа, снизу, слева
+        :rtype: List[]
+        """
+        offsets = [
+            (0, -1),
+            (1, 0),
+            (0, 1),
+            (-1, 0),
+        ]
+        neighbours = [None for _ in range(4)]
+        if x == 0:
+            neighbours[0] = [self.empty_object]
+        elif x == RESOLUTION[1] // 50 - 1:
+            neighbours[2] = [self.empty_object]
+
+        if y == 0:
+            neighbours[3] = [self.empty_object]
+        elif y == RESOLUTION[0] // 50 - 1:
+            neighbours[1] = [self.empty_object]
+
+        for index, offset in enumerate(offsets):
+            if neighbours[index] is None:
+                neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
+        return neighbours
 
     def go_to_game(self):
         for i in range(len(self.matrix)):
@@ -31,33 +89,17 @@ class MapMenu(GameStrategy):
                 for k in range(len(self.matrix[i][j])):
                     if k < len(self.matrix[i][j]) and j < 31:
                         if self.matrix[i][j][k].name == 'cursor' and not self.matrix[i][j][k].text:
-                            self._state = State(GameState.switch, partial(Draw,
-                                                                          self.matrix[i][j][0].name.split("/")[1]))
-
-    @staticmethod
-    def parse_file(level_name: str) -> List[List[List[Object]]]:
-        matrix: List[List[List[Object]]] = [[[]
-                                             for _ in range(32)] for _ in range(18)]
-        leve_file = open(
-            f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r', encoding="utf-8")
-        lines = leve_file.read().split('\n')
-        for line in lines:
-            parameters = line.split(' ')
-            if len(parameters) > 1:
-                matrix[int(parameters[1])][int(parameters[0])].append(Object(
-                    int(parameters[0]),
-                    int(parameters[1]),
-                    int(parameters[2]),
-                    parameters[3],
-                    False if parameters[4] == 'False' else True
-                ))
-        return matrix
+                            if self.matrix[i][j][0].name in self.cursor.levels:
+                                self._state = State(GameState.switch, partial(Draw,
+                                                                              self.matrix[i][j][0].name.split("/")[0]))
+                            if self.matrix[i][j][0].name in self.cursor.reference_point:
+                                pass
 
     def find_map_menu(self):
         if self.levels_passed < 7:
-            level_map = 'map1'
+            level_map = 'map'
         elif 15 > self.levels_passed >= 7:
-            level_map = 'map2'
+            level_map = 'map'
         else:
             level_map = 'map'
         return level_map
@@ -96,7 +138,18 @@ class MapMenu(GameStrategy):
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:
+                    if self.first_iteration or self.moved:
+                        if game_object.name in STICKY and not game_object.text:
+                            neighbours = self.get_neighbours(game_object.x, game_object.y)
+                            game_object.neighbours = neighbours
+                            game_object.animation_init()
                     game_object.draw(self.screen)
+
+        if self.first_iteration:
+            self.first_iteration = False
+
+        if self.moved:
+            self.moved = False
 
         if self._state is None:
             self._state = State(GameState.flip, None)
