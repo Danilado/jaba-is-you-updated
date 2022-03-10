@@ -1,4 +1,4 @@
-1 0 1 jaba True
+1 0 1 frog True
 2 0 1 is False
 3 0 1 you False
 15 0 1 rock True
@@ -89,7 +89,7 @@
 20 8 1 fire False
 21 8 1 fire False
 30 8 1 rose False
-8 9 1 jaba False
+8 9 1 frog False
 11 9 1 bug False
 14 9 1 bug False
 18 9 1 fire False

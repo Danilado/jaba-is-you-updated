@@ -1,4 +1,4 @@
-1 0 1 jaba True
+1 0 1 frog True
 2 0 1 is False
 3 0 1 you False
 16 0 0 ghost True
@@ -27,7 +27,7 @@
 12 7 1 rock False
 13 7 1 rock False
 14 7 1 rock False
-17 7 1 jaba False
+17 7 1 frog False
 20 7 1 ghost False
 22 7 1 flag False
 23 7 1 rose False

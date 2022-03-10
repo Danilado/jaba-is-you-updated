@@ -1,4 +1,4 @@
-from typing import Final, Tuple, Sequence
+from typing import Final, Tuple
 
 DEBUG: bool = True
 
@@ -32,7 +32,8 @@ SPRITE_ONLY = [
 ]
 
 STICKY = [
-    'lava', 'wall', 'cloud', 'brick', 'plank', 'rubble', 'hedge', 'cliff', 'grass', 'ice', 'line', 'road', 'track', 'water'
+    'lava', 'wall', 'cloud', 'brick', 'plank', 'rubble', 'hedge', 'cliff', 'grass', 'ice', 'line', 'road', 'track',
+    'water'
 ]
 
 OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt',
@@ -40,7 +41,7 @@ OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed
            'bubble', 'bucket', 'bug', 'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair',
            'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup', 'cursor', 'default',
            'dog', 'donut', 'door', 'dot', 'drink', 'drum', 'dust', 'ear', 'egg', 'error', 'eye', 'fence', 'fire',
-           'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'jaba', 'fruit', 'fungi', 'fungus', 'gate',
+           'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi', 'fungus', 'gate',
            'gem', 'ghost', 'grass', 'guitar', 'hand', 'hedge', 'hihat', 'house', 'husk', 'husks', 'ice',
            'it', 'jelly', 'jiji', 'keke', 'key', 'knight', 'lava', 'ladder', 'lamp', 'leaf', 'lever', 'lift', 'lily',
            'line', 'lizard', 'lock', 'love', 'me', 'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb',

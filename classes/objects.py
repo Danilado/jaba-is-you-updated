@@ -155,39 +155,39 @@ is_text:    {self.text}
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_0_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                                     f'{self.name}_0_{index}')),
+                        (50, 50)) for index in range(1, 4)], 200, (self.xpx, self.ypx))
             elif state_max == 15:
                 frame = self.investigate_neighbours()
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_{frame}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                                     f'{self.name}_{frame}_{index}')),
+                        (50, 50)) for index in range(1, 4)], 200, (self.xpx, self.ypx))
             elif state_max == 3:
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_{self.movement_state % 4}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                                     f'{self.name}_{self.movement_state % 4}_{index}')),
+                        (50, 50)) for index in range(1, 4)], 200, (self.xpx, self.ypx))
             elif state_max == 24:
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_{self.direction * 8}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                                     f'{self.name}_{self.direction * 8}_{index}')),
+                        (50, 50)) for index in range(1, 4)], 200, (self.xpx, self.ypx))
             elif state_max == 27:
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_{self.movement_state % 4 + self.direction * 8}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                                     f'{self.name}_{self.movement_state % 4 + self.direction * 8}_{index}')),
+                        (50, 50)) for index in range(1, 4)], 200, (self.xpx, self.ypx))
             elif state_max == 31:
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_{self.movement_state % 4 + max(self.direction * 8, 0)}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                                     f'{self.name}_{self.movement_state % 4 + max(self.direction * 8, 0)}_{index}')),
+                        (50, 50)) for index in range(1, 4)], 200, (self.xpx, self.ypx))
             else:
                 print(f'{self.name} somehow fucked up while setting animation')
 

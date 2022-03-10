@@ -10,7 +10,7 @@ from global_types import SURFACE
 class SpriteManager(BaseDownloadManager):
     """Класс необходимый для установки и кеширования спрайтов"""
     path = Path("./sprites/")
-    url = "https://www.dropbox.com/s/jpj9b4ghivzj037/sprites1000000.zip?dl=1"
+    url = "https://www.dropbox.com/s/t8h8esomwy2hjol/sprites10-03-22T19-59.zip?dl=1"
 
     def __init__(self):
         super().__init__()

@@ -1,3 +1,4 @@
+import warnings
 from typing import List, Optional
 
 import pygame
@@ -43,15 +44,21 @@ class Draw(GameStrategy):
         :param level_name: Название уровня в папке levels
         :raises OSError: Если какая либо проблема с открытием файла.
         """
-        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as level_file:
+        path_to_file = f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
+
+        with open(path_to_file, 'r') as level_file:
             for line in level_file.readlines():
                 parameters = line.strip().split(' ')
                 if len(parameters) > 1:
+                    x, y, direction, name = parameters[:-1]
+                    if name == "jaba":
+                        warnings.warn(f"Level {level_name} have old jaba/frog naming. Need to rename...")
+                        name = "frog"
                     self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
-                        int(parameters[0]),
-                        int(parameters[1]),
-                        int(parameters[2]),
-                        parameters[3],
+                        int(x),
+                        int(y),
+                        int(direction),
+                        name,
                         parameters[4].lower() == 'true'
                     ))
 
