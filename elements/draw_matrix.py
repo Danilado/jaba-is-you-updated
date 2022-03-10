@@ -36,7 +36,9 @@ class Draw(GameStrategy):
         self.matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
         self.parse_file(level_name)
         self.level_rules = []
-        self.copy_matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
+        self.history_of_matrix = []
+        self.status_cancel = False
+        self.start_matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
 
     def parse_file(self, level_name: str):
         """
@@ -59,6 +61,7 @@ class Draw(GameStrategy):
                         parameters[3],
                         parameters[4].lower() == 'true'
                     ))
+            self.start_matrix = self.matrix
 
 
     @staticmethod
@@ -151,7 +154,19 @@ class Draw(GameStrategy):
                             return len(self.level_rules)
         return 0
 
+    def copy_matrix(self, matrix):
+        copy_matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
+        for i in range(len(matrix)):
+            for j in range(len(matrix[i])):
+                for obj in matrix[i][j]:
+                    copy_matrix[i][j].append(Object(obj.x, obj.y, obj.direction, obj.name, obj.text))
+        return copy_matrix
+
+
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
+
+        if len(self.history_of_matrix) == 0:
+            self.history_of_matrix.append(self.matrix)
         self.screen.fill("black")
         state = None
         for event in events:
@@ -160,6 +175,11 @@ class Draw(GameStrategy):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     state = State(GameState.back)
+                if event.key == pygame.K_z:
+                    self.status_cancel = True
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_z:
+                    self.status_cancel = False
         copy_matrix = my_deepcopy(self.matrix)
         for rule in self.level_rules:
             if 'is you' in rule.text_rule:
@@ -170,34 +190,37 @@ class Draw(GameStrategy):
                             if object.name == obj_name and object.text == False:
                                 object.check_events(events)
                                 object.move(copy_matrix, self.level_rules)
-        self.matrix = my_deepcopy(copy_matrix)
+        if self.matrix != copy_matrix:
+            self.history_of_matrix.append(self.matrix)
+            self.matrix = my_deepcopy(copy_matrix)
+
+        if self.status_cancel:
+            if len(self.history_of_matrix) > 0:
+                self.matrix = self.copy_matrix(self.history_of_matrix[-1])
+                self.history_of_matrix = my_deepcopy(self.history_of_matrix[:-1])
+            else:
+                self.matrix = self.copy_matrix(self.start_matrix)
         if SHOW_GRID:
             for x in range(0, RESOLUTION[0], 50):
                 for y in range(0, RESOLUTION[1], 50):
                     pygame.draw.rect(
                         self.screen, (255, 255, 255), (x, y, 50, 50), 1)
-
-        for line in self.matrix:
-            for cell in line:
-                for game_object in cell:
-                    game_object.draw(self.screen)
-
-
         if state is None:
             state = State(GameState.flip, None)
-
         self.level_rules = []
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 self.check_horizontally(i, j)
                 self.check_vertically(i, j)
-
         self.level_rules = self.remove_copies_rules(self.level_rules)
+        print('---')
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
-                for o in self.matrix[i][j]:
-                    if o.name == 'flower':
-                        print(o.turning_side)
-
-
+                for obj in self.matrix[i][j]:
+                    print(obj.x, obj.y, obj.name, obj.text)
+        for line in self.matrix:
+            for cell in line:
+                for game_object in cell:
+                    game_object.draw(self.screen)
         return state
+

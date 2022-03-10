@@ -436,4 +436,3 @@ is_text:    {self.text}
                 if event.key in [pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a]:
                     self.turning_side = -1
 
-
