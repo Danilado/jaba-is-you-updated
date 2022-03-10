@@ -27,6 +27,26 @@ class MapMenu(GameStrategy):
         self.moved = False
         self.parse_file(self.find_map_menu())
         self.empty_object = Object(-1, -1, 0, 'empty', False)
+        self.radius = 0
+        self.flag_anime = False
+        self.delay = 0
+
+    def anime(self):
+        if self.flag_anime:
+            pygame.draw.circle(self.screen, (0, 50, 30), (0, 0), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (600, 0), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1000, 0), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 0), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (0, 900), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (300, 900), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (800, 900), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1200, 900), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (0, 300), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (0, 600), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 100), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 500), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 900), self.radius)
+            self.radius += 8
 
     def parse_file(self, level_name: str):
         """
@@ -124,10 +144,12 @@ class MapMenu(GameStrategy):
                     if event.key == pygame.K_ESCAPE:
                         self._state = State(GameState.back)
                     if event.key == pygame.K_RETURN:
-                        self.go_to_game()
+                        self.delay = pygame.time.get_ticks()
+                        self.flag_anime = True
 
-        self.cursor.check_events(events)
-        self.cursor.move(self.matrix)
+        if not self.flag_anime:
+            self.cursor.check_events(events)
+            self.cursor.move(self.matrix)
 
         if SHOW_GRID:
             for xpx in range(0, RESOLUTION[0], 50):
@@ -150,6 +172,13 @@ class MapMenu(GameStrategy):
 
         if self.moved:
             self.moved = False
+
+        if self.flag_anime:
+            self.anime()
+            if pygame.time.get_ticks() - self.delay > 1500:
+                self.flag_anime = False
+                self.radius = 0
+                self.go_to_game()
 
         if self._state is None:
             self._state = State(GameState.flip, None)
