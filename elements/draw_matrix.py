@@ -319,11 +319,11 @@ class Draw(GameStrategy):
                 self.check_horizontally(i, j)
                 self.check_vertically(i, j)
         self.level_rules = self.remove_copies_rules(self.level_rules)
-        print('---')
-        for i in range(len(self.matrix)):
-            for j in range(len(self.matrix[i])):
-                for obj in self.matrix[i][j]:
-                    print(obj.x, obj.y, obj.name, obj.text)
+        # print('---')
+        # for i in range(len(self.matrix)):
+        #     for j in range(len(self.matrix[i])):
+        #         for obj in self.matrix[i][j]:
+        #             print(obj.x, obj.y, obj.name, obj.text)
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:

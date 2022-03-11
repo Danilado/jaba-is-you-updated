@@ -83,6 +83,13 @@ is_text:    {self.text}
         self.text = is_text
         # Используется с правилами move, turn, shift и т.д.
         self.direction = direction
+        self.direction_key_map = {
+            0: 1,
+            1: 0,
+            2: 3,
+            3: 2,
+        }
+        self.turning_side = turning_side
         self.x = x  # Не по пикселям, а по сетке!
         self.y = y  # Не по пикселям, а по сетке!
         self.xpx = x * 50  # По пикселям
@@ -153,45 +160,52 @@ is_text:    {self.text}
                     does not exist. This shouldn't happen in any circumstances")
                 state_max = 0
 
-            if state_max == 0:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
-                        os.path.join(path,
-                                     f'{self.name}_0_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
-            elif state_max == 15:
-                frame = self.investigate_neighbours()
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
-                        os.path.join(path,
-                                     f'{self.name}_{frame}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
-            elif state_max == 3:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
-                        os.path.join(path,
-                                     f'{self.name}_{self.movement_state % 4}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
-            elif state_max == 24:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
-                        os.path.join(path,
-                                     f'{self.name}_{self.direction * 8}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
-            elif state_max == 27:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
-                        os.path.join(path,
-                                     f'{self.name}_{self.movement_state % 4 + self.direction * 8}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
-            elif state_max == 31:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
-                        os.path.join(path,
-                                     f'{self.name}_{self.movement_state % 4 + max(self.direction * 8, 0)}_{index + 1}')),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
-            else:
-                print(f'{self.name} somehow fucked up while setting animation')
+            try:
+                if state_max == 0:
+                    self.animation = Animation(
+                        [pygame.transform.scale(sprite_manager.get(
+                            os.path.join(path,
+                                         f'{self.name}_0_{index + 1}')),
+                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                elif state_max == 15:
+                    frame = self.investigate_neighbours()
+                    self.animation = Animation(
+                        [pygame.transform.scale(sprite_manager.get(
+                            os.path.join(path,
+                                         f'{self.name}_{frame}_{index + 1}')),
+                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                elif state_max == 3:
+                    self.animation = Animation(
+                        [pygame.transform.scale(sprite_manager.get(
+                            os.path.join(path,
+                                         f'{self.name}_{self.movement_state % 4}_{index + 1}')),
+                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                elif state_max == 24:
+                    self.animation = Animation(
+                        [pygame.transform.scale(sprite_manager.get(
+                            os.path.join(path,
+                                         f'{self.name}_{self.direction_key_map[self.direction] * 8}_{index + 1}')),
+                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                elif state_max == 27:
+                    self.animation = Animation(
+                        [pygame.transform.scale(sprite_manager.get(
+                            os.path.join(path,
+                                         f'{self.name}_{self.movement_state % 4 + self.direction_key_map[self.direction] * 8}_{index + 1}')),
+                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                elif state_max == 31:
+                    self.animation = Animation(
+                        [pygame.transform.scale(sprite_manager.get(
+                            os.path.join(path,
+                                         f'{self.name}_{self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0)}_{index + 1}')),
+                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                else:
+                    print(f'{self.name} somehow fucked up while setting animation')
+            except FileNotFoundError:
+                if self.movement_state == 0:
+                    print(f'{self.name} somehow fucked up while setting animation')
+                else:
+                    self.movement_state = 0
+                    return self.animation_init()
 
     def draw(self, screen: SURFACE):
         """
@@ -208,17 +222,29 @@ is_text:    {self.text}
 
     def move(self, matrix, level_rules):  # TODO: use Δt to calculate distance move
         """Метод движения персонажа"""
+        moved = False
         if self.turning_side == 0:
             self.move_right(matrix, level_rules)
-        if self.turning_side == 1:
+            self.direction = 1
+            moved = True
+        elif self.turning_side == 1:
             self.move_up(matrix, level_rules)
-        if self.turning_side == 2:
+            self.direction = 0
+            moved = True
+        elif self.turning_side == 2:
             self.move_left(matrix, level_rules)
-        if self.turning_side == 3:
+            self.direction = 3
+            moved = True
+        elif self.turning_side == 3:
             self.move_down(matrix, level_rules)
+            self.direction = 2
+            moved = True
         # if DEBUG:
         #    print(self.turning_side, self.status_of_rotate)
-        self.animation_init()
+        if moved:
+            self.movement_state += 1
+            self.animation_init()
+            self.turning_side = -1
 
     def move_up(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вверх"""
@@ -238,7 +264,7 @@ is_text:    {self.text}
                         self.direction,
                         self.name,
                         self.text,
-                        1
+                        self.movement_state + 1
                     ))
                     return True
                 return False
@@ -263,7 +289,7 @@ is_text:    {self.text}
                         self.direction,
                         self.name,
                         self.text,
-                        1
+                        self.movement_state + 1
                     ))
                     return True
             if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
@@ -281,7 +307,7 @@ is_text:    {self.text}
                     self.direction,
                     self.name,
                     self.text,
-                    1
+                    self.movement_state + 1
                 ))
             return True
 
@@ -296,14 +322,13 @@ is_text:    {self.text}
                     self.status_of_rotate = 3
                     self.y += 1
                     self.ypx += 50
-                    self.direction = 2
                     matrix[self.y][self.x].append(Object(
                         self.x,
                         self.y,
                         self.direction,
                         self.name,
                         self.text,
-                        3
+                        self.movement_state + 1
                     ))
                     return True
                 return False
@@ -321,14 +346,13 @@ is_text:    {self.text}
                     self.status_of_rotate = 3
                     self.y += 1
                     self.ypx += 50
-                    self.direction = 2
                     matrix[self.y][self.x].append(Object(
                         self.x,
                         self.y,
                         self.direction,
                         self.name,
                         self.text,
-                        3
+                        self.movement_state + 1
                     ))
                     return True
             if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
@@ -346,7 +370,7 @@ is_text:    {self.text}
                     self.direction,
                     self.name,
                     self.text,
-                    3
+                    self.movement_state + 1
                 ))
             return True
 
@@ -368,7 +392,7 @@ is_text:    {self.text}
                         self.direction,
                         self.name,
                         self.text,
-                        2
+                        self.movement_state + 1
                     ))
                     return True
                 return False
@@ -393,7 +417,7 @@ is_text:    {self.text}
                         self.direction,
                         self.name,
                         self.text,
-                        2
+                        self.movement_state + 1
                     ))
                     return True
             if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
@@ -411,7 +435,7 @@ is_text:    {self.text}
                     self.direction,
                     self.name,
                     self.text,
-                    2
+                    self.movement_state + 1
                 ))
             return True
 
@@ -433,7 +457,7 @@ is_text:    {self.text}
                         self.direction,
                         self.name,
                         self.text,
-                        0
+                        self.movement_state + 1
                     ))
                     return True
                 return False
@@ -458,7 +482,7 @@ is_text:    {self.text}
                         self.direction,
                         self.name,
                         self.text,
-                        0
+                        self.movement_state + 1
                     ))
                     return True
             if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
@@ -476,7 +500,7 @@ is_text:    {self.text}
                     self.direction,
                     self.name,
                     self.text,
-                    0
+                    self.movement_state + 1
                 ))
             return True
 
@@ -492,7 +516,3 @@ is_text:    {self.text}
                     self.turning_side = 2
                 if event.key == pygame.K_s:
                     self.turning_side = 3
-
-            if event.type == pygame.KEYUP:
-                if event.key in [pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a]:
-                    self.turning_side = -1
