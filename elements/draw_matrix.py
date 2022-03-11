@@ -1,3 +1,4 @@
+import random
 from typing import List, Optional
 
 import pygame
@@ -164,7 +165,6 @@ class Draw(GameStrategy):
 
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
-
         if len(self.history_of_matrix) == 0:
             self.history_of_matrix.append(self.matrix)
         self.screen.fill("black")
@@ -180,16 +180,55 @@ class Draw(GameStrategy):
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_z:
                     self.status_cancel = False
+
         copy_matrix = my_deepcopy(self.matrix)
-        for rule in self.level_rules:
-            if 'is you' in rule.text_rule:
-                obj_name = rule.text_rule.split(' ')[0]
-                for i in range(len(self.matrix)):
-                    for j in range(len(self.matrix[i])):
-                        for object in self.matrix[i][j]:
-                            if object.name == obj_name and object.text == False:
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix[i])):
+                for object in self.matrix[i][j]:
+                    if not object.text:
+                        for rule in self.level_rules:
+
+                            if f'{object.name} is broken' in rule.text_rule:
+                                for sec_rule in self.level_rules:
+                                    if f'{object.name}' in sec_rule.text_rule and sec_rule.text_rule != f'{object.name} is broken':
+                                        self.level_rules.remove(sec_rule)
+
+                            if f'{object.name} is deturn' in rule.text_rule:
+                                object.direcrtion += 1
+                                object.status_of_rotate += 1
+                                if object.direction > 3:
+                                    object.direction = 0
+                                if object.status_of_rotate > 3:
+                                    object.status_of_rotate = 0
+
+                            if f'{object.name} is you' in rule.text_rule:
                                 object.check_events(events)
                                 object.move(copy_matrix, self.level_rules)
+
+                            if f'{object.name} is chill' in rule.text_rule:
+                                rand_dir = random.randint(0, 5)
+                                if rand_dir == 0:
+                                    object.move_up(copy_matrix, self.level_rules)
+                                if rand_dir == 1:
+                                    object.move_right(copy_matrix, self.level_rules)
+                                if rand_dir == 2:
+                                    object.move_down(copy_matrix, self.level_rules)
+                                if rand_dir == 3:
+                                    object.move_left(copy_matrix, self.level_rules)
+
+                            if f'{object.name} is boom' in rule.text_rule:
+                                    copy_matrix[i][j].clear()
+
+                            if f'{object.name} is auto' in rule.text_rule:
+                                if object.direction == 0:
+                                    object.move_up(copy_matrix, self.level_rules)
+                                if object.direction == 1:
+                                    object.move_right(copy_matrix, self.level_rules)
+                                if object.direction == 2:
+                                    object.move_down(copy_matrix, self.level_rules)
+                                if object.direction == 3:
+                                    object.move_left(copy_matrix, self.level_rules)
+
         if self.matrix != copy_matrix:
             self.history_of_matrix.append(self.matrix)
             self.matrix = my_deepcopy(copy_matrix)

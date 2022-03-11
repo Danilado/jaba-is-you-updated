@@ -188,6 +188,9 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
+                if f'{self.name} is defeat' in rule.text_rule and status_push == 'push' and self.text == False:
+                    matrix[self.y + 1][self.x].clear()
+                    return False
                 if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
                     return False
             for rule in level_rules:
@@ -251,6 +254,9 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
+                if f'{self.name} is defeat' in rule.text_rule and status_push == 'push' and self.text == False:
+                    matrix[self.y - 1][self.x].clear()
+                    return False
                 if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
                     return False
             for rule in level_rules:
@@ -314,6 +320,9 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
+                if f'{self.name} is defeat' in rule.text_rule and status_push == 'push' and self.text == False:
+                    matrix[self.y][self.x + 1].clear()
+                    return False
                 if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
                     return False
             for rule in level_rules:
@@ -378,6 +387,9 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
+                if f'{self.name} is defeat' in rule.text_rule and status_push == 'push' and self.text == False:
+                    matrix[self.y][self.x - 1].clear()
+                    return False
                 if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
                     return False
             for rule in level_rules:

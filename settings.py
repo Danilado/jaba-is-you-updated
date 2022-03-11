@@ -13,7 +13,7 @@ TEXT_ONLY: Final[Sequence[str]] = (
     'pull', 'powered', 'play', 'p2', 'P1', 'orb', 'open', 'on', 'near', 'move', 'rubble',
     'more', 'melt', 'make', 'lonely', 'line', 'level', 'left', 'idle', 'husk', 'hot', 'hide', 'hedge',
     'has', 'group', 'follow', 'foliage', 'float', 'fall', 'facing', 'end', 'empty', 'eat', 'down',
-    'dot', 'done', 'defeat', 'cloud', 'cliff', 'chill', 'brick', 'bonus', 'bolt', 'bog', 'anni', 'algae',
+    'dot', 'done', 'defeat', 'cloud', 'cliff', 'chill', 'brick', 'bonus', 'bolt', 'bog', 'anni', 'algae'
 )
 
 PIPES: Final[Sequence[str]] = (
@@ -66,7 +66,7 @@ OPERATORS = [
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver', 'white',
-    'defeat', 'return', 'done', 'directions', 'end', 'fall', 'float', 'hide', 'hold', 'hot', 'locked', 'melt',
+    'defeat', 'return', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'hot', 'locked', 'melt',
     'more', 'move', 'nudge', 'open', 'party', 'pet', 'phantom', 'power', 'pull', 'push', 'reverse', 'revert', 'sad',
     'safe', 'scary', 'select', 'shift', 'shut', 'sink', 'sleep', 'stick', 'still', 'stop', 'swap', 'tele', 'turn',
     'weak', 'win', 'wonder', 'word', 'you', 'you2'
