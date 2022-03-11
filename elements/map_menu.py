@@ -31,7 +31,7 @@ class MapMenu(GameStrategy):
         self.flag_anime = False
         self.delay = 0
 
-    def anime(self):
+    def animation_level(self):
         if self.flag_anime:
             pygame.draw.circle(self.screen, (0, 50, 30), (0, 0), self.radius)
             pygame.draw.circle(self.screen, (0, 50, 30), (600, 0), self.radius)
@@ -174,7 +174,7 @@ class MapMenu(GameStrategy):
             self.moved = False
 
         if self.flag_anime:
-            self.anime()
+            self.animation_level()
             if pygame.time.get_ticks() - self.delay > 1500:
                 self.flag_anime = False
                 self.radius = 0

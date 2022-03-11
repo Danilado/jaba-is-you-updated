@@ -27,15 +27,14 @@ class Draw(GameStrategy):
         super().__init__(screen)
         self.matrix: List[List[List[Object]]] = [[[]
                                                   for _ in range(32)] for _ in range(18)]
+        self.anim_obj = self.words_to_png(level_name)
         self.parse_file(level_name)
         self.level_rules = []
         self.empty_object = Object(-1, -1, 0, 'empty', False)
         self.first_iteration = True
         self.moved = False
-        self.circle_radius = 700
+        self.circle_radius = 650
         self.delay = pygame.time.get_ticks()
-        self.text_size = 0
-        self.level_name = level_name
 
     def parse_file(self, level_name: str):
         """
@@ -172,7 +171,18 @@ class Draw(GameStrategy):
                             return len(self.level_rules)
         return 0
 
-    def anime(self):
+    @staticmethod
+    def words_to_png(level_count):
+        x = 12
+        level = 'level' + str(level_count)
+        arr_obj = []
+        for obj in level:
+            a = Object(x, 6, 1, obj, True)
+            arr_obj.append(a)
+            x += 1
+        return arr_obj
+
+    def animation_level(self):
         if self.circle_radius > 0:
             pygame.draw.circle(self.screen, (0, 50, 30), (0, 0), self.circle_radius)
             pygame.draw.circle(self.screen, (0, 50, 30), (600, 0), self.circle_radius)
@@ -187,13 +197,11 @@ class Draw(GameStrategy):
             pygame.draw.circle(self.screen, (0, 50, 30), (1600, 100), self.circle_radius)
             pygame.draw.circle(self.screen, (0, 50, 30), (1600, 500), self.circle_radius)
             pygame.draw.circle(self.screen, (0, 50, 30), (1600, 900), self.circle_radius)
-            font = pygame.font.SysFont('segoeuisemibold', self.text_size)
-            img = font.render('LEVEL {}'.format(self.level_name.split(".")[0]), True, (255, 255, 255))
-            self.screen.blit(img, (600, 400))
-            self.text_size += 1
-            if pygame.time.get_ticks() - self.delay > 2000:
+            if pygame.time.get_ticks() - self.delay <= 3000:
+                for obj in self.anim_obj:
+                    obj.draw(self.screen)
+            if pygame.time.get_ticks() - self.delay > 3000:
                 self.circle_radius -= 8
-                self.text_size -= 4
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         self.screen.fill("black")
@@ -227,7 +235,7 @@ class Draw(GameStrategy):
         if self.moved:
             self.moved = False
 
-        self.anime()
+        self.animation_level()
 
         if state is None:
             state = State(GameState.flip, None)
