@@ -13,6 +13,7 @@ class GameStrategy(abc.ABC):
 
     :ivar screen: Экран на котором будет происходить вся отрисовка.
     """
+
     def __init__(self, screen: SURFACE):
         self.screen: SURFACE = screen
 
@@ -28,4 +29,8 @@ class GameStrategy(abc.ABC):
             Если этот метод вернёт None, то ничего, в том числе и обновление экрана, не произойдёт.
             Для обновления экрана, верните State(GameState.flip)
         """
+        ...
+
+    @abc.abstractmethod
+    def music(self):
         ...

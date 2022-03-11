@@ -20,6 +20,7 @@ class Button:
     :ivar text: Текст
     :ivar action: Функция вызывающаяся при нажатии
     """
+
     def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR", settings: "AbstractButtonSettings",
                  text: str = "", action: Optional[Callable[[], Any]] = None):
         """
@@ -50,15 +51,18 @@ class Button:
         :param screen: Surface, на котором будет происходить отрисовка
         """
         if self.outline:
-            pygame.draw.rect(screen, self.outline, (self.x - 2, self.y - 2, self.width + 4, self.height + 4), 0)
+            pygame.draw.rect(screen, self.outline, (self.x - 2,
+                             self.y - 2, self.width + 4, self.height + 4), 0)
 
         color = self.settings.button_color if not self.is_over(
             pygame.mouse.get_pos()) else self.settings.button_color_hover
-        pygame.draw.rect(screen, color, (self.x, self.y, self.width, self.height), 0)
+        pygame.draw.rect(screen, color, (self.x, self.y,
+                         self.width, self.height), 0)
 
         if self.text != "":
             pygame.font.init()
-            font = pygame.font.SysFont('segoeuisemibold', self.settings.text_size)
+            font = pygame.font.SysFont(
+                'segoeuisemibold', self.settings.text_size)
             lines = self.text.split('\n')
             text_height = 0
             for index, line in enumerate(lines):
@@ -67,7 +71,8 @@ class Button:
                 screen.blit(
                     render_line,
                     (
-                        self.x + (self.width / 2 - render_line.get_width() / 2),
+                        self.x + (self.width / 2 -
+                                  render_line.get_width() / 2),
                         self.y + (self.height / 2 + (text_height / len(lines) *
                                                      (len(lines) // 2 * -1 + index))) -
                         (render_line.get_height() / 2 if len(lines) == 1 else 0)

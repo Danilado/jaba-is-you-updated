@@ -10,14 +10,18 @@ from classes.state import State
 from elements.editor import Editor
 from elements.game import Game
 from elements.level_loader import Loader
-from elements.global_classes import GuiSettings
+from elements.global_classes import GuiSettings, sound_manager
 from global_types import SURFACE
 
 
 class MainMenu(GameStrategy):
+    """
+    Стратегия главного меню
+    """
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self._state: Optional[State] = None
+        sound_manager.load_music("sounds/Music/menu")
 
     def _start_the_game(self):
         self._state = State(GameState.switch, Game)
@@ -59,3 +63,8 @@ class MainMenu(GameStrategy):
             if self._state is None:
                 self._state = State(GameState.flip, None)
         return self._state
+
+    def music(self):
+        sound_manager.load_music("sounds/Music/menu")
+        if not pygame.mixer.music.get_busy():
+            pygame.mixer.music.play()

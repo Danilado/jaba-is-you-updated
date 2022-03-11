@@ -1,6 +1,3 @@
-.. toctree::
-   :caption: Оглавление:
-
 ######
 Файлы
 ######
@@ -16,6 +13,13 @@ Button
 
 .. automodule:: classes.button
    :members:
+
+ObjectButton
+------------
+
+.. automodule:: classes.object_button
+   :members:
+   :show-inheritance:
 
 GameContext
 ------------
@@ -54,6 +58,11 @@ Objects
 .. automodule:: classes.objects
    :members:
 
+Animation
+------------
+.. automodule:: classes.animation
+   :members:
+
 .. raw:: html
 
    <hr/>
@@ -63,6 +72,12 @@ Objects
 *******************
 
 В ней хранятся классы наследовавшие `GameStrategy`_.
+
+DrawMatrix
+-------------
+.. automodule:: elements.draw_matrix
+   :members:
+   :show-inheritance:
 
 Game
 -------------
@@ -80,8 +95,16 @@ Editor
 -------------
 .. automodule:: elements.editor
    :members:
+   :show-inheritance:
 
 Global classes
 -----------------
 .. automodule:: elements.global_classes
    :members:
+   :show-inheritance:
+
+Level loader
+-----------------
+.. automodule:: elements.level_loader
+   :members:
+   :show-inheritance:

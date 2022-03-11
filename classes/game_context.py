@@ -1,5 +1,5 @@
 from pprint import pprint
-from typing import Final, TYPE_CHECKING, Callable, List, Optional, Union, Type
+from typing import Final, TYPE_CHECKING, Callable, List, Union, Type
 
 import pygame
 
@@ -17,6 +17,7 @@ class GameContext:
 
     :ivar screen: Экран на котором будет всё отрисовываться
     """
+
     def __init__(self, game_strategy: Union[Callable[[SURFACE], "GameStrategy"], Type["GameStrategy"]]):
         """
         Инициализация класса
@@ -26,9 +27,14 @@ class GameContext:
         self.screen: Final[SURFACE] = pygame.display.set_mode(RESOLUTION)
         self._running: bool = True
         self._history: List["GameStrategy"] = []
+
         self._game_strategy: "GameStrategy"
         self.game_strategy = game_strategy  # type: ignore
         # См. https://github.com/python/mypy/issues/3004
+
+        pygame.init()
+        pygame.font.init()
+        pygame.mixer.init()
 
     @property
     def game_strategy(self) -> "GameStrategy":
@@ -50,8 +56,10 @@ class GameContext:
         else:
             self._history.append(self._game_strategy)
         if DEBUG:
-            print(f'Current game strategy is {self._game_strategy.__class__.__name__}; History a.k.a stack: ', end="")
-            pprint([game_strategy.__class__.__name__ for game_strategy in self._history], indent=4)
+            print(
+                f'Current game strategy is {self._game_strategy.__class__.__name__}; History a.k.a stack: ', end="")
+            pprint(
+                [game_strategy.__class__.__name__ for game_strategy in self._history], indent=4)
 
     @property
     def running(self) -> bool:
@@ -81,22 +89,36 @@ class GameContext:
         while self.running:
             try:
                 delta_time = clock.tick(FRAMES_PER_SECOND)
-                pygame.display.set_caption(f"{clock.get_fps()} FPS; {self.game_strategy.__class__.__name__}")
+                pygame.display.set_caption(
+                    f"FPS: {round(clock.get_fps())} in {self.game_strategy.__class__.__name__} ")
                 events = pygame.event.get()
                 draw_state = self.game_strategy.draw(events, delta_time)
+
+                if not pygame.mixer.music.get_busy():
+                    # TODO: try-except should be removed because they are slow and
+                    #  are in a game cycle that should be as fast as possible.
+                    try:
+                        pygame.mixer.music.play()
+                    except pygame.error:
+                        pass
+
                 if draw_state is not None:
                     if draw_state.game_state is GameState.stop:
                         raise KeyboardInterrupt
                     elif draw_state.game_state is GameState.switch:
                         self.game_strategy = draw_state.switch_to
+                        self.game_strategy.music()
                     elif draw_state.game_state is GameState.flip:
                         pygame.display.flip()
                     elif draw_state.game_state is GameState.back:
                         if len(self.history) > 1:
                             self.game_strategy = self.history[-2]
+                            self.game_strategy.music()
                         else:
-                            raise ValueError("Can't back; Use debug to show the history of strategies; ")
+                            raise ValueError(
+                                "Can't back; Use debug to show the history of strategies; ")
                     else:
-                        raise ValueError(f"draw_state.game_state: {draw_state.game_state}. WTF is this!?")
+                        raise ValueError(
+                            f"draw_state.game_state: {draw_state.game_state}. WTF is this!?")
             except KeyboardInterrupt:
                 self.running = False
