@@ -6,20 +6,6 @@ RESOLUTION: Final[Tuple[int, int]] = (1600, 900)  # 32x18
 SHOW_GRID: Final[bool] = True
 FRAMES_PER_SECOND: Final[int] = 60
 
-<<<<<<< HEAD
-TEXT_ONLY: Final[Sequence[str]] = (
-    'is', 'and', 'stop', 'push', 'defeat', 'win', 'you', 'move', 'not', 'me', 'ok', 'back', 'best',
-    'safe', 'sad', 'has', 'all', 'bonus', 'cloud', 'sink', 'swap', 'tele', 'text', 'stick',
-    'statue', 'spike', 'sleep', 'shut', 'shift', 'safe', 'right', 'red', 'blue', 'pillar',
-    'pull', 'powered', 'play', 'p2', 'P1', 'orb', 'open', 'on', 'near', 'move', 'rubble',
-    'more', 'melt', 'make', 'lonely', 'line', 'level', 'left', 'idle', 'husk', 'hot', 'hide', 'hedge',
-    'has', 'group', 'follow', 'foliage', 'float', 'fall', 'facing', 'end', 'empty', 'eat', 'down',
-    'dot', 'done', 'defeat', 'cloud', 'cliff', 'chill', 'brick', 'bonus', 'bolt', 'bog', 'anni', 'algae'
-)
-=======
-# Gospodin's naming system
->>>>>>> kind_of_animations
-
 TEXT_ONLY = [
     '0', '1', '2', '3', '3d', '4', '5', '6', '7', '8', '9', 'a', 'ab', 'above',
     'all', 'and', 'auto', 'b', 'ba', 'back', 'below', 'besideleft', 'besideright',
@@ -66,46 +52,31 @@ OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed
 # Povelitel's tools
 
 NOUNS = [
-<<<<<<< HEAD
     'algaе', 'all', 'anni', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom',
-    'boat', 'boba', 'bog', 'bolt', 'bomb', 'book', 'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger',
-    'cake',
-    'car', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal',
-    'cup',
+    'boat', 'boba', 'bog', 'bolt', 'bomb', 'book', 'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake',
+    'car', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup',
     'cursor', 'dog', 'donut', 'door', 'door2', 'dot', 'drink', 'drum', 'dust', 'ear', 'edge', 'egg', 'empty', 'error',
-    'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi',
-    'fungus',
-    'gate', 'gem', 'ghost', 'grass', 'group', 'guitar', 'hand', 'hedge', 'hihat', 'house', 'husk', 'husks', 'ice',
-    'image',
-    'it', 'jaba', 'jelly', 'jiji', 'keke', 'key', 'knight', 'ladder', 'lamp', 'lava', 'leaf', 'level', 'lever', 'lift',
-    'lily',
+    'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi', 'fungus',
+    'gate', 'gem', 'ghost', 'grass', 'group', 'guitar', 'hand', 'hedge', 'hihat', 'house', 'husk', 'husks', 'ice', 'image',
+    'it', 'jaba', 'jelly', 'jiji', 'keke', 'key', 'knight', 'ladder', 'lamp', 'lava', 'leaf', 'level', 'lever', 'lift', 'lily',
     'line', 'lizard', 'lock', 'love', 'letters', 'me', 'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb', 'pants',
-    'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain',
-    'reed',
+    'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed',
     'ring', 'road', 'robot', 'rock', 'rocket', 'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel',
     'sign', 'skull', 'spike', 'sprout', 'square', 'star', 'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth',
     'text', 'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle',
-    'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm'
-=======
-    'algaе', 'all', 'anni', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed',
-    'bee', 'belt', 'bird', 'blob', 'blossom', 'boat', 'boba', 'bog', 'bolt',
-    'bomb', 'book', 'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug',
-    'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle',
-    'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup', 'cursor', 'dog',
-    'donut', 'door', 'door2', 'dot', 'drink', 'drum', 'dust', 'ear', 'edge',
-    'egg', 'empty', 'error', 'eye', 'fence', 'fire', 'fish', 'flag', 'flower',
-    'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi', 'fungus', 'gate',
-    'gem', 'ghost', 'grass', 'group', 'guitar', 'hand', 'hedge', 'hihat', 'house',
-    'husk', 'husks', 'ice', 'image', 'it', 'jelly', 'jiji', 'keke', 'key', 'knight',
-    'ladder', 'lamp', 'lava', 'leaf', 'level', 'lever', 'lift', 'lily', 'line', 'lizard',
-    'lock', 'love', 'letters', 'me', 'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb',
-    'pants', 'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank',
-    'potato', 'pumpkin', 'rain', 'reed', 'ring', 'road', 'robot', 'rock', 'rocket', 'rose',
-    'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel', 'sign', 'skull', 'spike',
-    'sprout', 'square', 'star', 'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth',
-    'text', 'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet',
-    'turnip', 'turtle', 'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm'
->>>>>>> kind_of_animations
+    'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm''algaе', 'all', 'anni', 'arrow', 'baba', 'badbad',
+    'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom', 'boat', 'boba', 'bog', 'bolt', 'bomb', 'book',
+    'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle',
+    'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup', 'cursor', 'dog', 'donut', 'door', 'door2', 'dot', 'drink',
+    'drum', 'dust', 'ear', 'edge', 'egg', 'empty', 'error', 'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo',
+    'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi', 'fungus', 'gate', 'gem', 'ghost', 'grass', 'group', 'guitar',
+    'hand', 'hedge', 'hihat', 'house', 'husk', 'husks', 'ice', 'image', 'it', 'jelly', 'jiji', 'keke', 'key', 'knight',
+    'ladder', 'lamp', 'lava', 'leaf', 'level', 'lever', 'lift', 'lily', 'line', 'lizard', 'lock', 'love', 'letters', 'me',
+    'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb', 'pants', 'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza',
+    'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed', 'ring', 'road', 'robot', 'rock', 'rocket', 'rose',
+    'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel', 'sign', 'skull', 'spike', 'sprout', 'square', 'star',
+    'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth', 'text', 'tile', 'tower', 'track', 'train', 'trash', 'tree',
+    'trees', 'triangle', 'trumpet', 'turnip', 'turtle', 'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm'
 ]
 
 OPERATORS = [
@@ -116,21 +87,10 @@ OPERATORS = [
 
 
 PROPERTIES = [
-<<<<<<< HEAD
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver', 'white',
     'defeat', 'return', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'hot', 'locked', 'melt',
     'more', 'move', 'nudge', 'open', 'party', 'pet', 'phantom', 'power', 'pull', 'push', 'reverse', 'revert', 'sad',
     'safe', 'scary', 'select', 'shift', 'shut', 'sink', 'sleep', 'stick', 'still', 'stop', 'swap', 'tele', 'turn',
-=======
-    '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill',
-    'crash', 'rosy', 'pink', 'red', 'orange', 'yellow', 'lime', 'green',
-    'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey',
-    'silver', 'white', 'defeat', 'deturn', 'done', 'directions', 'end',
-    'fall', 'float', 'hide', 'hold', 'hot', 'locked', 'melt', 'more',
-    'move', 'nudge', 'open', 'party', 'pet', 'phantom', 'power', 'pull',
-    'push', 'reverse', 'revert', 'sad', 'safe', 'scary', 'select', 'shift',
-    'shut', 'sink', 'sleep', 'stick', 'still', 'stop', 'swap', 'tele', 'turn',
->>>>>>> kind_of_animations
     'weak', 'win', 'wonder', 'word', 'you', 'you2'
 ]
