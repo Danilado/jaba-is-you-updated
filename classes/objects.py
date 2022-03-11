@@ -94,6 +94,9 @@ is_text:    {self.text}
         # TODO: Use enum, and make field private
         self.status_of_rotate: Literal[0, 1, 2, 3] = 0
         self.turning_side: Literal[0, 1, 2, 3, -1] = turning_side
+        self.is_hide = False
+        self.is_hot = False
+        self.locked_sides = []
 
     def animation_init(self):
         if self.text or self.name in TEXT_ONLY \
@@ -143,8 +146,9 @@ is_text:    {self.text}
 
         :param screen: Surface, на котором будет происходить отрисовка
         """
-        self.animation.update()
-        self.animation.draw(screen)
+        if not self.is_hide:
+            self.animation.update()
+            self.animation.draw(screen)
 
     def unparse(self) -> str:
         """Сериализовать объект в строку"""
@@ -168,7 +172,20 @@ is_text:    {self.text}
     def move_up(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вверх"""
         if self.y > 0:
+            if 'up' in self.locked_sides:
+                return False
             for objects in matrix[self.y - 1][self.x]:
+                for rule in level_rules:
+                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
+                        for i in range(len(matrix[self.y][self.x])):
+                            if matrix[self.y][self.x][i].name == self.name:
+                                matrix[self.y][self.x].pop(i)
+                        return False
+                    if f'{objects.name} is defeat' in rule.text_rule:
+                        for i in range(len(matrix[self.y][self.x])):
+                            if matrix[self.y][self.x][i].name == self.name:
+                                matrix[self.y][self.x].pop(i)
+                        return False
                 if objects.move_up(matrix, level_rules, 'push'):
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
@@ -188,9 +205,6 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is defeat' in rule.text_rule and status_push == 'push' and self.text == False:
-                    matrix[self.y + 1][self.x].clear()
-                    return False
                 if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
                     return False
             for rule in level_rules:
@@ -198,10 +212,8 @@ is_text:    {self.text}
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
-                    self.status_of_rotate = 1
                     self.y -= 1
                     self.ypx -= 50
-                    self.direction = 0
                     matrix[self.y][self.x].append(Object(
                         self.x,
                         self.y,
@@ -234,7 +246,20 @@ is_text:    {self.text}
     def move_down(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вниз"""
         if self.y < RESOLUTION[1] // 50 - 1:
+            if 'down' in self.locked_sides:
+                return False
             for objects in matrix[self.y + 1][self.x]:
+                for rule in level_rules:
+                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
+                        for i in range(len(matrix[self.y][self.x])):
+                            if matrix[self.y][self.x][i].name == self.name:
+                                matrix[self.y][self.x].pop(i)
+                        return False
+                    if f'{objects.name} is defeat' in rule.text_rule:
+                        for i in range(len(matrix[self.y][self.x])):
+                            if matrix[self.y][self.x][i].name == self.name:
+                                matrix[self.y][self.x].pop(i)
+                        return False
                 if objects.move_down(matrix, level_rules, 'push'):
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
@@ -254,9 +279,6 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is defeat' in rule.text_rule and status_push == 'push' and self.text == False:
-                    matrix[self.y - 1][self.x].clear()
-                    return False
                 if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
                     return False
             for rule in level_rules:
@@ -264,10 +286,8 @@ is_text:    {self.text}
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
-                    self.status_of_rotate = 3
                     self.y += 1
                     self.ypx += 50
-                    self.direction = 2
                     matrix[self.y][self.x].append(Object(
                         self.x,
                         self.y,
@@ -300,7 +320,20 @@ is_text:    {self.text}
     def move_left(self, matrix, level_rules, status_push=None):
         """Метод движения персонажа влево"""
         if self.x > 0:
+            if 'left' in self.locked_sides:
+                return False
             for objects in matrix[self.y][self.x - 1]:
+                for rule in level_rules:
+                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
+                        for i in range(len(matrix[self.y][self.x])):
+                            if matrix[self.y][self.x][i].name == self.name:
+                                matrix[self.y][self.x].pop(i)
+                        return False
+                    if f'{objects.name} is defeat' in rule.text_rule:
+                        for i in range(len(matrix[self.y][self.x])):
+                            if matrix[self.y][self.x][i].name == self.name:
+                                matrix[self.y][self.x].pop(i)
+                        return False
                 if objects.move_left(matrix, level_rules, 'push'):
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
@@ -320,9 +353,6 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is defeat' in rule.text_rule and status_push == 'push' and self.text == False:
-                    matrix[self.y][self.x + 1].clear()
-                    return False
                 if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
                     return False
             for rule in level_rules:
@@ -330,10 +360,8 @@ is_text:    {self.text}
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
-                    self.status_of_rotate = 2
                     self.x -= 1
                     self.xpx -= 50
-                    self.direction = 3
                     matrix[self.y][self.x].append(Object(
                         self.x,
                         self.y,
@@ -367,7 +395,20 @@ is_text:    {self.text}
     def move_right(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вправо"""
         if self.x < RESOLUTION[0] // 50 - 1:
+            if 'right' in self.locked_sides:
+                return False
             for objects in matrix[self.y][self.x + 1]:
+                for rule in level_rules:
+                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
+                        for i in range(len(matrix[self.y][self.x])):
+                            if matrix[self.y][self.x][i].name == self.name:
+                                matrix[self.y][self.x].pop(i)
+                        return False
+                    if f'{objects.name} is defeat' in rule.text_rule:
+                        for i in range(len(matrix[self.y][self.x])):
+                            if matrix[self.y][self.x][i].name == self.name:
+                                matrix[self.y][self.x].pop(i)
+                        return False
                 if objects.move_right(matrix, level_rules, 'push'):
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
@@ -387,9 +428,6 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is defeat' in rule.text_rule and status_push == 'push' and self.text == False:
-                    matrix[self.y][self.x - 1].clear()
-                    return False
                 if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
                     return False
             for rule in level_rules:
@@ -397,10 +435,8 @@ is_text:    {self.text}
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
-                    self.status_of_rotate = 0
                     self.x += 1
                     self.xpx += 50
-                    self.direction = 1
                     matrix[self.y][self.x].append(Object(
                         self.x,
                         self.y,
