@@ -89,7 +89,8 @@ OPERATORS = [
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver', 'white',
-    'defeat', 'return', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'hot', 'locked', 'melt',
+    'defeat', 'return', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'hot',
+    'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt',
     'more', 'move', 'nudge', 'open', 'party', 'pet', 'phantom', 'power', 'pull', 'push', 'reverse', 'revert', 'sad',
     'safe', 'scary', 'select', 'shift', 'shut', 'sink', 'sleep', 'stick', 'still', 'stop', 'swap', 'tele', 'turn',
     'weak', 'win', 'wonder', 'word', 'you', 'you2'
