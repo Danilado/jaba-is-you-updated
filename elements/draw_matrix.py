@@ -10,7 +10,8 @@ from classes.rule import Rule
 from classes.state import State
 from elements.global_classes import sound_manager
 from global_types import SURFACE
-from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
+from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY
+
 
 def my_deepcopy(arr):
     new_arr = []
@@ -20,6 +21,7 @@ def my_deepcopy(arr):
         else:
             new_arr.append(val)
     return new_arr
+
 
 class Draw(GameStrategy):
     """
@@ -34,12 +36,17 @@ class Draw(GameStrategy):
 
     def __init__(self, level_name: str, screen: SURFACE):
         super().__init__(screen)
-        self.matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
+        self.matrix: List[List[List[Object]]] = [[[]
+                                                  for _ in range(32)] for _ in range(18)]
         self.parse_file(level_name)
         self.level_rules = []
         self.history_of_matrix = []
         self.status_cancel = False
-        self.start_matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
+        self.start_matrix: List[List[List[Object]]] = [
+            [[] for _ in range(32)] for _ in range(18)]
+        self.empty_object = Object(-1, -1, 0, 'empty', False)
+        self.first_iteration = True
+        self.moved = False
 
     def parse_file(self, level_name: str):
         """
@@ -51,8 +58,8 @@ class Draw(GameStrategy):
         :param level_name: Название уровня в папке levels
         :raises OSError: Если какая либо проблема с открытием файла.
         """
-        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as leve_file:
-            for line in leve_file.readlines():
+        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as level_file:
+            for line in level_file.readlines():
                 parameters = line.strip().split(' ')
                 if len(parameters) > 1:
                     self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
@@ -64,6 +71,38 @@ class Draw(GameStrategy):
                     ))
             self.start_matrix = self.matrix
 
+    def get_neighbours(self, y, x) -> List:
+        """Ищет соседей клетки сверху, справа, снизу и слева
+
+        :param y: координата на матрице по оси y идёт первым,
+        потому что ориентирование на матрице происходит зеркально относительно нормального
+        :type y: int
+        :param x: координата на матрице по оси x
+        :type x: int
+        :return: Массив с четырьмя клетками-соседями в порядке сверху, справа, снизу, слева
+        :rtype: List[]
+        """
+        offsets = [
+            (0, -1),
+            (1,  0),
+            (0,  1),
+            (-1, 0),
+        ]
+        neighbours = [None for _ in range(4)]
+        if x == 0:
+            neighbours[0] = [self.empty_object]
+        elif x == RESOLUTION[1]//50-1:
+            neighbours[2] = [self.empty_object]
+
+        if y == 0:
+            neighbours[3] = [self.empty_object]
+        elif y == RESOLUTION[0]//50-1:
+            neighbours[1] = [self.empty_object]
+
+        for index, offset in enumerate(offsets):
+            if neighbours[index] is None:
+                neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
+        return neighbours
 
     @staticmethod
     def obj_is_noun(obj: Object):
@@ -156,13 +195,14 @@ class Draw(GameStrategy):
         return 0
 
     def copy_matrix(self, matrix):
-        copy_matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
+        copy_matrix: List[List[List[Object]]] = [[[]
+                                                  for _ in range(32)] for _ in range(18)]
         for i in range(len(matrix)):
             for j in range(len(matrix[i])):
                 for obj in matrix[i][j]:
-                    copy_matrix[i][j].append(Object(obj.x, obj.y, obj.direction, obj.name, obj.text))
+                    copy_matrix[i][j].append(
+                        Object(obj.x, obj.y, obj.direction, obj.name, obj.text))
         return copy_matrix
-
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         if len(self.history_of_matrix) == 0:
@@ -173,6 +213,7 @@ class Draw(GameStrategy):
             if event.type == pygame.QUIT:
                 state = State(GameState.back)
             if event.type == pygame.KEYDOWN:
+                self.moved = True
                 if event.key == pygame.K_ESCAPE:
                     state = State(GameState.back)
                 if event.key == pygame.K_z:
@@ -208,26 +249,34 @@ class Draw(GameStrategy):
                             if f'{object.name} is chill' in rule.text_rule:
                                 rand_dir = random.randint(0, 5)
                                 if rand_dir == 0:
-                                    object.move_up(copy_matrix, self.level_rules)
+                                    object.move_up(
+                                        copy_matrix, self.level_rules)
                                 if rand_dir == 1:
-                                    object.move_right(copy_matrix, self.level_rules)
+                                    object.move_right(
+                                        copy_matrix, self.level_rules)
                                 if rand_dir == 2:
-                                    object.move_down(copy_matrix, self.level_rules)
+                                    object.move_down(
+                                        copy_matrix, self.level_rules)
                                 if rand_dir == 3:
-                                    object.move_left(copy_matrix, self.level_rules)
+                                    object.move_left(
+                                        copy_matrix, self.level_rules)
 
                             if f'{object.name} is boom' in rule.text_rule:
-                                    copy_matrix[i][j].clear()
+                                copy_matrix[i][j].clear()
 
                             if f'{object.name} is auto' in rule.text_rule:
                                 if object.direction == 0:
-                                    object.move_up(copy_matrix, self.level_rules)
+                                    object.move_up(
+                                        copy_matrix, self.level_rules)
                                 if object.direction == 1:
-                                    object.move_right(copy_matrix, self.level_rules)
+                                    object.move_right(
+                                        copy_matrix, self.level_rules)
                                 if object.direction == 2:
-                                    object.move_down(copy_matrix, self.level_rules)
+                                    object.move_down(
+                                        copy_matrix, self.level_rules)
                                 if object.direction == 3:
-                                    object.move_left(copy_matrix, self.level_rules)
+                                    object.move_left(
+                                        copy_matrix, self.level_rules)
 
         if self.matrix != copy_matrix:
             self.history_of_matrix.append(self.matrix)
@@ -236,7 +285,8 @@ class Draw(GameStrategy):
         if self.status_cancel:
             if len(self.history_of_matrix) > 0:
                 self.matrix = self.copy_matrix(self.history_of_matrix[-1])
-                self.history_of_matrix = my_deepcopy(self.history_of_matrix[:-1])
+                self.history_of_matrix = my_deepcopy(
+                    self.history_of_matrix[:-1])
             else:
                 self.matrix = self.copy_matrix(self.start_matrix)
         if SHOW_GRID:
@@ -244,6 +294,23 @@ class Draw(GameStrategy):
                 for y in range(0, RESOLUTION[1], 50):
                     pygame.draw.rect(
                         self.screen, (255, 255, 255), (x, y, 50, 50), 1)
+
+        for line in self.matrix:
+            for cell in line:
+                for game_object in cell:
+                    if self.first_iteration or self.moved:
+                        if game_object.name in STICKY and not game_object.text:
+                            neighbours = self.get_neighbours(
+                                game_object.x, game_object.y)
+                            game_object.neighbours = neighbours
+                            game_object.animation_init()
+                    game_object.draw(self.screen)
+
+        if self.first_iteration:
+            self.first_iteration = False
+        if self.moved:
+            self.moved = False
+
         if state is None:
             state = State(GameState.flip, None)
         self.level_rules = []
@@ -262,4 +329,3 @@ class Draw(GameStrategy):
                 for game_object in cell:
                     game_object.draw(self.screen)
         return state
-

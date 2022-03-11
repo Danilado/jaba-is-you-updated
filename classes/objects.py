@@ -1,6 +1,5 @@
 import os
 import os.path
-from typing import Optional
 
 import pygame
 from typing import List, Tuple, Literal
@@ -8,15 +7,14 @@ from typing import List, Tuple, Literal
 from classes.animation import Animation
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
-from settings import TEXT_ONLY, LETTERS, PIPES, DEBUG, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
-
+from settings import TEXT_ONLY, SPRITE_ONLY, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
 
 pygame.font.init()
 font = pygame.font.SysFont('segoeuisemibold', 15)
 
 
 # TODO: Too many fields, refactor this please!
-# Абстрактный, но нет
+# Gospodin: Отнюдь.
 class Object:
     """
     Объект правил, например, jaba, you, is, and, и т.д
@@ -56,7 +54,8 @@ is_text:    {self.text}
         """)  # TODO: Use logger library
 
     def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
-                 is_text: bool = True, turning_side: int = -1):
+                 is_text: bool = True, movement_state: int = 0, neighbours=[],
+                 turning_side: int = -1):
         """
         Инициализация объекта
 
@@ -90,52 +89,109 @@ is_text:    {self.text}
         self.ypx = y * 50  # По пикселям
         self.width = 50
         self.height = 50
-        self.animation: Animation = self.animation_init()
-        # TODO: Use enum, and make field private
-        self.status_of_rotate: Literal[0, 1, 2, 3] = 0
-        self.turning_side: Literal[0, 1, 2, 3, -1] = turning_side
+        self.animation: Animation
+        self.movement_state = movement_state
+        self.neighbours = neighbours
+        if self.name != 'empty':
+            self.animation_init()
+
+    def investigate_neighbours(self):
+        """Исследует соседей объекта и возвращает правильный ключ к спрайту
+
+        :return: Ключ для правильного выбора спрайтов и анимации
+        :rtype: int
+        """
+        key_dict = {
+            '': 0,
+            'r': 1,
+            'u': 2,
+            'ur': 3,
+            'l': 4,
+            'rl': 5,
+            'ul': 6,
+            'url': 7,
+            'b': 8,
+            'rb': 9,
+            'ub': 10,
+            'urb': 11,
+            'bl': 12,
+            'rbl': 13,
+            'ubl': 14,
+            'urbl': 15
+        }
+        char_dict = ['u', 'r', 'b', 'l']
+        key = ''
+        for index, array in enumerate(self.neighbours):
+            for object in array:
+                if not object.text and object.name == self.name:
+                    key += char_dict[index]
+        return key_dict[key]
 
     def animation_init(self):
-        if self.text or self.name in TEXT_ONLY \
-                and self.name not in PIPES \
-                and self.name not in LETTERS:
+        """Инициализирует анимацию объекта, основываясь на его имени,
+           "Текстовом состоянии", направлении, стадии движения и т.д.
+        """
+        if (self.text or self.name in TEXT_ONLY) and self.name not in SPRITE_ONLY:
+            path = os.path.join('./', 'sprites', 'text')
             self.animation = Animation(
-                [
-                    pygame.transform.scale(
-                        sprite_manager.get(
-                            f"sprites/words/{self.name}/{self.name}{index + 1}"),
-                        (50, 50)
-                    ) for index in range(0, 3)
-                ], 200, (self.xpx, self.ypx), True
-            )
+                [pygame.transform.scale(sprite_manager.get(
+                    os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}")),
+                    (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
         else:
-            directory = f'./sprites/{self.name}'
-            sprite_count = len([name for name in os.listdir(directory)
-                                if os.path.isfile(os.path.join(directory, name))])
-            state_count = sprite_count // 3
-            letterize = {
-                0: 'b',
-                1: 'r',
-                2: 'f',
-                3: 'l',
-            }
-            if state_count > 4:
+            path = os.path.join('./', 'sprites', self.name)
+            try:
+                states = [int(name.split('_')[1]) for name in os.listdir(path) if os.path.isfile(
+                    os.path.join(path, name))]
+                state_max = max(states)
+            except IndexError:
+                print(
+                    f'{self.name} fucked up while counting states -> probably filename is invalid')
+                state_max = 0
+            except FileNotFoundError:
+                print(
+                    f"{self.name} fucked up while searching for files. Probably folder is corrupt or \
+                    does not exist. This shouldn't happen in any circumstances")
+                state_max = 0
+
+            if state_max == 0:
                 self.animation = Animation(
-                    [pygame.transform.scale(
-                        sprite_manager.get(
-                            f"sprites/{self.name}/{letterize[self.direction]}0{index}"),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
-            elif state_count > 1:
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_0_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+            elif state_max == 15:
+                frame = self.investigate_neighbours()
                 self.animation = Animation(
-                    [pygame.transform.scale(
-                        sprite_manager.get(
-                            f"sprites/{self.name}/{letterize[self.direction]}{index + 1}"),
-                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_{frame}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+            elif state_max == 3:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_{self.movement_state % 4}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+            elif state_max == 24:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_{self.direction * 8}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+            elif state_max == 27:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_{self.movement_state % 4 + self.direction * 8}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+            elif state_max == 31:
+                self.animation = Animation(
+                    [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_{self.movement_state % 4 + max(self.direction * 8, 0)}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
             else:
-                self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(f"sprites/{self.name}/{index + 1}"),
-                                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx), True)
-        return self.animation
+                print(f'{self.name} somehow fucked up while setting animation')
 
     def draw(self, screen: SURFACE):
         """
@@ -160,10 +216,9 @@ is_text:    {self.text}
             self.move_left(matrix, level_rules)
         if self.turning_side == 3:
             self.move_down(matrix, level_rules)
-        #if DEBUG:
+        # if DEBUG:
         #    print(self.turning_side, self.status_of_rotate)
         self.animation_init()
-
 
     def move_up(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вверх"""
@@ -230,7 +285,6 @@ is_text:    {self.text}
                 ))
             return True
 
-
     def move_down(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вниз"""
         if self.y < RESOLUTION[1] // 50 - 1:
@@ -295,7 +349,6 @@ is_text:    {self.text}
                     3
                 ))
             return True
-
 
     def move_left(self, matrix, level_rules, status_push=None):
         """Метод движения персонажа влево"""
@@ -362,8 +415,6 @@ is_text:    {self.text}
                 ))
             return True
 
-
-
     def move_right(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вправо"""
         if self.x < RESOLUTION[0] // 50 - 1:
@@ -429,7 +480,6 @@ is_text:    {self.text}
                 ))
             return True
 
-
     def check_events(self, events: List[pygame.event.Event]):
         """Метод обработки событий"""
         for event in events:
@@ -443,8 +493,6 @@ is_text:    {self.text}
                 if event.key == pygame.K_s:
                     self.turning_side = 3
 
-
             if event.type == pygame.KEYUP:
                 if event.key in [pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a]:
                     self.turning_side = -1
-
