@@ -30,6 +30,7 @@ class Draw(GameStrategy):
         super().__init__(screen)
         self.matrix: List[List[List[Object]]] = [[[]
                                                   for _ in range(32)] for _ in range(18)]
+        self.anim_obj = self.words_to_png(level_name)
         self.parse_file(level_name)
         self.level_rules = []
         self.history_of_matrix = []
@@ -39,6 +40,8 @@ class Draw(GameStrategy):
         self.empty_object = Object(-1, -1, 0, 'empty', False)
         self.first_iteration = True
         self.moved = False
+        self.circle_radius = 650
+        self.delay = pygame.time.get_ticks()
 
     def parse_file(self, level_name: str):
         """
@@ -203,6 +206,38 @@ class Draw(GameStrategy):
                         Object(obj.x, obj.y, obj.direction, obj.name, obj.text))
                     # TODO: Add __copy__ to Object, and use it here
         return copy_matrix
+
+    @staticmethod
+    def words_to_png(level_count):
+        x = 12
+        level = 'level' + str(level_count)
+        arr_obj = []
+        for obj in level:
+            a = Object(x, 6, 1, obj, True)
+            arr_obj.append(a)
+            x += 1
+        return arr_obj
+
+    def animation_level(self):
+        if self.circle_radius > 0:
+            pygame.draw.circle(self.screen, (0, 50, 30), (0, 0), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (600, 0), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1000, 0), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 0), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (0, 900), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (300, 900), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (800, 900), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1200, 900), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (0, 300), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (0, 600), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 100), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 500), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 900), self.circle_radius)
+            if pygame.time.get_ticks() - self.delay <= 3000:
+                for obj in self.anim_obj:
+                    obj.draw(self.screen)
+            if pygame.time.get_ticks() - self.delay > 3000:
+                self.circle_radius -= 8
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         if len(self.history_of_matrix) == 0:
@@ -457,8 +492,6 @@ class Draw(GameStrategy):
         if self.moved:
             self.moved = False
 
-        if state is None:
-            state = State(GameState.flip, None)
         self.level_rules = []
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
@@ -469,4 +502,7 @@ class Draw(GameStrategy):
             for cell in line:
                 for game_object in cell:
                     game_object.draw(self.screen)
+        self.animation_level()
+        if state is None:
+            state = State(GameState.flip, None)
         return state

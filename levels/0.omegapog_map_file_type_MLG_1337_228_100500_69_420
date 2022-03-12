@@ -1,7 +1,7 @@
 1 0 1 frog True
 2 0 1 is False
 3 0 1 you False
-16 0 0 ghost True
+16 0 0 rock True
 17 0 0 is False
 18 0 0 pull False
 27 0 0 rose True
@@ -10,7 +10,7 @@
 29 3 0 flag True
 30 3 0 is True
 31 3 0 win True
-9 6 0 rock True
+9 6 0 ghost True
 12 6 1 rock False
 13 6 1 rock False
 14 6 1 rock False
@@ -31,7 +31,7 @@
 20 7 1 ghost False
 22 7 1 flag False
 23 7 1 rose False
-9 8 0 pull False
+9 8 0 defeat False
 12 8 1 rock False
 13 8 1 rock False
 14 8 1 rock False
