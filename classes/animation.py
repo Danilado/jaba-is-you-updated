@@ -30,8 +30,9 @@ class Animation:
         :param synchronize:
             Синхронизировать ли с остальными анимациями, чтобы кадры менялись одновременно в всех анимациях.
         """
-        if len(sprites) == 0:
-            raise ValueError("Sprites are empty")
+        # quswadress: Под чем я был когда писал это?
+        # if len(sprites) == 0:
+        #     raise ValueError("Sprites are empty")
         self.position: Tuple[int, int] = position
         self.sprites: List[pygame.surface.Surface] = []
         for sprite in sprites:
