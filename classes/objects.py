@@ -1,8 +1,8 @@
 import os
 import os.path
+from typing import List, Literal
 
 import pygame
-from typing import List, Tuple, Literal
 
 from classes.animation import Animation
 from elements.global_classes import sprite_manager
@@ -53,9 +53,10 @@ is_text:    {self.text}
 --- {(len(str(self.x)) + len(str(self.y))) * ' '} ---
         """)  # TODO: Use logger library
 
-    def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
-                 is_text: bool = True, movement_state: int = 0, neighbours=[],
-                 turning_side: int = -1):
+    def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",  # This isn't pythonic way.
+                 # TODO: Use None instead of "empty"
+                 is_text: bool = True, movement_state: int = 0, neighbours=None,
+                 turning_side: Literal[0, 1, 2, 3, -1] = -1):
         """
         Инициализация объекта
 
@@ -80,7 +81,7 @@ is_text:    {self.text}
         self.name: str = name
         if self.name in TEXT_ONLY:
             self.is_text = True
-        self.text = is_text
+        self.text = is_text   # TODO: Rename text to is_text.
         # Используется с правилами move, turn, shift и т.д.
         self.direction = direction
         self.direction_key_map = {
@@ -89,6 +90,9 @@ is_text:    {self.text}
             2: 3,
             3: 2,
         }
+        if neighbours is None:
+            neighbours = []
+
         self.turning_side = turning_side
         self.x = x  # Не по пикселям, а по сетке!
         self.y = y  # Не по пикселям, а по сетке!
@@ -98,14 +102,15 @@ is_text:    {self.text}
         self.height = 50
         self.animation: Animation
         self.movement_state = movement_state
-        self.neighbours = neighbours
+        self.neighbours: List[List[Object]] = neighbours
         self.status_of_rotate: Literal[0, 1, 2, 3] = 0
         self.turning_side: Literal[0, 1, 2, 3, -1] = turning_side
         self.is_hide = False
         self.is_hot = False
         self.locked_sides = []
+        self.animation = None
         if self.name != 'empty':
-            self.animation_init()
+            self.animation = self.animation_init()
 
     def investigate_neighbours(self):
         """Исследует соседей объекта и возвращает правильный ключ к спрайту
@@ -139,16 +144,16 @@ is_text:    {self.text}
                     key += char_dict[index]
         return key_dict[key]
 
-    def animation_init(self):
+    def animation_init(self) -> Animation:
         """Инициализирует анимацию объекта, основываясь на его имени,
            "Текстовом состоянии", направлении, стадии движения и т.д.
         """
+        animation = Animation([], 200, (self.xpx, self.ypx))
         if (self.text or self.name in TEXT_ONLY) and self.name not in SPRITE_ONLY:
             path = os.path.join('./', 'sprites', 'text')
-            self.animation = Animation(
-                [pygame.transform.scale(sprite_manager.get(
-                    os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}")),
-                    (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+            animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}")),
+                (50, 50)) for index in range(0, 3)]
         else:
             path = os.path.join('./', 'sprites', self.name)
             try:
@@ -167,42 +172,41 @@ is_text:    {self.text}
 
             try:
                 if state_max == 0:
-                    self.animation = Animation(
-                        [pygame.transform.scale(sprite_manager.get(
-                            os.path.join(path,
-                                         f'{self.name}_0_{index + 1}')),
-                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_0_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)]
                 elif state_max == 15:
                     frame = self.investigate_neighbours()
-                    self.animation = Animation(
-                        [pygame.transform.scale(sprite_manager.get(
-                            os.path.join(path,
-                                         f'{self.name}_{frame}_{index + 1}')),
-                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_{frame}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)]
                 elif state_max == 3:
-                    self.animation = Animation(
-                        [pygame.transform.scale(sprite_manager.get(
-                            os.path.join(path,
-                                         f'{self.name}_{self.movement_state % 4}_{index + 1}')),
-                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_{self.movement_state % 4}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)]
                 elif state_max == 24:
-                    self.animation = Animation(
-                        [pygame.transform.scale(sprite_manager.get(
-                            os.path.join(path,
-                                         f'{self.name}_{self.direction_key_map[self.direction] * 8}_{index + 1}')),
-                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_{self.direction_key_map[self.direction] * 8}_{index + 1}')),
+                        (50, 50)) for index in range(0, 3)]
                 elif state_max == 27:
-                    self.animation = Animation(
-                        [pygame.transform.scale(sprite_manager.get(
-                            os.path.join(path,
-                                         f'{self.name}_{self.movement_state % 4 + self.direction_key_map[self.direction] * 8}_{index + 1}')),
-                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(path,
+                                     f'{self.name}_'
+                                     f'{self.movement_state % 4 + self.direction_key_map[self.direction] * 8}_'
+                                     f'{index + 1}')),
+                        (50, 50)) for index in range(0, 3)]
                 elif state_max == 31:
-                    self.animation = Animation(
-                        [pygame.transform.scale(sprite_manager.get(
-                            os.path.join(path,
-                                         f'{self.name}_{self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0)}_{index + 1}')),
-                            (50, 50)) for index in range(0, 3)], 200, (self.xpx, self.ypx))
+                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                        os.path.join(
+                            path,
+                            f'{self.name}_'
+                            f'{self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0)}_'
+                            f'{index + 1}')),
+                        (50, 50)) for index in range(0, 3)]
                 else:
                     print(f'{self.name} somehow fucked up while setting animation')
             except FileNotFoundError:
@@ -210,7 +214,8 @@ is_text:    {self.text}
                     print(f'{self.name} somehow fucked up while setting animation')
                 else:
                     self.movement_state = 0
-                    return self.animation_init()
+                    return self.animation_init()  # quswadress: Но зачем?
+        return animation
 
     def draw(self, screen: SURFACE):
         """
@@ -245,8 +250,6 @@ is_text:    {self.text}
             self.move_down(matrix, level_rules)
             self.direction = 2
             moved = True
-        # if DEBUG:
-        #    print(self.turning_side, self.status_of_rotate)
         if moved:
             self.movement_state += 1
             self.animation_init()
@@ -288,7 +291,7 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -306,7 +309,7 @@ is_text:    {self.text}
                         self.movement_state + 1
                     ))
                     return True
-            if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
+            if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
                     self.name in NOUNS and self.text):
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
@@ -360,7 +363,7 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -378,7 +381,7 @@ is_text:    {self.text}
                         self.movement_state + 1
                     ))
                     return True
-            if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
+            if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
                     self.name in NOUNS and self.text):
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
@@ -433,7 +436,7 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -451,7 +454,7 @@ is_text:    {self.text}
                         self.movement_state + 1
                     ))
                     return True
-            if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
+            if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
                     self.name in NOUNS and self.text):
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
@@ -506,7 +509,7 @@ is_text:    {self.text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and self.text == False:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -524,7 +527,7 @@ is_text:    {self.text}
                         self.movement_state + 1
                     ))
                     return True
-            if status_push == None or self.name in OPERATORS or self.name in PROPERTIES or (
+            if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
                     self.name in NOUNS and self.text):
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:

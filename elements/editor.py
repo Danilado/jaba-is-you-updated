@@ -14,23 +14,7 @@ from classes.state import State
 from elements.global_classes import EuiSettings, IuiSettings, sound_manager
 from elements.overlay import EditorOverlay
 from settings import SHOW_GRID, RESOLUTION, OBJECTS, STICKY
-
-
-def my_deepcopy(arr):
-    """Полное копирование трёхмерного массива без использования указателей
-
-    :param arr: Исходный массив
-    :type arr: list
-    :return: Копия в других ячейках памяти
-    :rtype: list
-    """
-    new_arr = []
-    for val in arr:
-        if isinstance(val, list):
-            new_arr.append(my_deepcopy(val))
-        else:
-            new_arr.append(val)
-    return new_arr
+from utils import my_deepcopy
 
 
 def unparse_all(state):

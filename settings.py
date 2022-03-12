@@ -1,4 +1,4 @@
-from typing import Final, Tuple, Sequence
+from typing import Final, Tuple
 
 DEBUG: bool = True
 
@@ -30,7 +30,8 @@ SPRITE_ONLY = [
 ]
 
 STICKY = [
-    'lava', 'wall', 'cloud', 'brick', 'plank', 'rubble', 'hedge', 'cliff', 'grass', 'ice', 'line', 'road', 'track', 'water'
+    'lava', 'wall', 'cloud', 'brick', 'plank', 'rubble', 'hedge', 'cliff', 'grass', 'ice', 'line', 'road', 'track',
+    'water'
 ]
 
 OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt',
@@ -54,11 +55,12 @@ OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed
 NOUNS = [
     'algaе', 'all', 'anni', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom',
     'boat', 'boba', 'bog', 'bolt', 'bomb', 'book', 'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake',
-    'car', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup',
-    'cursor', 'dog', 'donut', 'door', 'door2', 'dot', 'drink', 'drum', 'dust', 'ear', 'edge', 'egg', 'empty', 'error',
-    'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi', 'fungus',
-    'gate', 'gem', 'ghost', 'grass', 'group', 'guitar', 'hand', 'hedge', 'hihat', 'house', 'husk', 'husks', 'ice', 'image',
-    'it', 'jaba', 'jelly', 'jiji', 'keke', 'key', 'knight', 'ladder', 'lamp', 'lava', 'leaf', 'level', 'lever', 'lift', 'lily',
+    'car', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal',
+    'cup', 'cursor', 'dog', 'donut', 'door', 'door2', 'dot', 'drink', 'drum', 'dust', 'ear', 'edge', 'egg', 'empty',
+    'error', 'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit',
+    'fungi', 'fungus', 'gate', 'gem', 'ghost', 'grass', 'group', 'guitar', 'hand', 'hedge', 'hihat', 'house', 'husk',
+    'husks', 'ice', 'image', 'it', 'jaba', 'jelly', 'jiji', 'keke', 'key', 'knight', 'ladder', 'lamp', 'lava', 'leaf',
+    'level', 'lever', 'lift', 'lily',
     'line', 'lizard', 'lock', 'love', 'letters', 'me', 'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb', 'pants',
     'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed',
     'ring', 'road', 'robot', 'rock', 'rocket', 'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel',
@@ -66,16 +68,18 @@ NOUNS = [
     'text', 'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle',
     'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm''algaе', 'all', 'anni', 'arrow', 'baba', 'badbad',
     'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom', 'boat', 'boba', 'bog', 'bolt', 'bomb', 'book',
-    'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle',
-    'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup', 'cursor', 'dog', 'donut', 'door', 'door2', 'dot', 'drink',
+    'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair',
+    'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup', 'cursor', 'dog', 'donut', 'door',
+    'door2', 'dot', 'drink',
     'drum', 'dust', 'ear', 'edge', 'egg', 'empty', 'error', 'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo',
     'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi', 'fungus', 'gate', 'gem', 'ghost', 'grass', 'group', 'guitar',
     'hand', 'hedge', 'hihat', 'house', 'husk', 'husks', 'ice', 'image', 'it', 'jelly', 'jiji', 'keke', 'key', 'knight',
-    'ladder', 'lamp', 'lava', 'leaf', 'level', 'lever', 'lift', 'lily', 'line', 'lizard', 'lock', 'love', 'letters', 'me',
-    'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb', 'pants', 'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza',
-    'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed', 'ring', 'road', 'robot', 'rock', 'rocket', 'rose',
-    'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel', 'sign', 'skull', 'spike', 'sprout', 'square', 'star',
-    'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth', 'text', 'tile', 'tower', 'track', 'train', 'trash', 'tree',
+    'ladder', 'lamp', 'lava', 'leaf', 'level', 'lever', 'lift', 'lily', 'line', 'lizard', 'lock', 'love', 'letters',
+    'me', 'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb', 'pants', 'pawn', 'piano', 'pillar', 'pipe', 'pixel',
+    'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed', 'ring', 'road', 'robot', 'rock', 'rocket',
+    'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel', 'sign', 'skull', 'spike', 'sprout',
+    'square', 'star', 'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth', 'text', 'tile', 'tower', 'track',
+    'train', 'trash', 'tree',
     'trees', 'triangle', 'trumpet', 'turnip', 'turtle', 'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm'
 ]
 

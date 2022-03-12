@@ -11,16 +11,7 @@ from classes.state import State
 from elements.global_classes import sound_manager
 from global_types import SURFACE
 from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY
-
-
-def my_deepcopy(arr):
-    new_arr = []
-    for val in arr:
-        if isinstance(val, list):
-            new_arr.append(my_deepcopy(val))
-        else:
-            new_arr.append(val)
-    return new_arr
+from utils import my_deepcopy
 
 
 class Draw(GameStrategy):
@@ -88,7 +79,7 @@ class Draw(GameStrategy):
             (0,  1),
             (-1, 0),
         ]
-        neighbours = [None for _ in range(4)]
+        neighbours = [[] for _ in range(4)]
         if x == 0:
             neighbours[0] = [self.empty_object]
         elif x == RESOLUTION[1]//50-1:
@@ -194,7 +185,8 @@ class Draw(GameStrategy):
                             return len(self.level_rules)
         return 0
 
-    def copy_matrix(self, matrix):
+    @staticmethod
+    def copy_matrix(matrix):
         copy_matrix: List[List[List[Object]]] = [[[]
                                                   for _ in range(32)] for _ in range(18)]
         for i in range(len(matrix)):
@@ -202,6 +194,7 @@ class Draw(GameStrategy):
                 for obj in matrix[i][j]:
                     copy_matrix[i][j].append(
                         Object(obj.x, obj.y, obj.direction, obj.name, obj.text))
+                    # TODO: Add __copy__ to Object, and use it here
         return copy_matrix
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
@@ -225,104 +218,105 @@ class Draw(GameStrategy):
         copy_matrix = my_deepcopy(self.matrix)
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
-                for object in self.matrix[i][j]:
-                    if not object.text:
+                for rule_object in self.matrix[i][j]:
+                    if not rule_object.text:
                         is_hot = False
                         is_hide = False
                         locked_sides = []
                         for rule in self.level_rules:
-
-                            if f'{object.name} is broken' in rule.text_rule:
+                            # TODO: Replace Conditional with Polymorphism instead of if-elif-elif-elif-elif-elif-else...
+                            if f'{rule_object.name} is broken' in rule.text_rule:
                                 for sec_rule in self.level_rules:
-                                    if f'{object.name}' in sec_rule.text_rule and sec_rule.text_rule != f'{object.name} is broken':
+                                    if f'{rule_object.name}' in sec_rule.text_rule and \
+                                            sec_rule.text_rule != f'{rule_object.name} is broken':
                                         self.level_rules.remove(sec_rule)
 
-                            if f'{object.name} is deturn' in rule.text_rule:
-                                object.direcrtion += 1
-                                object.status_of_rotate += 1
-                                if object.direction > 3:
-                                    object.direction = 0
-                                if object.status_of_rotate > 3:
-                                    object.status_of_rotate = 0
+                            if f'{rule_object.name} is return' in rule.text_rule:
+                                rule_object.direction += 1
+                                rule_object.status_of_rotate += 1
+                                if rule_object.direction > 3:
+                                    rule_object.direction = 0
+                                if rule_object.status_of_rotate > 3:
+                                    rule_object.status_of_rotate = 0
 
-                            if f'{object.name} is you' in rule.text_rule:
-                                object.check_events(events)
-                                object.move(copy_matrix, self.level_rules)
+                            if f'{rule_object.name} is you' in rule.text_rule:
+                                rule_object.check_events(events)
+                                rule_object.move(copy_matrix, self.level_rules)
 
-                            if f'{object.name} is chill' in rule.text_rule:
+                            if f'{rule_object.name} is chill' in rule.text_rule:
                                 rand_dir = random.randint(0, 5)
                                 if rand_dir == 0:
-                                    object.move_up(
+                                    rule_object.move_up(
                                         copy_matrix, self.level_rules)
                                 if rand_dir == 1:
-                                    object.move_right(
+                                    rule_object.move_right(
                                         copy_matrix, self.level_rules)
                                 if rand_dir == 2:
-                                    object.move_down(
+                                    rule_object.move_down(
                                         copy_matrix, self.level_rules)
                                 if rand_dir == 3:
-                                    object.move_left(
+                                    rule_object.move_left(
                                         copy_matrix, self.level_rules)
 
-                            if f'{object.name} is boom' in rule.text_rule:
+                            if f'{rule_object.name} is boom' in rule.text_rule:
                                 copy_matrix[i][j].clear()
 
-                            if f'{object.name} is auto' in rule.text_rule:
-                                if object.direction == 0:
-                                    object.move_up(
+                            if f'{rule_object.name} is auto' in rule.text_rule:
+                                if rule_object.direction == 0:
+                                    rule_object.move_up(
                                         copy_matrix, self.level_rules)
-                                if object.direction == 1:
-                                    object.move_right(
+                                if rule_object.direction == 1:
+                                    rule_object.move_right(
                                         copy_matrix, self.level_rules)
-                                if object.direction == 2:
-                                    object.move_down(
+                                if rule_object.direction == 2:
+                                    rule_object.move_down(
                                         copy_matrix, self.level_rules)
-                                if object.direction == 3:
-                                    object.move_left(
+                                if rule_object.direction == 3:
+                                    rule_object.move_left(
                                         copy_matrix, self.level_rules)
 
-                            if f'{object.name} is up' in rule.text_rule:
-                                object.direction = 0
-                                object.status_of_rotate = 1
+                            if f'{rule_object.name} is up' in rule.text_rule:
+                                rule_object.direction = 0
+                                rule_object.status_of_rotate = 1
 
-                            if f'{object.name} is right' in rule.text_rule:
-                                object.direction = 1
-                                object.status_of_rotate = 0
+                            if f'{rule_object.name} is right' in rule.text_rule:
+                                rule_object.direction = 1
+                                rule_object.status_of_rotate = 0
 
-                            if f'{object.name} is down' in rule.text_rule:
-                                object.direction = 2
-                                object.status_of_rotate = 3
+                            if f'{rule_object.name} is down' in rule.text_rule:
+                                rule_object.direction = 2
+                                rule_object.status_of_rotate = 3
 
-                            if f'{object.name} is left' in rule.text_rule:
-                                object.direction = 3
-                                object.status_of_rotate = 2
+                            if f'{rule_object.name} is left' in rule.text_rule:
+                                rule_object.direction = 3
+                                rule_object.status_of_rotate = 2
 
-                            if f'{object.name} is fall' in rule.text_rule:
+                            if f'{rule_object.name} is fall' in rule.text_rule:
                                 status_of_fall = True
-                                while(status_of_fall):
-                                    status_of_fall = object.move_down(
+                                while status_of_fall:
+                                    status_of_fall = rule_object.move_down(
                                         copy_matrix, self.level_rules)
 
-                            if f'{object.name} is hide' in rule.text_rule:
+                            if f'{rule_object.name} is hide' in rule.text_rule:
                                 is_hide = True
 
-                            if f'{object.name} is hot' in rule.text_rule:
+                            if f'{rule_object.name} is hot' in rule.text_rule:
                                 is_hot = True
 
-                            if f'{object.name} is locked' in rule.text_rule:
-                                if f'{object.name} is lockeddown' in rule.text_rule:
+                            if f'{rule_object.name} is locked' in rule.text_rule:
+                                if f'{rule_object.name} is lockeddown' in rule.text_rule:
                                     locked_sides.append('down')
-                                if f'{object.name} is lockedup' in rule.text_rule:
+                                if f'{rule_object.name} is lockedup' in rule.text_rule:
                                     locked_sides.append('up')
-                                if f'{object.name} is lockedleft' in rule.text_rule:
+                                if f'{rule_object.name} is lockedleft' in rule.text_rule:
                                     locked_sides.append('left')
-                                if f'{object.name} is lockedright' in rule.text_rule:
+                                if f'{rule_object.name} is lockedright' in rule.text_rule:
                                     locked_sides.append('right')
 
-                            if f'{object.name} is melt' in rule.text_rule and object.is_hot:
-                                copy_matrix[i][j].remove(object)
+                            if f'{rule_object.name} is melt' in rule.text_rule and rule_object.is_hot:
+                                copy_matrix[i][j].remove(rule_object)
 
-                            if f'{object.name} is more' in rule.text_rule:
+                            if f'{rule_object.name} is more' in rule.text_rule:
                                 status_clone = True
                                 if i < len(self.matrix) - 1:
                                     for obj in self.matrix[i+1][j]:
@@ -330,15 +324,15 @@ class Draw(GameStrategy):
                                             if f'{obj.name} is stop' in dop_rule.text_rule\
                                                     or f'{obj.name} is push' in dop_rule.text_rule\
                                                     or f'{obj.name} is pull' in dop_rule.text_rule\
-                                                    or object.name == obj.name\
+                                                    or rule_object.name == obj.name\
                                                     or obj.text:
                                                 status_clone = False
                                     if status_clone:
                                         copy_matrix[i+1][j].append(Object(j,
                                                                           i+1,
-                                                                          object.direction,
-                                                                          object.name,
-                                                                          object.text)
+                                                                          rule_object.direction,
+                                                                          rule_object.name,
+                                                                          rule_object.text)
                                                                    )
                                     status_clone = True
                                     if j < len(self.matrix[i]) - 1:
@@ -347,15 +341,15 @@ class Draw(GameStrategy):
                                                 if f'{obj.name} is stop' in dop_rule.text_rule \
                                                         or f'{obj.name} is push' in dop_rule.text_rule \
                                                         or f'{obj.name} is pull' in dop_rule.text_rule\
-                                                        or object.name == obj.name\
+                                                        or rule_object.name == obj.name\
                                                         or obj.text:
                                                     status_clone = False
                                         if status_clone:
                                             copy_matrix[i][j + 1].append(Object(j + 1,
                                                                                 i,
-                                                                                object.direction,
-                                                                                object.name,
-                                                                                object.text)
+                                                                                rule_object.direction,
+                                                                                rule_object.name,
+                                                                                rule_object.text)
                                                                          )
                                     status_clone = True
                                     if j > 0:
@@ -364,15 +358,15 @@ class Draw(GameStrategy):
                                                 if f'{obj.name} is stop' in dop_rule.text_rule \
                                                         or f'{obj.name} is push' in dop_rule.text_rule \
                                                         or f'{obj.name} is pull' in dop_rule.text_rule \
-                                                        or object.name == obj.name\
+                                                        or rule_object.name == obj.name\
                                                         or obj.text:
                                                     status_clone = False
                                         if status_clone:
                                             copy_matrix[i][j - 1].append(Object(j - 1,
                                                                                 i,
-                                                                                object.direction,
-                                                                                object.name,
-                                                                                object.text)
+                                                                                rule_object.direction,
+                                                                                rule_object.name,
+                                                                                rule_object.text)
                                                                          )
                                     status_clone = True
                                     if i > 0:
@@ -381,47 +375,47 @@ class Draw(GameStrategy):
                                                 if f'{obj.name} is stop' in dop_rule.text_rule \
                                                         or f'{obj.name} is push' in dop_rule.text_rule \
                                                         or f'{obj.name} is pull' in dop_rule.text_rule \
-                                                        or object.name == obj.name\
+                                                        or rule_object.name == obj.name\
                                                         or obj.text:
                                                     status_clone = False
                                         if status_clone:
                                             copy_matrix[i - 1][j].append(Object(j,
                                                                                 i - 1,
-                                                                                object.direction,
-                                                                                object.name,
-                                                                                object.text)
+                                                                                rule_object.direction,
+                                                                                rule_object.name,
+                                                                                rule_object.text)
                                                                          )
-                            if f'{object.name} is move' in rule.text_rule:
-                                if object.direction == 0:
-                                    if not object.move_up(copy_matrix, self.level_rules):
-                                        object.direction = 2
-                                if object.direction == 1:
-                                    if not object.move_right(copy_matrix, self.level_rules):
-                                        object.direction = 3
-                                if object.direction == 2:
-                                    if not object.move_down(copy_matrix, self.level_rules):
-                                        object.direction = 0
-                                if object.direction == 3:
-                                    if not object.move_left(copy_matrix, self.level_rules):
-                                        object.direction = 1
+                            if f'{rule_object.name} is move' in rule.text_rule:
+                                if rule_object.direction == 0:
+                                    if not rule_object.move_up(copy_matrix, self.level_rules):
+                                        rule_object.direction = 2
+                                if rule_object.direction == 1:
+                                    if not rule_object.move_right(copy_matrix, self.level_rules):
+                                        rule_object.direction = 3
+                                if rule_object.direction == 2:
+                                    if not rule_object.move_down(copy_matrix, self.level_rules):
+                                        rule_object.direction = 0
+                                if rule_object.direction == 3:
+                                    if not rule_object.move_left(copy_matrix, self.level_rules):
+                                        rule_object.direction = 1
 
-                            if f'{object.name} is nudge' in rule.text_rule:
-                                if f'{object.name} is nudgedown' in rule.text_rule:
-                                    object.move_down(
+                            if f'{rule_object.name} is nudge' in rule.text_rule:
+                                if f'{rule_object.name} is nudgedown' in rule.text_rule:
+                                    rule_object.move_down(
                                         copy_matrix, self.level_rules, 'push')
-                                if f'{object.name} is nudgedup' in rule.text_rule:
-                                    object.move_up(
+                                if f'{rule_object.name} is nudgedup' in rule.text_rule:
+                                    rule_object.move_up(
                                         copy_matrix, self.level_rules, 'push')
-                                if f'{object.name} is nudgeleft' in rule.text_rule:
-                                    object.move_left(
+                                if f'{rule_object.name} is nudgeleft' in rule.text_rule:
+                                    rule_object.move_left(
                                         copy_matrix, self.level_rules, 'push')
-                                if f'{object.name} is nudgeright' in rule.text_rule:
-                                    object.move_right(
+                                if f'{rule_object.name} is nudgeright' in rule.text_rule:
+                                    rule_object.move_right(
                                         copy_matrix, self.level_rules, 'push')
 
-                        object.is_hot = is_hot
-                        object.is_hide = is_hide
-                        object.locked_sides = my_deepcopy(locked_sides)
+                        rule_object.is_hot = is_hot
+                        rule_object.is_hide = is_hide
+                        rule_object.locked_sides = my_deepcopy(locked_sides)
 
         if self.matrix != copy_matrix:
             self.history_of_matrix.append(self.matrix)
