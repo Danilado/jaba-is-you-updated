@@ -199,7 +199,7 @@ class Draw(GameStrategy):
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         if len(self.history_of_matrix) == 0:
-            self.history_of_matrix.append(self.matrix)
+            self.history_of_matrix.append(my_deepcopy(self.matrix))
         self.screen.fill("black")
         state = None
         for event in events:
@@ -385,6 +385,7 @@ class Draw(GameStrategy):
                                                                                 rule_object.name,
                                                                                 rule_object.text)
                                                                          )
+
                             if f'{rule_object.name} is move' in rule.text_rule:
                                 if rule_object.direction == 0:
                                     if not rule_object.move_up(copy_matrix, self.level_rules):
@@ -418,14 +419,13 @@ class Draw(GameStrategy):
                         rule_object.locked_sides = my_deepcopy(locked_sides)
 
         if self.matrix != copy_matrix:
-            self.history_of_matrix.append(self.matrix)
+            self.history_of_matrix.append(my_deepcopy(self.matrix))
             self.matrix = my_deepcopy(copy_matrix)
 
         if self.status_cancel:
             if len(self.history_of_matrix) > 0:
                 self.matrix = self.copy_matrix(self.history_of_matrix[-1])
-                self.history_of_matrix = my_deepcopy(
-                    self.history_of_matrix[:-1])
+                self.history_of_matrix.pop()
             else:
                 self.matrix = self.copy_matrix(self.start_matrix)
         if SHOW_GRID:
