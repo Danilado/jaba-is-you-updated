@@ -5,6 +5,6 @@ from classes.objects import Object
 
 
 @dataclass
-class Rule:
+class TextRule:
     text_rule: str
     objects_in_rule: List[Object]

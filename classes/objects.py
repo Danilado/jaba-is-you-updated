@@ -49,12 +49,11 @@ x:          {self.x}
 y:          {self.y}
 direction:  {self.direction}
 name:       {self.name}
-is_text:    {self.text}
+is_text:    {self.is_text}
 --- {(len(str(self.x)) + len(str(self.y))) * ' '} ---
         """)  # TODO: Use logger library
 
-    def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",  # This isn't pythonic way.
-                 # TODO: Use None instead of "empty"
+    def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
                  is_text: bool = True, movement_state: int = 0, neighbours=None,
                  turning_side: Literal[0, 1, 2, 3, -1] = -1):
         """
@@ -78,11 +77,14 @@ is_text:    {self.text}
 
         :param is_text: Переменная определяющая является объект текстом, или нет
         """
+
         self.name: str = name
         if self.name in TEXT_ONLY:
             self.is_text = True
-        self.text = is_text   # TODO: Rename text to is_text.
-        # Используется с правилами move, turn, shift и т.д.
+        self.is_text = is_text
+
+        self.turning_side = turning_side
+        self.status_of_rotate: Literal[0, 1, 2, 3] = 0
         self.direction = direction
         self.direction_key_map = {
             0: 1,
@@ -90,25 +92,27 @@ is_text:    {self.text}
             2: 3,
             3: 2,
         }
+
         if neighbours is None:
             neighbours = []
+        self.neighbours: List[List[Object]] = neighbours
 
-        self.turning_side = turning_side
-        self.x = x  # Не по пикселям, а по сетке!
-        self.y = y  # Не по пикселям, а по сетке!
-        self.xpx = x * 50  # По пикселям
-        self.ypx = y * 50  # По пикселям
+        self.x = x
+        self.y = y
+        self.xpx = x * 50
+        self.ypx = y * 50
+
         self.width = 50
         self.height = 50
+
         self.animation: Animation
         self.movement_state = movement_state
-        self.neighbours: List[List[Object]] = neighbours
-        self.status_of_rotate: Literal[0, 1, 2, 3] = 0
-        self.turning_side: Literal[0, 1, 2, 3, -1] = turning_side
+        self.animation = None
+
         self.is_hide = False
         self.is_hot = False
         self.locked_sides = []
-        self.animation = None
+
         if self.name != 'empty':
             self.animation = self.animation_init()
 
@@ -140,7 +144,7 @@ is_text:    {self.text}
         key = ''
         for index, array in enumerate(self.neighbours):
             for object in array:
-                if not object.text and object.name == self.name:
+                if not object.is_text and object.name == self.name:
                     key += char_dict[index]
         return key_dict[key]
 
@@ -149,7 +153,7 @@ is_text:    {self.text}
            "Текстовом состоянии", направлении, стадии движения и т.д.
         """
         animation = Animation([], 200, (self.xpx, self.ypx))
-        if (self.text or self.name in TEXT_ONLY) and self.name not in SPRITE_ONLY:
+        if (self.is_text or self.name in TEXT_ONLY) and self.name not in SPRITE_ONLY:
             path = os.path.join('./', 'sprites', 'text')
             animation.sprites = [pygame.transform.scale(sprite_manager.get(
                 os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}")),
@@ -229,7 +233,7 @@ is_text:    {self.text}
 
     def unparse(self) -> str:
         """Сериализовать объект в строку"""
-        return f'{self.x} {self.y} {self.direction} {self.name} {self.text}'
+        return f'{self.x} {self.y} {self.direction} {self.name} {self.is_text}'
 
     def move(self, matrix, level_rules):  # TODO: use Δt to calculate distance move
         """Метод движения персонажа"""
@@ -285,13 +289,13 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text,
+                        self.is_text,
                         self.movement_state + 1
                     ))
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.text:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.is_text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -305,12 +309,12 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text,
+                        self.is_text,
                         self.movement_state + 1
                     ))
                     return True
             if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
-                    self.name in NOUNS and self.text):
+                    self.name in NOUNS and self.is_text):
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
@@ -323,7 +327,7 @@ is_text:    {self.text}
                     self.y,
                     self.direction,
                     self.name,
-                    self.text,
+                    self.is_text,
                     self.movement_state + 1
                 ))
             return True
@@ -357,13 +361,13 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text,
+                        self.is_text,
                         self.movement_state + 1
                     ))
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.text:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.is_text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -377,12 +381,12 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text,
+                        self.is_text,
                         self.movement_state + 1
                     ))
                     return True
             if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
-                    self.name in NOUNS and self.text):
+                    self.name in NOUNS and self.is_text):
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
@@ -395,7 +399,7 @@ is_text:    {self.text}
                     self.y,
                     self.direction,
                     self.name,
-                    self.text,
+                    self.is_text,
                     self.movement_state + 1
                 ))
             return True
@@ -430,13 +434,13 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text,
+                        self.is_text,
                         self.movement_state + 1
                     ))
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.text:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.is_text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -450,12 +454,12 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text,
+                        self.is_text,
                         self.movement_state + 1
                     ))
                     return True
             if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
-                    self.name in NOUNS and self.text):
+                    self.name in NOUNS and self.is_text):
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
@@ -468,7 +472,7 @@ is_text:    {self.text}
                     self.y,
                     self.direction,
                     self.name,
-                    self.text,
+                    self.is_text,
                     self.movement_state + 1
                 ))
             return True
@@ -503,13 +507,13 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text,
+                        self.is_text,
                         self.movement_state + 1
                     ))
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.text:
+                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.is_text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -523,12 +527,12 @@ is_text:    {self.text}
                         self.y,
                         self.direction,
                         self.name,
-                        self.text,
+                        self.is_text,
                         self.movement_state + 1
                     ))
                     return True
             if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
-                    self.name in NOUNS and self.text):
+                    self.name in NOUNS and self.is_text):
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
@@ -541,7 +545,7 @@ is_text:    {self.text}
                     self.y,
                     self.direction,
                     self.name,
-                    self.text,
+                    self.is_text,
                     self.movement_state + 1
                 ))
             return True
@@ -558,3 +562,28 @@ is_text:    {self.text}
                     self.turning_side = 2
                 if event.key == pygame.K_s:
                     self.turning_side = 3
+
+    @property
+    def is_operator(self) -> bool:
+        return self.name in OPERATORS
+
+    @property
+    def is_property(self) -> bool:
+        return self.name in PROPERTIES
+
+    @property
+    def is_noun(self) -> bool:
+        return self.name in NOUNS and self.name not in OPERATORS and self.is_text
+
+    def __copy__(self):
+        copy = Object(
+            x=self.x,
+            y=self.y,
+            direction=self.direction,
+            name=self.name,
+            is_text=self.is_text,
+            movement_state=self.movement_state,
+            neighbours=None,
+            turning_side=self.turning_side
+        )
+        return copy

@@ -192,7 +192,7 @@ class Editor(GameStrategy):
             for line in self.current_state:
                 for cell in line:
                     for game_object in cell:
-                        if game_object.name in STICKY and not game_object.text:
+                        if game_object.name in STICKY and not game_object.is_text:
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
@@ -310,7 +310,7 @@ class Editor(GameStrategy):
             for line in self.current_state:
                 for cell in line:
                     for game_object in cell:
-                        if game_object.name in STICKY and not game_object.text:
+                        if game_object.name in STICKY and not game_object.is_text:
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours

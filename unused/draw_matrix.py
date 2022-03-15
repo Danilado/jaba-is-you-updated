@@ -7,7 +7,7 @@ import pygame
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
-from classes.rule import Rule
+from classes.TextRule import TextRule
 from classes.state import State
 from elements.global_classes import sound_manager
 from global_types import SURFACE
@@ -15,7 +15,7 @@ from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY
 from utils import my_deepcopy
 
 
-class Draw(GameStrategy):
+class PlayLevel(GameStrategy):
     """
     Стратегия отрисовки уровня.
 
@@ -61,7 +61,8 @@ class Draw(GameStrategy):
                 if len(parameters) > 1:
                     x, y, direction, name = parameters[:-1]
                     if name == "jaba":
-                        warnings.warn(f"Level {level_name} have old jaba/frog naming. Need to rename...")
+                        warnings.warn(
+                            f"Level {level_name} have old jaba/frog naming. Need to rename...")
                         name = "frog"
                     self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
                         int(x),
@@ -107,7 +108,7 @@ class Draw(GameStrategy):
 
     @staticmethod
     def obj_is_noun(obj: Object):
-        return obj.name not in OPERATORS and obj.name in NOUNS and obj.text
+        return obj.name not in OPERATORS and obj.name in NOUNS and obj.is_text
 
     @staticmethod
     def remove_copies_rules(arr):
@@ -127,14 +128,14 @@ class Draw(GameStrategy):
                         for second_object in self.matrix[i][j + 2]:
                             if self.obj_is_noun(second_object) or second_object.name in PROPERTIES:
                                 self.level_rules.append(
-                                    Rule(f'{first_object.name} {operator.name} {second_object.name}',
-                                         [first_object, operator, second_object]))
+                                    TextRule(f'{first_object.name} {operator.name} {second_object.name}',
+                                             [first_object, operator, second_object]))
                                 return len(self.level_rules)
                             elif second_object.name == 'not' and len(self.matrix[i]) - j > 3:
                                 for third_object in self.matrix[i][j + 3]:
                                     if self.obj_is_noun(third_object) or third_object.name in PROPERTIES:
                                         self.level_rules.append(
-                                            Rule(
+                                            TextRule(
                                                 f'{first_object.name} {operator.name} {second_object.name} '
                                                 f'{third_object.name}',
                                                 [first_object, operator, second_object, third_object]))
@@ -153,7 +154,7 @@ class Draw(GameStrategy):
                                 text_of_rule += f'{words} '
                             text_of_rule = text_of_rule[:-1]
                             self.level_rules.append(
-                                Rule(text_of_rule, objects))
+                                TextRule(text_of_rule, objects))
                             return len(self.level_rules)
 
         return 0
@@ -166,14 +167,14 @@ class Draw(GameStrategy):
                         for second_object in self.matrix[i + 2][j]:
                             if self.obj_is_noun(second_object):
                                 self.level_rules.append(
-                                    Rule(f'{first_object.name} {operator.name} {second_object.name}',
-                                         [first_object, operator, second_object]))
+                                    TextRule(f'{first_object.name} {operator.name} {second_object.name}',
+                                             [first_object, operator, second_object]))
                                 return len(self.level_rules)
                             elif second_object.name == 'not' and len(self.matrix) - i > 3:
                                 for third_object in self.matrix[i + 3][j]:
                                     if self.obj_is_noun(third_object) or third_object.name in PROPERTIES:
                                         self.level_rules.append(
-                                            Rule(
+                                            TextRule(
                                                 f'{first_object.name} {operator.name} {second_object.name} '
                                                 f'{third_object.name}',
                                                 [first_object, operator, second_object, third_object]))
@@ -191,7 +192,7 @@ class Draw(GameStrategy):
                                 text_of_rule += f'{words} '
                             text_of_rule = text_of_rule[:-1]
                             self.level_rules.append(
-                                Rule(text_of_rule, objects))
+                                TextRule(text_of_rule, objects))
                             return len(self.level_rules)
         return 0
 
@@ -220,19 +221,32 @@ class Draw(GameStrategy):
 
     def animation_level(self):
         if self.circle_radius > 0:
-            pygame.draw.circle(self.screen, (0, 50, 30), (0, 0), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (600, 0), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1000, 0), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 0), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (0, 900), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (300, 900), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (800, 900), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1200, 900), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (0, 300), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (0, 600), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 100), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 500), self.circle_radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 900), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (0, 0), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (600, 0), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1000, 0), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1600, 0), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (0, 900), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (300, 900), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (800, 900), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1200, 900), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (0, 300), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (0, 600), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1600, 100), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1600, 500), self.circle_radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1600, 900), self.circle_radius)
             if pygame.time.get_ticks() - self.delay <= 3000:
                 for obj in self.anim_obj:
                     obj.draw(self.screen)
@@ -261,7 +275,7 @@ class Draw(GameStrategy):
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 for rule_object in self.matrix[i][j]:
-                    if not rule_object.text:
+                    if not rule_object.is_text:
                         is_hot = False
                         is_hide = False
                         locked_sides = []
@@ -367,14 +381,14 @@ class Draw(GameStrategy):
                                                     or f'{obj.name} is push' in dop_rule.text_rule\
                                                     or f'{obj.name} is pull' in dop_rule.text_rule\
                                                     or rule_object.name == obj.name\
-                                                    or obj.text:
+                                                    or obj.is_text:
                                                 status_clone = False
                                     if status_clone:
                                         copy_matrix[i+1][j].append(Object(j,
                                                                           i+1,
                                                                           rule_object.direction,
                                                                           rule_object.name,
-                                                                          rule_object.text)
+                                                                          rule_object.is_text)
                                                                    )
                                     status_clone = True
                                     if j < len(self.matrix[i]) - 1:
@@ -384,14 +398,14 @@ class Draw(GameStrategy):
                                                         or f'{obj.name} is push' in dop_rule.text_rule \
                                                         or f'{obj.name} is pull' in dop_rule.text_rule\
                                                         or rule_object.name == obj.name\
-                                                        or obj.text:
+                                                        or obj.is_text:
                                                     status_clone = False
                                         if status_clone:
                                             copy_matrix[i][j + 1].append(Object(j + 1,
                                                                                 i,
                                                                                 rule_object.direction,
                                                                                 rule_object.name,
-                                                                                rule_object.text)
+                                                                                rule_object.is_text)
                                                                          )
                                     status_clone = True
                                     if j > 0:
@@ -401,14 +415,14 @@ class Draw(GameStrategy):
                                                         or f'{obj.name} is push' in dop_rule.text_rule \
                                                         or f'{obj.name} is pull' in dop_rule.text_rule \
                                                         or rule_object.name == obj.name\
-                                                        or obj.text:
+                                                        or obj.is_text:
                                                     status_clone = False
                                         if status_clone:
                                             copy_matrix[i][j - 1].append(Object(j - 1,
                                                                                 i,
                                                                                 rule_object.direction,
                                                                                 rule_object.name,
-                                                                                rule_object.text)
+                                                                                rule_object.is_text)
                                                                          )
                                     status_clone = True
                                     if i > 0:
@@ -418,14 +432,14 @@ class Draw(GameStrategy):
                                                         or f'{obj.name} is push' in dop_rule.text_rule \
                                                         or f'{obj.name} is pull' in dop_rule.text_rule \
                                                         or rule_object.name == obj.name\
-                                                        or obj.text:
+                                                        or obj.is_text:
                                                     status_clone = False
                                         if status_clone:
                                             copy_matrix[i - 1][j].append(Object(j,
                                                                                 i - 1,
                                                                                 rule_object.direction,
                                                                                 rule_object.name,
-                                                                                rule_object.text)
+                                                                                rule_object.is_text)
                                                                          )
                             if f'{rule_object.name} is move' in rule.text_rule:
                                 if rule_object.direction == 0:
@@ -480,7 +494,7 @@ class Draw(GameStrategy):
             for cell in line:
                 for game_object in cell:
                     if self.first_iteration or self.moved:
-                        if game_object.name in STICKY and not game_object.text:
+                        if game_object.name in STICKY and not game_object.is_text:
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours

@@ -29,7 +29,7 @@ class MoveCursor:
             for j in range((len(matrix[i]))):
                 for k in range(len(matrix[i][j])):
                     if k < len(matrix[i][j]) and i > 0:
-                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].text:
+                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].is_text:
                             if len(matrix[i - 1][j]) != 0:
                                 if matrix[i - 1][j][0].name.split("_")[0] == 'line' \
                                         or matrix[i - 1][j][0].name.split("_")[0] in self.blocks:
@@ -47,7 +47,7 @@ class MoveCursor:
             for j in range((len(matrix[i]))):
                 for k in range(len(matrix[i][j])):
                     if k < len(matrix[i][j]) and i < 17:
-                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].text:
+                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].is_text:
                             if len(matrix[i + 1][j]) != 0:
                                 if matrix[i + 1][j][0].name.split("_")[0] == 'line' \
                                         or matrix[i + 1][j][0].name.split("_")[0] in self.blocks:
@@ -57,7 +57,8 @@ class MoveCursor:
         if num_el is not None and x is not None and y is not None:
             matrix[x + 1][y].append(matrix[x][y][num_el])
             matrix[x + 1][y][-1].y += 1
-            matrix[x + 1][y][-1].animation.position = (matrix[x + 1][y][-1].x * 50, matrix[x + 1][y][-1].y * 50)
+            matrix[x + 1][y][-1].animation.position = (
+                matrix[x + 1][y][-1].x * 50, matrix[x + 1][y][-1].y * 50)
             matrix[x][y].pop(num_el)
 
     def move_left(self, matrix):
@@ -65,7 +66,7 @@ class MoveCursor:
             for j in range((len(matrix[i]))):
                 for k in range(len(matrix[i][j])):
                     if k < len(matrix[i][j]) and j > 0:
-                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].text:
+                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].is_text:
                             if len(matrix[i][j - 1]) != 0:
                                 if matrix[i][j - 1][0].name.split("_")[0] == 'line' \
                                         or matrix[i][j - 1][0].name.split("_")[0] in self.blocks:
@@ -83,7 +84,7 @@ class MoveCursor:
             for j in range((len(matrix[i]))):
                 for k in range(len(matrix[i][j])):
                     if k < len(matrix[i][j]) and j < 31:
-                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].text:
+                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].is_text:
                             if len(matrix[i][j + 1]) != 0:
                                 if matrix[i][j + 1][0].name.split("_")[0] == 'line' \
                                         or matrix[i][j + 1][0].name.split("_")[0] in self.blocks:
@@ -93,7 +94,8 @@ class MoveCursor:
         if num_el is not None and x is not None and y is not None:
             matrix[x][y + 1].append(matrix[x][y][num_el])
             matrix[x][y + 1][-1].x += 1
-            matrix[x][y + 1][-1].animation.position = (matrix[x][y + 1][-1].x * 50, matrix[x][y + 1][-1].y * 50)
+            matrix[x][y + 1][-1].animation.position = (
+                matrix[x][y + 1][-1].x * 50, matrix[x][y + 1][-1].y * 50)
             matrix[x][y].pop(num_el)
 
     def check_events(self, events: List[pygame.event.Event]):

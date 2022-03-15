@@ -4,7 +4,7 @@ from functools import partial
 import pygame
 
 from elements.global_classes import sound_manager
-from elements.draw_matrix import Draw
+from elements.play_level import PlayLevel
 
 from settings import SHOW_GRID, RESOLUTION, STICKY
 from global_types import SURFACE
@@ -20,7 +20,8 @@ class MapMenu(GameStrategy):
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self.levels_passed = 0
-        self.matrix: List[List[List[Object]]] = [[[] for _ in range(32)] for _ in range(18)]
+        self.matrix: List[List[List[Object]]] = [[[]
+                                                  for _ in range(32)] for _ in range(18)]
         self.cursor = MoveCursor()
         self._state: Optional[State] = None
         self.first_iteration = True
@@ -35,17 +36,25 @@ class MapMenu(GameStrategy):
         if self.flag_anime:
             pygame.draw.circle(self.screen, (0, 50, 30), (0, 0), self.radius)
             pygame.draw.circle(self.screen, (0, 50, 30), (600, 0), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1000, 0), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 0), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1000, 0), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1600, 0), self.radius)
             pygame.draw.circle(self.screen, (0, 50, 30), (0, 900), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (300, 900), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (800, 900), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1200, 900), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (300, 900), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (800, 900), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1200, 900), self.radius)
             pygame.draw.circle(self.screen, (0, 50, 30), (0, 300), self.radius)
             pygame.draw.circle(self.screen, (0, 50, 30), (0, 600), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 100), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 500), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (1600, 900), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1600, 100), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1600, 500), self.radius)
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               (1600, 900), self.radius)
             self.radius += 8
 
     def parse_file(self, level_name: str):
@@ -108,9 +117,9 @@ class MapMenu(GameStrategy):
             for j in range(len(self.matrix[i])):
                 for k in range(len(self.matrix[i][j])):
                     if k < len(self.matrix[i][j]) and j < 31:
-                        if self.matrix[i][j][k].name == 'cursor' and not self.matrix[i][j][k].text:
+                        if self.matrix[i][j][k].name == 'cursor' and not self.matrix[i][j][k].is_text:
                             if self.matrix[i][j][0].name in self.cursor.levels:
-                                self._state = State(GameState.switch, partial(Draw,
+                                self._state = State(GameState.switch, partial(PlayLevel,
                                                                               self.matrix[i][j][0].name.split("/")[0]))
                             if self.matrix[i][j][0].name in self.cursor.reference_point:
                                 pass
@@ -161,8 +170,9 @@ class MapMenu(GameStrategy):
             for cell in line:
                 for game_object in cell:
                     if self.first_iteration or self.moved:
-                        if game_object.name in STICKY and not game_object.text:
-                            neighbours = self.get_neighbours(game_object.x, game_object.y)
+                        if game_object.name in STICKY and not game_object.is_text:
+                            neighbours = self.get_neighbours(
+                                game_object.x, game_object.y)
                             game_object.neighbours = neighbours
                             game_object.animation_init()
                     game_object.draw(self.screen)

@@ -9,7 +9,7 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
-from elements.draw_matrix import Draw
+from elements.play_level import PlayLevel
 from elements.global_classes import GuiSettings
 from global_types import SURFACE
 from settings import RESOLUTION
@@ -58,7 +58,7 @@ class Loader(GameStrategy):
         :type level_name: str
         """
         # Gospodin: Надеюсь, когда-нибудь это будет игрой.
-        self._state = State(GameState.switch, partial(Draw, level_name))
+        self._state = State(GameState.switch, partial(PlayLevel, level_name))
 
     def go_back(self):
         """Простая отмена (выход в предыдущее меню)"""
