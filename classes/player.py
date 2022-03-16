@@ -6,7 +6,6 @@ import settings
 from classes.animation import Animation
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
-from settings import DEBUG
 
 
 class Player:
@@ -39,8 +38,8 @@ class Player:
         self.turning_side: Literal[0, 1, 2, 3, -1] = -1
         self.status_cancel: bool = False
         self.animation = Animation(
-            [pygame.transform.scale(sprite_manager.get(f"sprites/jaba/r0{index}"), (50, 50))
-             for index in range(0, 3)],
+            [pygame.transform.scale(sprite_manager.get(f"sprites/frog/frog_0_{index}"), (50, 50))
+             for index in range(1, 4)],
             200, (self.x, self.y), animation_sync
         )
 
@@ -80,8 +79,6 @@ class Player:
             self.move_left()
         if self.turning_side == 3:
             self.move_down()
-        if DEBUG:
-            print(self.turning_side, self.status_of_rotate)
 
     def cancel_move(self):
         """Отмена последнего движения, если установлен status_cancel"""
@@ -129,29 +126,29 @@ class Player:
         for event in events:
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_d:
+                    self.turning_side = 0
                     self.animation.sprites = [
                         pygame.transform.scale(sprite_manager.get(
-                            f"sprites/jaba/r0{index}"), (50, 50))
-                        for index in range(0, 3)
+                            f"sprites/frog/frog_0_{index}"), (50, 50))
+                        for index in range(1, 4)
                     ]
-                    self.turning_side = 0
                 if event.key == pygame.K_w:
                     self.animation.sprites = [
                         pygame.transform.scale(sprite_manager.get(
-                            f"sprites/jaba/f1{index}"), (50, 50))
-                        for index in range(0, 3)]
+                            f"sprites/frog/frog_24_{index}"), (50, 50))
+                        for index in range(1, 4)]
                     self.turning_side = 1
                 if event.key == pygame.K_a:
                     self.animation.sprites = [
                         pygame.transform.scale(sprite_manager.get(
-                            f"sprites/jaba/l0{index}"), (50, 50))
-                        for index in range(0, 3)]
+                            f"sprites/frog/frog_18_{index}"), (50, 50))
+                        for index in range(1, 4)]
                     self.turning_side = 2
                 if event.key == pygame.K_s:
                     self.animation.sprites = [
                         pygame.transform.scale(sprite_manager.get(
-                            f"sprites/jaba/b0{index}"), (50, 50))
-                        for index in range(0, 3)]
+                            f"sprites/frog/frog_31_{index}"), (50, 50))
+                        for index in range(1, 4)]
                     self.turning_side = 3
                 if event.key == pygame.K_z:
                     self.status_cancel = True
