@@ -1,4 +1,4 @@
-0 0 1 jaba True
+0 0 1 frog True
 1 0 1 is False
 2 0 1 you False
 7 0 1 flag True
@@ -92,7 +92,7 @@
 26 7 1 rose False
 27 7 1 rose False
 6 8 1 rose False
-10 8 1 jaba False
+10 8 1 frog False
 15 8 1 rose False
 16 8 1 rose False
 17 8 1 rose False

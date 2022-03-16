@@ -8,9 +8,9 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.state import State
 from elements.editor import Editor
-from elements.game import Game
 from elements.level_loader import Loader
 from elements.global_classes import GuiSettings, sound_manager
+from elements.map_menu import MapMenu
 from global_types import SURFACE
 
 
@@ -24,7 +24,7 @@ class MainMenu(GameStrategy):
         sound_manager.load_music("sounds/Music/menu")
 
     def _start_the_game(self):
-        self._state = State(GameState.switch, Game)
+        self._state = State(GameState.switch, MapMenu)
 
     def _go_to_editor(self):
         self._state = State(GameState.switch, Editor)
