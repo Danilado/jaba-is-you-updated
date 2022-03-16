@@ -19,8 +19,8 @@ TEXT_ONLY = [
     'n', 'near', 'nextto', 'not', 'nudgedown', 'nudgeleft', 'nudgeright', 'nudgeup',
     'o', 'often', 'on', 'open', 'orange', 'p', 'p1', 'p2', 'party', 'pet', 'phantom', 'pink',
     'play', 'power', 'power2', 'power3', 'powered', 'powered2', 'powered3', 'pull',
-    'purple', 'push', 'q', 'r', 'red', 'reverse', 'revert', 'right', 'rosy', 's', 'sad', 'safe',
-    'scary', 'seeing', 'seldom', 'select', 'sharp', 'shift', 'shut', 'silver', 'sink',
+    'purple', 'push', 'q', 'r', 'red', 'reverse', 'right', 'rosy', 's', 'sad', 'safe',
+    'scary', 'seeing', 'seldom', 'sharp', 'shift', 'shut', 'silver', 'sink',
     'sleep', 'still', 'stop', 'swap', 't', 'tele', 'turn', 'u', 'up', 'v', 'w', 'weak',
     'white', 'win', 'without', 'wonder', 'word', 'write', 'x', 'y', 'yellow', 'you', 'you2', 'z'
 ]
@@ -60,7 +60,6 @@ NOUNS = [
     'error', 'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit',
     'fungi', 'fungus', 'gate', 'gem', 'ghost', 'grass', 'group', 'guitar', 'hand', 'hedge', 'hihat', 'house', 'husk',
     'husks', 'ice', 'image', 'it', 'jaba', 'jelly', 'jiji', 'keke', 'key', 'knight', 'ladder', 'lamp', 'lava', 'leaf',
-    'level', 'lever', 'lift', 'lily',
     'line', 'lizard', 'lock', 'love', 'letters', 'me', 'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb', 'pants',
     'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed',
     'ring', 'road', 'robot', 'rock', 'rocket', 'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel',
@@ -70,8 +69,7 @@ NOUNS = [
     'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom', 'boat', 'boba', 'bog', 'bolt', 'bomb', 'book',
     'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair',
     'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup', 'cursor', 'dog', 'donut', 'door',
-    'door2', 'dot', 'drink',
-    'drum', 'dust', 'ear', 'edge', 'egg', 'empty', 'error', 'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo',
+    'door2', 'dot', 'drink', 'drum', 'dust', 'ear', 'edge', 'egg', 'empty', 'error', 'eye', 'fence', 'fire', 'fish',
     'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi', 'fungus', 'gate', 'gem', 'ghost', 'grass', 'group', 'guitar',
     'hand', 'hedge', 'hihat', 'house', 'husk', 'husks', 'ice', 'image', 'it', 'jelly', 'jiji', 'keke', 'key', 'knight',
     'ladder', 'lamp', 'lava', 'leaf', 'level', 'lever', 'lift', 'lily', 'line', 'lizard', 'lock', 'love', 'letters',
@@ -79,8 +77,8 @@ NOUNS = [
     'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed', 'ring', 'road', 'robot', 'rock', 'rocket',
     'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel', 'sign', 'skull', 'spike', 'sprout',
     'square', 'star', 'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth', 'text', 'tile', 'tower', 'track',
-    'train', 'trash', 'tree',
-    'trees', 'triangle', 'trumpet', 'turnip', 'turtle', 'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm'
+    'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle', 'ufo', 'vase', 'vine', 'wall',
+    'water', 'what', 'wind', 'worm', 'flag', 'flower', 'fofo', 'level', 'lever', 'lift', 'lily',
 ]
 
 OPERATORS = [
@@ -89,13 +87,36 @@ OPERATORS = [
     'powered', 'seldom', 'sharp', 'without', 'write'
 ]
 
+'GOSPODIN:'
+"""
+    1 power, powered
+    2 reverse
+    3 safe
+    4 scary
+    5 sink
+    6 weak
+    7 word
+    8 sleep
+    9 still
+"""
+
+'VLASTELIN:'
+"""
+    1 shut, open
+    2 phantom
+    3 pull
+    4 turn
+    5 shift
+    6 swap
+    7 tele
+
+"""
 
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver', 'white',
     'defeat', 'return', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'hot',
-    'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt',
-    'more', 'move', 'nudge', 'open', 'party', 'pet', 'phantom', 'power', 'pull', 'push', 'reverse', 'revert', 'sad',
-    'safe', 'scary', 'select', 'shift', 'shut', 'sink', 'sleep', 'stick', 'still', 'stop', 'swap', 'tele', 'turn',
-    'weak', 'win', 'wonder', 'word', 'you', 'you2'
+    'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt', 'more', 'move', 'nudge', 'open', 'shut',
+    'phantom', 'party', 'pet', 'power', 'pull', 'push', 'reverse', 'sad', 'safe', 'scary', 'shift', 'sink',
+    'sleep', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win', 'wonder', 'word', 'you', 'you2'
 ]
