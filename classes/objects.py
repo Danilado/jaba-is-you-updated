@@ -55,7 +55,8 @@ is_text:    {self.is_text}
 
     def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
                  is_text: bool = True, movement_state: int = 0, neighbours=None,
-                 turning_side: Literal[0, 1, 2, 3, -1] = -1, animation=None):
+                 turning_side: Literal[0, 1, 2, 3, -1] = -1, animation=None,
+                 safe=False):
         """
         Инициализация объекта
 
@@ -111,6 +112,10 @@ is_text:    {self.is_text}
 
         self.is_hide = False
         self.is_hot = False
+        self.is_reverse = False
+        self.is_safe = safe
+        if self.name == 'frog':
+            print(self.is_safe, 'init')
         self.locked_sides = []
 
         if self.name != 'empty' and self.animation == None:
@@ -218,7 +223,7 @@ is_text:    {self.is_text}
                     print(f'{self.name} somehow fucked up while setting animation')
                 else:
                     self.movement_state = 0
-                    return self.animation_init()  # quswadress: Но зачем?
+                    return self.animation_init()
         return animation
 
     def draw(self, screen: SURFACE):
@@ -235,8 +240,9 @@ is_text:    {self.is_text}
         """Сериализовать объект в строку"""
         return f'{self.x} {self.y} {self.direction} {self.name} {self.is_text}'
 
-    def move(self, matrix, level_rules):  # TODO: use Δt to calculate distance move
+    def move(self, matrix, level_rules):
         """Метод движения персонажа"""
+        print(self.is_safe, 'in move')
         if self.turning_side == 0:
             self.move_right(matrix, level_rules)
             self.direction = 1
@@ -257,12 +263,12 @@ is_text:    {self.is_text}
                 return False
             for objects in matrix[self.y - 1][self.x]:
                 for rule in level_rules:
-                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
+                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule and not self.is_safe:
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
                                 matrix[self.y][self.x].pop(i)
                         return False
-                    if f'{objects.name} is defeat' in rule.text_rule:
+                    if f'{objects.name} is defeat' in rule.text_rule and not self.is_safe:
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
                                 matrix[self.y][self.x].pop(i)
@@ -281,7 +287,8 @@ is_text:    {self.is_text}
                         self.direction,
                         self.name,
                         self.is_text,
-                        self.movement_state + 1
+                        self.movement_state + 1,
+                        safe=self.is_safe
                     ))
                     return True
                 return False
@@ -301,7 +308,8 @@ is_text:    {self.is_text}
                         self.direction,
                         self.name,
                         self.is_text,
-                        self.movement_state + 1
+                        self.movement_state + 1,
+                        safe=self.is_safe
                     ))
                     return True
             if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
@@ -319,7 +327,8 @@ is_text:    {self.is_text}
                     self.direction,
                     self.name,
                     self.is_text,
-                    self.movement_state + 1
+                    self.movement_state + 1,
+                    safe=self.is_safe
                 ))
             return True
 
@@ -330,12 +339,12 @@ is_text:    {self.is_text}
                 return False
             for objects in matrix[self.y + 1][self.x]:
                 for rule in level_rules:
-                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
+                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule and not self.is_safe:
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
                                 matrix[self.y][self.x].pop(i)
                         return False
-                    if f'{objects.name} is defeat' in rule.text_rule:
+                    if f'{objects.name} is defeat' in rule.text_rule and not self.is_safe:
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
                                 matrix[self.y][self.x].pop(i)
@@ -354,7 +363,8 @@ is_text:    {self.is_text}
                         self.direction,
                         self.name,
                         self.is_text,
-                        self.movement_state + 1
+                        self.movement_state + 1,
+                        safe=self.is_safe
                     ))
                     return True
                 return False
@@ -375,7 +385,8 @@ is_text:    {self.is_text}
                         self.direction,
                         self.name,
                         self.is_text,
-                        self.movement_state + 1
+                        self.movement_state + 1,
+                        safe=self.is_safe
                     ))
                     return True
             if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
@@ -393,7 +404,8 @@ is_text:    {self.is_text}
                     self.direction,
                     self.name,
                     self.is_text,
-                    self.movement_state + 1
+                    self.movement_state + 1,
+                    safe=self.is_safe
                 ))
             return True
 
@@ -404,12 +416,12 @@ is_text:    {self.is_text}
                 return False
             for objects in matrix[self.y][self.x - 1]:
                 for rule in level_rules:
-                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
+                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule and not self.is_safe:
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
                                 matrix[self.y][self.x].pop(i)
                         return False
-                    if f'{objects.name} is defeat' in rule.text_rule:
+                    if f'{objects.name} is defeat' in rule.text_rule and not self.is_safe:
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
                                 matrix[self.y][self.x].pop(i)
@@ -428,7 +440,8 @@ is_text:    {self.is_text}
                         self.direction,
                         self.name,
                         self.is_text,
-                        self.movement_state + 1
+                        self.movement_state + 1,
+                        safe=self.is_safe
                     ))
                     return True
                 return False
@@ -448,7 +461,8 @@ is_text:    {self.is_text}
                         self.direction,
                         self.name,
                         self.is_text,
-                        self.movement_state + 1
+                        self.movement_state + 1,
+                        safe=self.is_safe
                     ))
                     return True
             if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
@@ -466,7 +480,8 @@ is_text:    {self.is_text}
                     self.direction,
                     self.name,
                     self.is_text,
-                    self.movement_state + 1
+                    self.movement_state + 1,
+                    safe=self.is_safe
                 ))
             return True
 
@@ -477,14 +492,15 @@ is_text:    {self.is_text}
                 return False
             for objects in matrix[self.y][self.x + 1]:
                 for rule in level_rules:
-                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
+                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule and not self.is_safe:
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
                                 matrix[self.y][self.x].pop(i)
                         return False
-                    if f'{objects.name} is defeat' in rule.text_rule:
+                    if f'{objects.name} is defeat' in rule.text_rule and not self.is_safe:
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
+                                print('PIZDA ZHABE')
                                 matrix[self.y][self.x].pop(i)
                         return False
                 if objects.move_right(matrix, level_rules, 'push'):
@@ -501,7 +517,8 @@ is_text:    {self.is_text}
                         self.direction,
                         self.name,
                         self.is_text,
-                        self.movement_state + 1
+                        self.movement_state + 1,
+                        safe=self.is_safe
                     ))
                     return True
                 return False
@@ -521,7 +538,8 @@ is_text:    {self.is_text}
                         self.direction,
                         self.name,
                         self.is_text,
-                        self.movement_state + 1
+                        self.movement_state + 1,
+                        safe=self.is_safe
                     ))
                     return True
             if status_push is None or self.name in OPERATORS or self.name in PROPERTIES or (
@@ -539,7 +557,8 @@ is_text:    {self.is_text}
                     self.direction,
                     self.name,
                     self.is_text,
-                    self.movement_state + 1
+                    self.movement_state + 1,
+                    safe=self.is_safe
                 ))
             return True
 
@@ -568,6 +587,10 @@ is_text:    {self.is_text}
     def is_noun(self) -> bool:
         return self.name in NOUNS and self.name not in OPERATORS and self.is_text
 
+    @property
+    def special_text(self) -> bool:
+        return self.is_text or self.name in TEXT_ONLY
+
     def __copy__(self):
         copy = Object(
             x=self.x,
@@ -578,6 +601,7 @@ is_text:    {self.is_text}
             movement_state=self.movement_state,
             neighbours=None,
             turning_side=self.turning_side,
-            animation=self.animation
+            animation=self.animation,
+            safe=self.is_safe
         )
         return copy

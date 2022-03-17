@@ -149,27 +149,38 @@ class PlayLevel(GameStrategy):
     def check_vertically(self, i, j):
         for first_object in self.matrix[i][j]:
             if first_object.is_noun and len(self.matrix) - i > 2:
-
                 for operator in self.matrix[i + 1][j]:
-                    if operator.is_operator and operator.name != 'and':
-
+                    if operator.name in OPERATORS and operator.name != 'and':
                         for second_object in self.matrix[i + 2][j]:
-                            if second_object.is_noun:
-                                return self.form_rule(first_object.name, operator.name, second_object.name)
-
+                            if second_object.is_noun or second_object.name in PROPERTIES:
+                                self.level_rules.append(
+                                    TextRule(f'{first_object.name} {operator.name} {second_object.name}',
+                                             [first_object, operator, second_object]))
+                                return len(self.level_rules)
                             elif second_object.name == 'not' and len(self.matrix) - i > 3:
                                 for third_object in self.matrix[i + 3][j]:
-                                    if third_object.is_noun or third_object.is_property:
-                                        return self.form_rule(first_object.name, operator.name, second_object.name)
-
+                                    if third_object.is_noun or third_object.name in PROPERTIES:
+                                        self.level_rules.append(
+                                            TextRule(
+                                                f'{first_object.name} {operator.name} {second_object.name} '
+                                                f'{third_object.name}',
+                                                [first_object, operator, second_object, third_object]))
+                                        return len(self.level_rules)
                     elif operator.name == 'and':
-                        further_rule_number = self.check_vertically(i + 2, j)
-                        if further_rule_number != 0:
-                            rule = self.level_rules[further_rule_number - 1]
+                        a = self.check_horizontally(i + 2, j)
+                        if a != 0:
+                            rule = self.level_rules[a - 1]
                             text = rule.text_rule.split()
+                            objects = rule.objects_in_rule
+                            objects[0] = first_object
                             text[0] = first_object.name
-                            return self.form_rule(*text)
-
+                            text_of_rule = ''
+                            for words in text:
+                                text_of_rule += f'{words} '
+                            text_of_rule = text_of_rule[:-1]
+                            self.level_rules.append(
+                                TextRule(text_of_rule, objects))
+                            return len(self.level_rules)
         return 0
 
     @staticmethod
@@ -195,7 +206,7 @@ class PlayLevel(GameStrategy):
         text_in_objects = []
 
         for letter in level_text:
-            if not letter == ' ':
+            if letter not in [' ', '_']:
                 a = Object(x_offset, 6, 1, letter, True)
                 text_in_objects.append(a)
             x_offset += 1
@@ -236,117 +247,72 @@ class PlayLevel(GameStrategy):
                     self.moved = True
 
     def apply_rules(self, events: List[pygame.event.Event], matrix):
+        Rules.processor.update_lists(matrix=matrix,
+                                     events=events,
+                                     level_rules=self.level_rules)
+
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 for rule_object in self.matrix[i][j]:
-                    if not rule_object.is_text:
-                        is_hot = False
-                        is_hide = False
-                        locked_sides = []
+                    is_hot = False
+                    is_hide = False
+                    is_reverse = False
+                    is_safe = False
+                    locked_sides = []
+
+                    if not rule_object.special_text:
+                        for rule in self.level_rules:
+                            if f'{rule_object.name} is hide' in rule.text_rule:
+                                is_hide = True
+
+                            elif f'{rule_object.name} is hot' in rule.text_rule:
+                                is_hot = True
+
+                            elif f'{rule_object.name} is locked' in rule.text_rule:
+                                if f'{rule_object.name} is lockeddown' in rule.text_rule:
+                                    locked_sides.append('down')
+                                elif f'{rule_object.name} is lockedup' in rule.text_rule:
+                                    locked_sides.append('up')
+                                elif f'{rule_object.name} is lockedleft' in rule.text_rule:
+                                    locked_sides.append('left')
+                                elif f'{rule_object.name} is lockedright' in rule.text_rule:
+                                    locked_sides.append('right')
+
+                            elif f'{rule_object.name} is melt' in rule.text_rule:
+                                if rule_object.is_hot:
+                                    matrix[i][j].remove(rule_object)
+                                else:
+                                    for object in matrix[i][j]:
+                                        if object.is_hot:
+                                            matrix[i][j].remove(
+                                                rule_object)
+
+                            elif f'{rule_object.name} is more' in rule.text_rule:
+                                Rules.more.apply(
+                                    matrix=matrix,
+                                    rule_object=rule_object,
+                                    level_rules=self.level_rules)
+
+                            elif f'{rule_object.name} is reverse' in rule.text_rule:
+                                is_reverse = not is_reverse
+
+                            elif f'{rule_object.name} is safe' in rule.text_rule:
+                                rule_object.is_safe = True
+                                is_safe = True
+
+                        rule_object.is_hot = is_hot
+                        rule_object.is_hide = is_hide
+                        rule_object.is_reverse = is_reverse
+                        rule_object.is_safe = is_safe
+                        rule_object.locked_sides = my_deepcopy(
+                            locked_sides)
+
                         for rule in self.level_rules:
 
                             if rule_object.name in rule.text_rule:
 
-                                if f'{rule_object.name} is broken' in rule.text_rule:
-                                    Rules.broken.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object,
-                                        rules=self.level_rules)
-
-                                elif f'{rule_object.name} is return' in rule.text_rule:
-                                    Rules.return_rule.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object)
-
-                                elif f'{rule_object.name} is you' in rule.text_rule:
-                                    Rules.you.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object,
-                                        events=events,
-                                        level_rules=self.level_rules
-                                    )
-
-                                elif f'{rule_object.name} is chill' in rule.text_rule:
-                                    Rules.chill.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object)
-
-                                elif f'{rule_object.name} is boom' in rule.text_rule:
-                                    Rules.boom.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object)
-
-                                elif f'{rule_object.name} is auto' in rule.text_rule:
-                                    Rules.auto.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object,
-                                        level_rules=self.level_rules)
-
-                                elif f'{rule_object.name} is up' in rule.text_rule:
-                                    Rules.direction.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object,
-                                        direction='up')
-
-                                elif f'{rule_object.name} is right' in rule.text_rule:
-                                    Rules.direction.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object,
-                                        direction='right')
-
-                                elif f'{rule_object.name} is down' in rule.text_rule:
-                                    Rules.direction.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object,
-                                        direction='down')
-
-                                elif f'{rule_object.name} is left' in rule.text_rule:
-                                    Rules.direction.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object,
-                                        direction='left')
-
-                                elif f'{rule_object.name} is fall' in rule.text_rule:
-                                    Rules.fall.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object,
-                                        level_rules=self.level_rules)
-
-                                elif f'{rule_object.name} is hide' in rule.text_rule:
-                                    is_hide = True
-
-                                elif f'{rule_object.name} is hot' in rule.text_rule:
-                                    is_hot = True
-
-                                elif f'{rule_object.name} is locked' in rule.text_rule:
-                                    if f'{rule_object.name} is lockeddown' in rule.text_rule:
-                                        locked_sides.append('down')
-                                    elif f'{rule_object.name} is lockedup' in rule.text_rule:
-                                        locked_sides.append('up')
-                                    elif f'{rule_object.name} is lockedleft' in rule.text_rule:
-                                        locked_sides.append('left')
-                                    elif f'{rule_object.name} is lockedright' in rule.text_rule:
-                                        locked_sides.append('right')
-
-                                elif f'{rule_object.name} is melt' in rule.text_rule:
-                                    if rule_object.is_hot:
-                                        matrix[i][j].remove(rule_object)
-                                    else:
-                                        for object in matrix[i][j]:
-                                            if object.is_hot:
-                                                matrix[i][j].remove(
-                                                    rule_object)
-
-                                elif f'{rule_object.name} is more' in rule.text_rule:
-                                    Rules.more.apply(
-                                        matrix=matrix,
-                                        rule_object=rule_object,
-                                        level_rules=self.level_rules)
-
-                                rule_object.is_hot = is_hot
-                                rule_object.is_hide = is_hide
-                                rule_object.locked_sides = my_deepcopy(
-                                    locked_sides)
+                                Rules.processor.update_object(rule_object)
+                                Rules.processor.process(rule.text_rule)
 
     def find_rules(self):
         self.level_rules = []
@@ -397,7 +363,6 @@ class PlayLevel(GameStrategy):
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
                             game_object.animation_init()
-
                     game_object.draw(self.screen)
 
         if self.first_iteration:
