@@ -50,8 +50,6 @@ OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed
            'trumpet', 'turnip', 'turtle', 'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm'
            ]
 
-# Povelitel's tools
-
 NOUNS = [
     'algaе', 'all', 'anni', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom',
     'boat', 'boba', 'bog', 'bolt', 'bomb', 'book', 'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake',
@@ -89,8 +87,6 @@ OPERATORS = [
 
 'GOSPODIN:'
 """
-    1 power, powered
-    2 reverse
     3 safe
     4 scary
     5 sink

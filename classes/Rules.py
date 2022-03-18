@@ -1,7 +1,9 @@
 import abc
+from asyncio import events
 import random
 
 from copy import copy
+from typing import List
 
 class Rule(abc.ABC):
     def __init__(self):
@@ -12,10 +14,7 @@ class Rule(abc.ABC):
 
 
 class Broken(Rule):
-    def __init__(self):
-        ...
-
-    def apply(self, matrix, rule_object, rules):
+    def apply(self, matrix, rule_object, rules, *_, **__):
         self.matrix = matrix
         self.rule_object = rule_object
         self.rules = rules
@@ -27,10 +26,14 @@ class Broken(Rule):
 
 
 class Deturn(Rule):
+<<<<<<< HEAD
     def __init__(self):
         ...
 
     def apply(self, matrix, rule_object, screen):
+=======
+    def apply(self, matrix, rule_object, *_, **__):
+>>>>>>> dbb46488cda16320e178b8cb541f78ad81878d5c
         self.matrix = matrix
         self.rule_object = rule_object
         self.screen = screen
@@ -61,23 +64,26 @@ class Turn(Rule):
 
 
 class You(Rule):
-    def __init__(self):
-        ...
-
-    def apply(self, matrix, rule_object, events, level_rules):
+    def apply(self, matrix, rule_object, events, level_rules, *_, **__):
         self.events = events
         self.level_rules = level_rules
         self.matrix = matrix
         self.rule_object = rule_object
+        print(rule_object.is_safe)
         self.rule_object.check_events(self.events)
         self.rule_object.move(self.matrix, self.level_rules)
+        print(rule_object.is_safe)
 
 
 class Chill(Rule):
+<<<<<<< HEAD
     def __init__(self):
         ...
 
     def apply(self, matrix, rule_object, level_rules):
+=======
+    def apply(self, matrix, rule_object, *_, **__):
+>>>>>>> dbb46488cda16320e178b8cb541f78ad81878d5c
         self.matrix = matrix
         self.rule_object = rule_object
         self.level_rules = level_rules
@@ -97,20 +103,14 @@ class Chill(Rule):
 
 
 class Boom(Rule):
-    def __init__(self):
-        ...
-
-    def apply(self, matrix, rule_object):
+    def apply(self, matrix, rule_object, *_, **__):
         self.matrix = matrix
         self.rule_object = rule_object
         self.matrix[self.rule_object.y][self.rule_object.x].clear()
 
 
 class Auto(Rule):
-    def __init__(self):
-        ...
-
-    def apply(self, matrix, rule_object, level_rules):
+    def apply(self, matrix, rule_object, level_rules, *_, **__):
         self.level_rules = level_rules
         self.matrix = matrix
         self.rule_object = rule_object
@@ -129,10 +129,7 @@ class Auto(Rule):
 
 
 class Direction(Rule):
-    def __init__(self):
-        ...
-
-    def apply(self, matrix, rule_object, direction):
+    def apply(self, matrix, rule_object, direction, *_, **__):
         self.direction = direction
         self.matrix = matrix
         self.rule_object = rule_object
@@ -155,10 +152,7 @@ class Direction(Rule):
 
 
 class Fall(Rule):
-    def __init__(self):
-        ...
-
-    def apply(self, matrix, rule_object, level_rules):
+    def apply(self, matrix, rule_object, level_rules, *_, **__):
         self.level_rules = level_rules
         self.matrix = matrix
         self.rule_object = rule_object
@@ -167,10 +161,7 @@ class Fall(Rule):
 
 
 class More(Rule):
-    def __init__(self):
-        ...
-
-    def apply(self, matrix, rule_object, level_rules):
+    def apply(self, matrix, rule_object, level_rules, *_, **__):
         self.matrix = matrix
         self.rule_object = rule_object
         self.level_rules = level_rules
@@ -200,6 +191,7 @@ class More(Rule):
                     self.rule_object.x].append(copy(self.rule_object))
 
 
+<<<<<<< HEAD
 class Shift(Rule):
     def __init__(self):
         ...
@@ -287,3 +279,43 @@ more = More()
 shift = Shift()
 tele = Tele()
 
+=======
+class RuleProcessor:
+    def __init__(self):
+        self.matrix = None
+        self.object = None
+        self.events = None
+        self.rules = None
+
+        self.dictionary = {
+            'broken': Broken(),
+            'deturn': Deturn(),
+            'you': You(),
+            'chill': Chill(),
+            'boom': Boom(),
+            'auto': Auto(),
+            'direction': Direction(),
+            'fall': Fall(),
+            'more': More(),
+        }
+
+    def update_lists(self, matrix, events, level_rules):
+        self.matrix = matrix
+        self.events = events
+        self.rules = level_rules
+
+    def update_object(self, object):
+        self.object = object
+
+    def process(self, rule) -> bool:
+        if rule.split()[-1] not in self.dictionary:
+            return False
+
+        self.dictionary[rule.split()[-1]].apply(matrix=self.matrix,
+                                                rule_object=self.object, events=self.events, level_rules=self.rules)
+        return True
+
+
+# exports
+processor = RuleProcessor()
+>>>>>>> dbb46488cda16320e178b8cb541f78ad81878d5c
