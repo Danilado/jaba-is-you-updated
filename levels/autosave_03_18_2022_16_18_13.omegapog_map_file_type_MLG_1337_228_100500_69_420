@@ -1,0 +1,17 @@
+29 6 1 wall True
+30 6 1 is True
+31 6 1 stop True
+12 7 1 wall False
+13 7 1 wall False
+14 7 1 wall False
+15 7 1 wall False
+16 7 1 wall False
+17 7 1 wall False
+18 7 1 wall False
+19 7 1 wall False
+29 8 1 bug True
+30 8 1 is True
+31 8 1 phantom True
+29 9 1 is True
+17 10 1 bug False
+29 10 1 you True

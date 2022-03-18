@@ -37,10 +37,13 @@ class PlayLevel(GameStrategy):
 
         self.status_cancel = False
         self.first_iteration = True
+        self.objects_for_tp = []
 
         self.level_name_object_text = self.text_to_png(level_name)
         self.circle_radius = 650
+
         self.delay = pygame.time.get_ticks()
+        self.small_matrix_change = False
 
     def parse_file(self, level_name: str):
         """
@@ -146,6 +149,10 @@ class PlayLevel(GameStrategy):
 
         return 0
 
+    @staticmethod
+    def obj_is_noun(obj: Object):
+        return obj.name not in OPERATORS and obj.name in NOUNS and obj.is_text
+
     def check_vertically(self, i, j):
         for first_object in self.matrix[i][j]:
             if first_object.is_noun and len(self.matrix) - i > 2:
@@ -249,18 +256,21 @@ class PlayLevel(GameStrategy):
     def apply_rules(self, events: List[pygame.event.Event], matrix):
         Rules.processor.update_lists(matrix=matrix,
                                      events=events,
-                                     level_rules=self.level_rules)
+                                     level_rules=self.level_rules,
+                                     objects_for_tp=self.objects_for_tp)
 
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 for rule_object in self.matrix[i][j]:
-                    is_hot = False
-                    is_hide = False
-                    is_reverse = False
-                    is_safe = False
-                    locked_sides = []
-
                     if not rule_object.special_text:
+                        is_hot = False
+                        is_hide = False
+                        is_safe = False
+                        locked_sides = []
+                        is_open = False
+                        is_shut = False
+                        is_phantom = False
+
                         for rule in self.level_rules:
                             if f'{rule_object.name} is hide' in rule.text_rule:
                                 is_hide = True
@@ -287,24 +297,34 @@ class PlayLevel(GameStrategy):
                                             matrix[i][j].remove(
                                                 rule_object)
 
-                            elif f'{rule_object.name} is reverse' in rule.text_rule:
-                                is_reverse = not is_reverse
-
                             elif f'{rule_object.name} is safe' in rule.text_rule:
                                 rule_object.is_safe = True
                                 is_safe = True
 
+                            elif f'{rule_object.name} is open' in rule.text_rule:
+                                rule_object.is_open = is_open
+                                is_open = True
+
+                            elif f'{rule_object.name} is phantom' in rule.text_rule:
+                                rule_object.is_phantom = is_phantom
+                                is_phantom = True
+
+                            elif f'{rule_object.name} is shut' in rule.text_rule:
+                                rule_object.is_shut = is_shut
+                                is_shut = True
+
                         rule_object.is_hot = is_hot
                         rule_object.is_hide = is_hide
-                        rule_object.is_reverse = is_reverse
                         rule_object.is_safe = is_safe
                         rule_object.locked_sides = my_deepcopy(
                             locked_sides)
+                        rule_object.is_open = is_open
+                        rule_object.is_shut = is_shut
+                        rule_object.is_phantom = is_phantom
 
                         for rule in self.level_rules:
 
                             if rule_object.name in rule.text_rule:
-
                                 Rules.processor.update_object(rule_object)
                                 Rules.processor.process(rule.text_rule)
 
@@ -338,10 +358,9 @@ class PlayLevel(GameStrategy):
 
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
-
             self.apply_rules(events, copy_matrix)
 
-            if self.matrix != copy_matrix:
+            if self.matrix != copy_matrix or self.small_matrix_change:
                 self.history_of_matrix.append(self.copy_matrix(self.matrix))
                 self.matrix = copy_matrix
 
@@ -366,9 +385,11 @@ class PlayLevel(GameStrategy):
         if self.moved:
             self.moved = False
 
+        if self.small_matrix_change:
+            self.small_matrix_change = False
+
         self.level_start_animation() if self.circle_radius > 0 else ...
 
         if self.state is None:
             self.state = State(GameState.flip, None)
-
         return self.state
