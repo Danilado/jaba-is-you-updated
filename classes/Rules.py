@@ -58,10 +58,8 @@ class You(Rule):
         self.level_rules = level_rules
         self.matrix = matrix
         self.rule_object = rule_object
-        print(rule_object.is_safe)
         self.rule_object.check_events(self.events)
         self.rule_object.move(self.matrix, self.level_rules)
-        print(rule_object.is_safe)
 
 
 class Chill(Rule):

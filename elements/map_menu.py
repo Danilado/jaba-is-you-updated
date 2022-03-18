@@ -174,7 +174,7 @@ class MapMenu(GameStrategy):
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
                     game_object.draw(self.screen)
 
         if self.first_iteration:

@@ -204,7 +204,7 @@ class PlayLevel(GameStrategy):
             for j in range(len(matrix[i])):
                 for obj in matrix[i][j]:
                     copy_matrix[i][j].append(
-                        Object(obj.x, obj.y, obj.direction, obj.name, obj.text))
+                        Object(obj.x, obj.y, obj.direction, obj.name, obj.is_text))
                     # TODO: Add __copy__ to Object, and use it here
         return copy_matrix
 
@@ -498,7 +498,7 @@ class PlayLevel(GameStrategy):
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
                     game_object.draw(self.screen)
 
         if self.first_iteration:

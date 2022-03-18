@@ -1,5 +1,6 @@
 import os
 import os.path
+import re
 from typing import List, Literal
 
 import pygame
@@ -769,39 +770,44 @@ is_text:    {self.is_text}
                         ))
                         matrix[self.y][self.x].pop(objects.get_index(matrix))
                         return False
-                for rule in level_rules:
-                    if self.is_hot and f'{objects.name} is melt' in rule.text_rule:
-                        matrix[self.y][self.x -
-                                       1].pop(objects.get_index(matrix))
-                for rule in level_rules:
-                    if f'{self.name} is melt' in rule.text_rule:
-                        for sec_rule in level_rules:
-                            if f'{objects.name} is hot' in sec_rule.text_rule:
-                                matrix[self.y][self.x].pop(
-                                    self.get_index(matrix))
-                                return False
+                if not self.is_safe:
+                    for rule in level_rules:
+                        if (self.is_hot and f'{objects.name} is melt' in rule.text_rule):
+                            matrix[self.y][self.x -
+                                           1].pop(objects.get_index(matrix))
+                            return False
+
+                        if f'{self.name} is melt' in rule.text_rule:
+                            for sec_rule in level_rules:
+                                if f'{objects.name} is hot' in sec_rule.text_rule:
+                                    matrix[self.y][self.x].pop(
+                                        self.get_index(matrix))
+                                    return False
+
+                        if f'{objects.name} is defeat' in rule.text_rule:
+                            for sec_rule in level_rules:
+                                if f'{self.name} is you' in sec_rule.text_rule:
+                                    for i in range(len(matrix[self.y][self.x])):
+                                        if matrix[self.y][self.x][i].name == self.name:
+                                            matrix[self.y][self.x].pop(i)
+                                    return False
+
+                        if f'{self.name} is defeat' in rule.text_rule:
+                            for sec_rule in level_rules:
+                                if f'{objects.name} is you' in sec_rule.text_rule:
+                                    matrix[self.y][self.x -
+                                                   2].pop(objects.get_index(matrix))
+                                    return False
                 for rule in level_rules:
                     if self.is_open and f'{objects.name} is shut' in rule.text_rule \
                             or self.is_shut and f'{objects.name} is open' in rule.text_rule:
-                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        matrix[self.y][self.x].pop(self.get_index(
+                            matrix)) if not self.is_safe else ...
                         matrix[self.y][self.x -
                                        1].pop(objects.get_index(matrix))
-                        return False
-                for rule in level_rules:
-                    if f'{objects.name} is defeat' in rule.text_rule:
-                        for sec_rule in level_rules:
-                            if f'{self.name} is you' in sec_rule.text_rule:
-                                for i in range(len(matrix[self.y][self.x])):
-                                    if matrix[self.y][self.x][i].name == self.name:
-                                        matrix[self.y][self.x].pop(i)
-                                return False
-                for rule in level_rules:
-                    if f'{self.name} is defeat' in rule.text_rule:
-                        for sec_rule in level_rules:
-                            if f'{objects.name} is you' in sec_rule.text_rule:
-                                matrix[self.y][self.x -
-                                               2].pop(objects.get_index(matrix))
-                                return False
+                        if not self.is_safe:
+                            return False
+
                 if objects.move_right(matrix, level_rules, 'push') or self.is_phantom:
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:

@@ -196,7 +196,7 @@ class Editor(GameStrategy):
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
 
     def get_neighbours(self, y, x) -> List[Object]:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -260,7 +260,7 @@ class Editor(GameStrategy):
                             if neighbour.name in STICKY and not neighbour.is_text:
                                 neighbour.neighbours = self.get_neighbours(
                                     neighbour.x, neighbour.y)
-                                neighbour.animation_init()
+                                neighbour.animation = neighbour.animation_init()
 
     def delete(self):
         """Если в клетке есть объекты, удаляет последний созданный из них"""
@@ -272,10 +272,10 @@ class Editor(GameStrategy):
                 self.focus[0], self.focus[1])
             for array in neighbours:
                 for neighbour in array:
-                    if neighbour.name in STICKY and not neighbour.text:
+                    if neighbour.name in STICKY and not neighbour.is_text:
                         neighbour.neighbours = self.get_neighbours(
                             neighbour.x, neighbour.y)
-                        neighbour.animation_init()
+                        neighbour.animation = neighbour.animation_init()
 
     def overlay(self):
         """Вызывает меню управления редактора"""
@@ -314,7 +314,7 @@ class Editor(GameStrategy):
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
 
         self.screen.fill("black")
         for event in events:

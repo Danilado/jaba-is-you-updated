@@ -97,9 +97,8 @@ class PlayLevel(GameStrategy):
             neighbours[3] = [self.empty_object]
         elif y == RESOLUTION[0]//50-1:
             neighbours[1] = [self.empty_object]
-
         for index, offset in enumerate(offsets):
-            if neighbours[index] is None:
+            if neighbours[index] == []:
                 neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
         return neighbours
 
@@ -370,12 +369,10 @@ class PlayLevel(GameStrategy):
             for cell in line:
                 for game_object in cell:
                     if self.first_iteration or self.moved:
-
                         if game_object.name in STICKY and not game_object.is_text:
-                            neighbours = self.get_neighbours(
+                            game_object.neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
-                            game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
                     game_object.draw(self.screen)
 
         if self.first_iteration:
