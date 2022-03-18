@@ -96,17 +96,6 @@ OPERATORS = [
     9 still
 """
 
-'VLASTELIN:'
-"""
-    1 shut, open
-    2 phantom
-    3 pull
-    5 shift
-    6 swap
-    7 tele
-
-"""
-
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver', 'white',
