@@ -135,27 +135,39 @@ class More(Rule):
 
         if self.rule_object.y < len(self.matrix) - 1:
             if not self.matrix[self.rule_object.y + 1][self.rule_object.x]:
+                new_object = copy(self.rule_object)
+                new_object.y += 1
+                new_object.animation = new_object.animation_init()
                 self.matrix[
                     self.rule_object.y + 1][
-                    self.rule_object.x].append(copy(self.rule_object))
+                    self.rule_object.x].append(new_object)
 
         if self.rule_object.x < len(self.matrix[self.rule_object.y]) - 1:
             if not self.matrix[self.rule_object.y][self.rule_object.x + 1]:
+                new_object = copy(self.rule_object)
+                new_object.x += 1
+                new_object.animation = new_object.animation_init()
                 self.matrix[
                     self.rule_object.y][
-                    self.rule_object.x + 1].append(copy(self.rule_object))
+                    self.rule_object.x + 1].append(new_object)
 
         if self.rule_object.x > 0:
             if not self.matrix[self.rule_object.y][self.rule_object.x - 1]:
+                new_object = copy(self.rule_object)
+                new_object.x -= 1
+                new_object.animation = new_object.animation_init()
                 self.matrix[
                     self.rule_object.y][
-                    self.rule_object.x - 1].append(copy(self.rule_object))
+                    self.rule_object.x - 1].append(new_object)
 
         if self.rule_object.y > 0:
             if not self.matrix[self.rule_object.y - 1][self.rule_object.x]:
+                new_object = copy(self.rule_object)
+                new_object.y -= 1
+                new_object.animation = new_object.animation_init()
                 self.matrix[
                     self.rule_object.y - 1][
-                    self.rule_object.x].append(copy(self.rule_object))
+                    self.rule_object.x].append(new_object)
 
 
 class RuleProcessor:
@@ -190,7 +202,9 @@ class RuleProcessor:
             return False
 
         self.dictionary[rule.split()[-1]].apply(matrix=self.matrix,
-                                                rule_object=self.object, events=self.events, level_rules=self.rules)
+                                                rule_object=self.object,
+                                                events=self.events,
+                                                level_rules=self.rules)
         return True
 
 

@@ -206,7 +206,7 @@ class PlayLevel(GameStrategy):
         text_in_objects = []
 
         for letter in level_text:
-            if letter not in [' ', '_']:
+            if letter not in [' ', '_', '-']:
                 a = Object(x_offset, 6, 1, letter, True)
                 text_in_objects.append(a)
             x_offset += 1
@@ -286,12 +286,6 @@ class PlayLevel(GameStrategy):
                                         if object.is_hot:
                                             matrix[i][j].remove(
                                                 rule_object)
-
-                            elif f'{rule_object.name} is more' in rule.text_rule:
-                                Rules.more.apply(
-                                    matrix=matrix,
-                                    rule_object=rule_object,
-                                    level_rules=self.level_rules)
 
                             elif f'{rule_object.name} is reverse' in rule.text_rule:
                                 is_reverse = not is_reverse
