@@ -112,6 +112,9 @@ is_text:    {self.is_text}
         self.is_hide = False
         self.is_hot = False
         self.locked_sides = []
+        self.is_open = False
+        self.is_shut = False
+        self.is_phantom = False
 
         if self.name != 'empty' and self.animation == None:
             self.animation = self.animation_init()
@@ -235,6 +238,10 @@ is_text:    {self.is_text}
         """Сериализовать объект в строку"""
         return f'{self.x} {self.y} {self.direction} {self.name} {self.is_text}'
 
+    def get_index(self, matrix):
+        for i in range(len(matrix[self.y][self.x])):
+            if matrix[self.y][self.x][i].name == self.name:
+                return i
     def move(self, matrix, level_rules):  # TODO: use Δt to calculate distance move
         """Метод движения персонажа"""
         if self.turning_side == 0:
@@ -257,20 +264,67 @@ is_text:    {self.is_text}
                 return False
             for objects in matrix[self.y - 1][self.x]:
                 for rule in level_rules:
-                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
-                        for i in range(len(matrix[self.y][self.x])):
-                            if matrix[self.y][self.x][i].name == self.name:
-                                matrix[self.y][self.x].pop(i)
+                    if f'{objects.name} is swap' in rule.text_rule or (f'{self.name} is swap' in rule.text_rule and not self.is_phantom):
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        self.status_of_rotate = 1
+                        self.y -= 1
+                        self.ypx -= 50
+                        self.direction = 0
+                        matrix[self.y][self.x].append(Object(
+                            self.x,
+                            self.y,
+                            self.direction,
+                            self.name,
+                            self.is_text,
+                            self.movement_state + 1
+                        ))
+                        matrix[self.y + 1][self.x].append(Object(
+                            objects.x,
+                            objects.y + 1,
+                            objects.direction,
+                            objects.name,
+                            objects.is_text,
+                            objects.movement_state + 1
+                        ))
+                        matrix[self.y][self.x].pop(objects.get_index(matrix))
                         return False
+                for rule in level_rules:
+                    if self.is_hot and f'{objects.name} is melt' in rule.text_rule:
+                        matrix[self.y - 1][self.x].pop(objects.get_index(matrix))
+                for rule in level_rules:
+                    if f'{self.name} is melt' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{objects.name} is hot' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(self.get_index(matrix))
+                                return False
+                for rule in level_rules:
+                    if self.is_open and f'{objects.name} is shut' in rule.text_rule\
+                            or self.is_shut and f'{objects.name} is open' in rule.text_rule:
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        matrix[self.y - 1][self.x].pop(objects.get_index(matrix))
+                        return False
+                for rule in level_rules:
                     if f'{objects.name} is defeat' in rule.text_rule:
-                        for i in range(len(matrix[self.y][self.x])):
-                            if matrix[self.y][self.x][i].name == self.name:
-                                matrix[self.y][self.x].pop(i)
-                        return False
-                if objects.move_up(matrix, level_rules, 'push'):
+                        for sec_rule in level_rules:
+                            if f'{self.name} is you' in sec_rule.text_rule:
+                                for i in range(len(matrix[self.y][self.x])):
+                                    if matrix[self.y][self.x][i].name == self.name:
+                                        matrix[self.y][self.x].pop(i)
+                                return False
+                for rule in level_rules:
+                    if f'{self.name} is defeat' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{objects.name} is you' in sec_rule.text_rule:
+                                matrix[self.y - 1][self.x].pop(objects.get_index(matrix))
+                                return False
+                if objects.move_up(matrix, level_rules, 'push') or self.is_phantom:
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
+                    if self.y < RESOLUTION[1] // 50 - 1:
+                        for pull_object in matrix[self.y + 1][self.x]:
+                            if not pull_object.is_text and pull_object.name in NOUNS:
+                                pull_object.move_up(matrix, level_rules, 'pull')
                     self.status_of_rotate = 1
                     self.y -= 1
                     self.ypx -= 50
@@ -286,7 +340,29 @@ is_text:    {self.is_text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.is_text:
+                if f'{self.name} is pull' in rule.text_rule and status_push == 'pull' and not self.is_text:
+                    matrix[self.y][self.x].pop(self.get_index(matrix))
+                    if self.y < RESOLUTION[1] // 50 - 1:
+                        for pull_object in matrix[self.y + 1][self.x]:
+                            if not pull_object.is_text and pull_object.name in NOUNS:
+                                pull_object.move_up(matrix, level_rules, 'pull')
+                    self.status_of_rotate = 0
+                    self.y -= 1
+                    self.ypx -= 50
+                    self.direction = 0
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.is_text,
+                        self.movement_state + 1
+                    ))
+                    return True
+            for rule in level_rules:
+                if ((f'{self.name} is stop' in rule.text_rule and status_push == 'push') \
+                        or (f'{self.name} is pull' in rule.text_rule and status_push == 'push')) \
+                        and not self.is_text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -309,6 +385,10 @@ is_text:    {self.is_text}
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
+                    if self.y < RESOLUTION[1] // 50 - 1:
+                        for pull_object in matrix[self.y + 1][self.x]:
+                            if not pull_object.is_text and pull_object.name in NOUNS:
+                                pull_object.move_up(matrix, level_rules, 'pull')
                 self.status_of_rotate = 1
                 self.y -= 1
                 self.ypx -= 50
@@ -330,20 +410,70 @@ is_text:    {self.is_text}
                 return False
             for objects in matrix[self.y + 1][self.x]:
                 for rule in level_rules:
-                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
-                        for i in range(len(matrix[self.y][self.x])):
-                            if matrix[self.y][self.x][i].name == self.name:
-                                matrix[self.y][self.x].pop(i)
+                    if f'{objects.name} is swap' in rule.text_rule\
+                            or (f'{self.name} is swap' in rule.text_rule and not self.is_phantom):
+                        # matrix[self.y][self.x][self.get_index(matrix)], matrix[self.y - 1][self.x][object_index] = \
+                        # matrix[self.y - 1][self.x][object_index], matrix[self.y][self.x][self.get_index(matrix)]
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        self.status_of_rotate = 3
+                        self.y += 1
+                        self.ypx += 50
+                        self.direction = 2
+                        matrix[self.y][self.x].append(Object(
+                            self.x,
+                            self.y,
+                            self.direction,
+                            self.name,
+                            self.is_text,
+                            self.movement_state + 1
+                        ))
+                        matrix[self.y - 1][self.x].append(Object(
+                            objects.x,
+                            objects.y - 1,
+                            objects.direction,
+                            objects.name,
+                            objects.is_text,
+                            objects.movement_state + 1
+                        ))
+                        matrix[self.y][self.x].pop(objects.get_index(matrix))
                         return False
+                for rule in level_rules:
+                    if self.is_hot and f'{objects.name} is melt' in rule.text_rule:
+                        matrix[self.y + 1][self.x].pop(objects.get_index(matrix))
+                for rule in level_rules:
+                    if f'{self.name} is melt' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{objects.name} is hot' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(self.get_index(matrix))
+                                return False
+                for rule in level_rules:
+                    if self.is_open and f'{objects.name} is shut' in rule.text_rule \
+                            or self.is_shut and f'{objects.name} is open' in rule.text_rule:
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        matrix[self.y + 1][self.x].pop(objects.get_index(matrix))
+                        return False
+                for rule in level_rules:
                     if f'{objects.name} is defeat' in rule.text_rule:
-                        for i in range(len(matrix[self.y][self.x])):
-                            if matrix[self.y][self.x][i].name == self.name:
-                                matrix[self.y][self.x].pop(i)
-                        return False
-                if objects.move_down(matrix, level_rules, 'push'):
+                        for sec_rule in level_rules:
+                            if f'{self.name} is you' in sec_rule.text_rule:
+                                for i in range(len(matrix[self.y][self.x])):
+                                    if matrix[self.y][self.x][i].name == self.name:
+                                        matrix[self.y][self.x].pop(i)
+                                return False
+                for rule in level_rules:
+                    if f'{self.name} is defeat' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{objects.name} is you' in sec_rule.text_rule:
+                                matrix[self.y + 1][self.x].pop(objects.get_index(matrix))
+                                return False
+                if objects.move_down(matrix, level_rules, 'push') or self.is_phantom:
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
+                    if self.y > 0:
+                        for pull_object in matrix[self.y - 1][self.x]:
+                            if not pull_object.is_text and pull_object.name in NOUNS:
+                                pull_object.move_down(matrix, level_rules, 'pull')
                     self.status_of_rotate = 3
                     self.y += 1
                     self.ypx += 50
@@ -359,7 +489,29 @@ is_text:    {self.is_text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.is_text:
+                if f'{self.name} is pull' in rule.text_rule and status_push == 'pull' and not self.is_text:
+                    matrix[self.y][self.x].pop(self.get_index(matrix))
+                    if self.y > 0:
+                        for pull_object in matrix[self.y - 1][self.x]:
+                            if not pull_object.is_text and pull_object.name in NOUNS:
+                                pull_object.move_down(matrix, level_rules, 'pull')
+                    self.status_of_rotate = 0
+                    self.y += 1
+                    self.ypx += 50
+                    self.direction = 2
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.is_text,
+                        self.movement_state + 1
+                    ))
+                    return True
+            for rule in level_rules:
+                if ((f'{self.name} is stop' in rule.text_rule and status_push == 'push')\
+                        or (f'{self.name} is pull' in rule.text_rule and status_push == 'push')) \
+                        and not self.is_text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -383,6 +535,10 @@ is_text:    {self.is_text}
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
+                if self.y > 0:
+                    for pull_object in matrix[self.y - 1][self.x]:
+                        if not pull_object.is_text and pull_object.name in NOUNS:
+                            pull_object.move_down(matrix, level_rules, 'pull')
                 self.status_of_rotate = 3
                 self.y += 1
                 self.ypx += 50
@@ -404,20 +560,71 @@ is_text:    {self.is_text}
                 return False
             for objects in matrix[self.y][self.x - 1]:
                 for rule in level_rules:
-                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
-                        for i in range(len(matrix[self.y][self.x])):
-                            if matrix[self.y][self.x][i].name == self.name:
-                                matrix[self.y][self.x].pop(i)
+                    if f'{objects.name} is swap' in rule.text_rule or \
+                            (f'{self.name} is swap' in rule.text_rule and not self.is_phantom):
+                        # matrix[self.y][self.x][self.get_index(matrix)], matrix[self.y - 1][self.x][object_index] = \
+                        # matrix[self.y - 1][self.x][object_index], matrix[self.y][self.x][self.get_index(matrix)]
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        self.status_of_rotate = 2
+                        self.x -= 1
+                        self.xpx -= 50
+                        self.direction = 3
+                        matrix[self.y][self.x].append(Object(
+                            self.x,
+                            self.y,
+                            self.direction,
+                            self.name,
+                            self.is_text,
+                            self.movement_state + 1
+                        ))
+                        matrix[self.y][self.x + 1].append(Object(
+                            objects.x + 1,
+                            objects.y,
+                            objects.direction,
+                            objects.name,
+                            objects.is_text,
+                            objects.movement_state + 1
+                        ))
+                        matrix[self.y][self.x].pop(objects.get_index(matrix))
                         return False
+
+                for rule in level_rules:
+                    if self.is_hot and f'{objects.name} is melt' in rule.text_rule:
+                        matrix[self.y][self.x - 1].pop(objects.get_index(matrix))
+                for rule in level_rules:
+                    if f'{self.name} is melt' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{objects.name} is hot' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(self.get_index(matrix))
+                                return False
+                for rule in level_rules:
+                    if self.is_open and f'{objects.name} is shut' in rule.text_rule \
+                            or self.is_shut and f'{objects.name} is open' in rule.text_rule:
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        matrix[self.y][self.x - 1].pop(objects.get_index(matrix))
+                        return False
+                for rule in level_rules:
                     if f'{objects.name} is defeat' in rule.text_rule:
-                        for i in range(len(matrix[self.y][self.x])):
-                            if matrix[self.y][self.x][i].name == self.name:
-                                matrix[self.y][self.x].pop(i)
-                        return False
-                if objects.move_left(matrix, level_rules, 'push'):
+                        for sec_rule in level_rules:
+                            if f'{self.name} is you' in sec_rule.text_rule:
+                                for i in range(len(matrix[self.y][self.x])):
+                                    if matrix[self.y][self.x][i].name == self.name:
+                                        matrix[self.y][self.x].pop(i)
+                                return False
+                for rule in level_rules:
+                    if f'{self.name} is defeat' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{objects.name} is you' in sec_rule.text_rule:
+                                matrix[self.y][self.x - 2].pop(objects.get_index(matrix))
+                                return False
+                if objects.move_left(matrix, level_rules, 'push') or self.is_phantom:
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
+                    if self.x < RESOLUTION[0] // 50 - 1:
+                        for pull_object in matrix[self.y][self.x + 1]:
+                            if not pull_object.is_text and pull_object.name in NOUNS:
+                                pull_object.move_left(matrix, level_rules, 'pull')
                     self.status_of_rotate = 2
                     self.x -= 1
                     self.xpx -= 50
@@ -433,7 +640,29 @@ is_text:    {self.is_text}
                     return True
                 return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.is_text:
+                if f'{self.name} is pull' in rule.text_rule and status_push == 'pull' and not self.is_text:
+                    matrix[self.y][self.x].pop(self.get_index(matrix))
+                    if self.x < RESOLUTION[0] // 50 - 1:
+                        for pull_object in matrix[self.y][self.x + 1]:
+                            if not pull_object.is_text and pull_object.name in NOUNS:
+                                pull_object.move_left(matrix, level_rules, 'pull')
+                    self.status_of_rotate = 0
+                    self.x -= 1
+                    self.xpx -= 50
+                    self.direction = 3
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.is_text,
+                        self.movement_state + 1
+                    ))
+                    return True
+            for rule in level_rules:
+                if ((f'{self.name} is stop' in rule.text_rule and status_push == 'push') \
+                        or (f'{self.name} is pull' in rule.text_rule and status_push == 'push')) \
+                        and not self.is_text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -456,6 +685,10 @@ is_text:    {self.is_text}
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
+                if self.x < RESOLUTION[0] // 50 - 1:
+                    for pull_object in matrix[self.y][self.x + 1]:
+                        if not pull_object.is_text and pull_object.name in NOUNS:
+                            pull_object.move_left(matrix, level_rules, 'pull')
                 self.status_of_rotate = 2
                 self.x -= 1
                 self.xpx -= 50
@@ -469,7 +702,6 @@ is_text:    {self.is_text}
                     self.movement_state + 1
                 ))
             return True
-
     def move_right(self, matrix, level_rules, status_push=None):
         """Метод движения объекта вправо"""
         if self.x < RESOLUTION[0] // 50 - 1:
@@ -477,20 +709,92 @@ is_text:    {self.is_text}
                 return False
             for objects in matrix[self.y][self.x + 1]:
                 for rule in level_rules:
-                    if objects.is_hot and f'{self.name} is melt' in rule.text_rule:
-                        for i in range(len(matrix[self.y][self.x])):
-                            if matrix[self.y][self.x][i].name == self.name:
-                                matrix[self.y][self.x].pop(i)
+                    if f'{objects.name} is swap' in rule.text_rule\
+                            or (f'{self.name} is swap' in rule.text_rule and not self.is_phantom):
+                        # matrix[self.y][self.x][self.get_index(matrix)], matrix[self.y - 1][self.x][object_index] = \
+                        # matrix[self.y - 1][self.x][object_index], matrix[self.y][self.x][self.get_index(matrix)]
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        self.status_of_rotate = 0
+                        self.x += 1
+                        self.xpx += 50
+                        self.direction = 1
+                        matrix[self.y][self.x].append(Object(
+                            self.x,
+                            self.y,
+                            self.direction,
+                            self.name,
+                            self.is_text,
+                            self.movement_state + 1
+                        ))
+                        matrix[self.y][self.x - 1].append(Object(
+                            objects.x - 1,
+                            objects.y,
+                            objects.direction,
+                            objects.name,
+                            objects.is_text,
+                            objects.movement_state + 1
+                        ))
+                        matrix[self.y][self.x].pop(objects.get_index(matrix))
                         return False
+                for rule in level_rules:
+                    if self.is_hot and f'{objects.name} is melt' in rule.text_rule:
+                        matrix[self.y][self.x - 1].pop(objects.get_index(matrix))
+                for rule in level_rules:
+                    if f'{self.name} is melt' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{objects.name} is hot' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(self.get_index(matrix))
+                                return False
+                for rule in level_rules:
+                    if self.is_open and f'{objects.name} is shut' in rule.text_rule \
+                            or self.is_shut and f'{objects.name} is open' in rule.text_rule:
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        matrix[self.y][self.x - 1].pop(objects.get_index(matrix))
+                        return False
+                for rule in level_rules:
                     if f'{objects.name} is defeat' in rule.text_rule:
-                        for i in range(len(matrix[self.y][self.x])):
-                            if matrix[self.y][self.x][i].name == self.name:
-                                matrix[self.y][self.x].pop(i)
-                        return False
-                if objects.move_right(matrix, level_rules, 'push'):
+                        for sec_rule in level_rules:
+                            if f'{self.name} is you' in sec_rule.text_rule:
+                                for i in range(len(matrix[self.y][self.x])):
+                                    if matrix[self.y][self.x][i].name == self.name:
+                                        matrix[self.y][self.x].pop(i)
+                                return False
+                for rule in level_rules:
+                    if f'{self.name} is defeat' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{objects.name} is you' in sec_rule.text_rule:
+                                matrix[self.y][self.x - 2].pop(objects.get_index(matrix))
+                                return False
+                if objects.move_right(matrix, level_rules, 'push') or self.is_phantom:
                     for i in range(len(matrix[self.y][self.x])):
                         if matrix[self.y][self.x][i].name == self.name:
                             matrix[self.y][self.x].pop(i)
+                    if self.x > 0:
+                        for pull_object in matrix[self.y][self.x - 1]:
+                            if not pull_object.is_text and pull_object.name in NOUNS:
+                                pull_object.move_right(matrix, level_rules, 'pull')
+                    self.status_of_rotate = 0
+                    self.x += 1
+                    self.xpx += 50
+                    self.direction = 1
+                    matrix[self.y][self.x].append(Object(
+                        self.x,
+                        self.y,
+                        self.direction,
+                        self.name,
+                        self.is_text,
+                        self.movement_state + 1
+                    ))
+
+                    return True
+                return False
+            for rule in level_rules:
+                if f'{self.name} is pull' in rule.text_rule and status_push == 'pull' and not self.is_text:
+                    matrix[self.y][self.x].pop(self.get_index(matrix))
+                    if self.x > 0:
+                        for pull_object in matrix[self.y][self.x - 1]:
+                            if not pull_object.is_text and pull_object.name in NOUNS:
+                                pull_object.move_right(matrix, level_rules, 'pull')
                     self.status_of_rotate = 0
                     self.x += 1
                     self.xpx += 50
@@ -504,9 +808,10 @@ is_text:    {self.is_text}
                         self.movement_state + 1
                     ))
                     return True
-                return False
             for rule in level_rules:
-                if f'{self.name} is stop' in rule.text_rule and status_push == 'push' and not self.is_text:
+                if ((f'{self.name} is stop' in rule.text_rule and status_push == 'push')\
+                        or (f'{self.name} is pull' in rule.text_rule and status_push == 'push')) \
+                        and not self.is_text:
                     return False
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status_push == 'push':
@@ -529,6 +834,10 @@ is_text:    {self.is_text}
                 for i in range(len(matrix[self.y][self.x])):
                     if matrix[self.y][self.x][i].name == self.name:
                         matrix[self.y][self.x].pop(i)
+                if self.x > 0:
+                    for pull_object in matrix[self.y][self.x - 1]:
+                        if not pull_object.is_text and pull_object.name in NOUNS:
+                            pull_object.move_right(matrix, level_rules, 'pull')
                 self.status_of_rotate = 0
                 self.x += 1
                 self.xpx += 50

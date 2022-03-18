@@ -37,10 +37,13 @@ class PlayLevel(GameStrategy):
 
         self.status_cancel = False
         self.first_iteration = True
+        self.objects_for_tp = []
 
         self.level_name_object_text = self.text_to_png(level_name)
         self.circle_radius = 650
+
         self.delay = pygame.time.get_ticks()
+        self.small_matrix_change = False
 
     def parse_file(self, level_name: str):
         """
@@ -146,31 +149,47 @@ class PlayLevel(GameStrategy):
 
         return 0
 
+    @staticmethod
+    def obj_is_noun(obj: Object):
+        return obj.name not in OPERATORS and obj.name in NOUNS and obj.is_text
+
     def check_vertically(self, i, j):
         for first_object in self.matrix[i][j]:
-            if first_object.is_noun and len(self.matrix) - i > 2:
-
+            if self.obj_is_noun(first_object) and len(self.matrix) - i > 2:
                 for operator in self.matrix[i + 1][j]:
-                    if operator.is_operator and operator.name != 'and':
-
+                    if operator.name in OPERATORS and operator.name != 'and':
                         for second_object in self.matrix[i + 2][j]:
-                            if second_object.is_noun:
-                                return self.form_rule(first_object.name, operator.name, second_object.name)
-
+                            if self.obj_is_noun(second_object) or second_object.name in PROPERTIES:
+                                self.level_rules.append(
+                                    TextRule(f'{first_object.name} {operator.name} {second_object.name}',
+                                         [first_object, operator, second_object]))
+                                return len(self.level_rules)
                             elif second_object.name == 'not' and len(self.matrix) - i > 3:
                                 for third_object in self.matrix[i + 3][j]:
-                                    if third_object.is_noun or third_object.is_property:
-                                        return self.form_rule(first_object.name, operator.name, second_object.name)
-
+                                    if self.obj_is_noun(third_object) or third_object.name in PROPERTIES:
+                                        self.level_rules.append(
+                                            TextRule(
+                                                f'{first_object.name} {operator.name} {second_object.name} '
+                                                f'{third_object.name}',
+                                                [first_object, operator, second_object, third_object]))
+                                        return len(self.level_rules)
                     elif operator.name == 'and':
-                        further_rule_number = self.check_vertically(i + 2, j)
-                        if further_rule_number != 0:
-                            rule = self.level_rules[further_rule_number - 1]
+                        a = self.check_horizontally(i + 2, j)
+                        if a != 0:
+                            rule = self.level_rules[a - 1]
                             text = rule.text_rule.split()
+                            objects = rule.objects_in_rule
+                            objects[0] = first_object
                             text[0] = first_object.name
-                            return self.form_rule(*text)
-
+                            text_of_rule = ''
+                            for words in text:
+                                text_of_rule += f'{words} '
+                            text_of_rule = text_of_rule[:-1]
+                            self.level_rules.append(
+                                TextRule(text_of_rule, objects))
+                            return len(self.level_rules)
         return 0
+
 
     @staticmethod
     def copy_matrix(matrix):
@@ -195,7 +214,7 @@ class PlayLevel(GameStrategy):
         text_in_objects = []
 
         for letter in level_text:
-            if not letter == ' ':
+            if letter not in [' ', '_', '-']:
                 a = Object(x_offset, 6, 1, letter, True)
                 text_in_objects.append(a)
             x_offset += 1
@@ -243,6 +262,9 @@ class PlayLevel(GameStrategy):
                         is_hot = False
                         is_hide = False
                         locked_sides = []
+                        is_open = False
+                        is_shut = False
+                        is_phantom = False
                         for rule in self.level_rules:
 
                             if rule_object.name in rule.text_rule:
@@ -253,10 +275,28 @@ class PlayLevel(GameStrategy):
                                         rule_object=rule_object,
                                         rules=self.level_rules)
 
-                                elif f'{rule_object.name} is return' in rule.text_rule:
-                                    Rules.return_rule.apply(
+                                elif f'{rule_object.name} is deturn' in rule.text_rule:
+                                    Rules.deturn_rule.apply(
                                         matrix=matrix,
-                                        rule_object=rule_object)
+                                        rule_object=rule_object,
+                                        screen=self.screen
+                                    )
+                                    self.small_matrix_change = True
+
+                                elif f'{rule_object.name} is turn' in rule.text_rule:
+                                    Rules.turn_rule.apply(
+                                        matrix=matrix,
+                                        rule_object=rule_object,
+                                        screen=self.screen
+                                    )
+                                    self.small_matrix_change = True
+
+                                elif f'{rule_object.name} is tele' in rule.text_rule:
+                                    self.objects_for_tp = Rules.tele.apply(
+                                        matrix=matrix,
+                                        rule_object=rule_object,
+                                        objects_for_tp=self.objects_for_tp
+                                    )
 
                                 elif f'{rule_object.name} is you' in rule.text_rule:
                                     Rules.you.apply(
@@ -269,7 +309,18 @@ class PlayLevel(GameStrategy):
                                 elif f'{rule_object.name} is chill' in rule.text_rule:
                                     Rules.chill.apply(
                                         matrix=matrix,
-                                        rule_object=rule_object)
+                                        rule_object=rule_object,
+                                        level_rules=self.level_rules
+                                    )
+
+                                elif f'{rule_object.name} is open' in rule.text_rule:
+                                    is_open = True
+
+                                elif f'{rule_object.name} is phantom' in rule.text_rule:
+                                    is_phantom = True
+
+                                elif f'{rule_object.name} is shut' in rule.text_rule:
+                                    is_shut = True
 
                                 elif f'{rule_object.name} is boom' in rule.text_rule:
                                     Rules.boom.apply(
@@ -312,6 +363,12 @@ class PlayLevel(GameStrategy):
                                         rule_object=rule_object,
                                         level_rules=self.level_rules)
 
+                                elif f'{rule_object.name} is shift' in rule.text_rule:
+                                    Rules.shift.apply(
+                                        matrix=matrix,
+                                        rule_object=rule_object,
+                                        level_rules=self.level_rules)
+
                                 elif f'{rule_object.name} is hide' in rule.text_rule:
                                     is_hide = True
 
@@ -347,6 +404,9 @@ class PlayLevel(GameStrategy):
                                 rule_object.is_hide = is_hide
                                 rule_object.locked_sides = my_deepcopy(
                                     locked_sides)
+                                rule_object.is_open = is_open
+                                rule_object.is_shut = is_shut
+                                rule_object.is_phantom = is_phantom
 
     def find_rules(self):
         self.level_rules = []
@@ -378,10 +438,9 @@ class PlayLevel(GameStrategy):
 
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
-
             self.apply_rules(events, copy_matrix)
 
-            if self.matrix != copy_matrix:
+            if self.matrix != copy_matrix or self.small_matrix_change:
                 self.history_of_matrix.append(self.copy_matrix(self.matrix))
                 self.matrix = copy_matrix
 
@@ -407,9 +466,11 @@ class PlayLevel(GameStrategy):
         if self.moved:
             self.moved = False
 
+        if self.small_matrix_change:
+            self.small_matrix_change = False
+
         self.level_start_animation() if self.circle_radius > 0 else ...
 
         if self.state is None:
             self.state = State(GameState.flip, None)
-
         return self.state

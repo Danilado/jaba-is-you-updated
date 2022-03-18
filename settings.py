@@ -105,7 +105,6 @@ OPERATORS = [
     1 shut, open
     2 phantom
     3 pull
-    4 turn
     5 shift
     6 swap
     7 tele
@@ -115,8 +114,9 @@ OPERATORS = [
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver', 'white',
-    'defeat', 'return', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'hot',
-    'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt', 'more', 'move', 'nudge', 'open', 'shut',
-    'phantom', 'party', 'pet', 'power', 'pull', 'push', 'reverse', 'sad', 'safe', 'scary', 'shift', 'sink',
-    'sleep', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win', 'wonder', 'word', 'you', 'you2'
+    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'hot',
+    'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt', 'more', 'move', 'nudgeup', 'nudgeleft',
+    'nudgedown', 'nudgeright', 'open', 'shut', 'phantom', 'party', 'pet', 'power', 'pull', 'push', 'reverse',
+    'sad', 'safe', 'scary', 'shift', 'sink', 'sleep', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win',
+    'wonder', 'word', 'you', 'you2'
 ]

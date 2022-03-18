@@ -257,7 +257,7 @@ class Editor(GameStrategy):
                     # ЭТО НУЖНО ДЕЛАТЬ ПОСЛЕ ДОБАВЛЕНИЯ ОБЪЕКТА В МАТРИЦУ
                     for array in neighbours:
                         for neighbour in array:
-                            if neighbour.name in STICKY and not neighbour.text:
+                            if neighbour.name in STICKY and not neighbour.is_text:
                                 neighbour.neighbours = self.get_neighbours(
                                     neighbour.x, neighbour.y)
                                 neighbour.animation_init()

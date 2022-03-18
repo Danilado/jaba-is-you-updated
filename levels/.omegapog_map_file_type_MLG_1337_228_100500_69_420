@@ -1,4 +1,9 @@
-27 2 1 fire True
-28 2 1 is False
-29 2 1 fall False
-26 7 1 fire False
+27 7 1 bat True
+28 7 1 is False
+29 7 1 push False
+27 9 1 bee True
+28 9 1 is False
+29 9 1 you False
+21 12 1 blob False
+23 12 1 bat False
+24 12 1 bee False
