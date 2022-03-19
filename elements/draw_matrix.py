@@ -7,7 +7,9 @@ import pygame
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
+from classes.ray_casting import RayCasting
 from classes.rule import Rule
+from settings import *
 from classes.state import State
 from elements.global_classes import sound_manager
 from global_types import SURFACE
@@ -42,6 +44,7 @@ class Draw(GameStrategy):
         self.moved = False
         self.circle_radius = 650
         self.delay = pygame.time.get_ticks()
+        self.angle_3d = 90
 
     def parse_file(self, level_name: str):
         """
@@ -240,10 +243,12 @@ class Draw(GameStrategy):
                 self.circle_radius -= 8
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
+        flag = False
         if len(self.history_of_matrix) == 0:
             self.history_of_matrix.append(self.matrix)
         self.screen.fill("black")
         state = None
+
         for event in events:
             if event.type == pygame.QUIT:
                 state = State(GameState.back)
@@ -258,6 +263,7 @@ class Draw(GameStrategy):
                     self.status_cancel = False
 
         copy_matrix = my_deepcopy(self.matrix)
+
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 for rule_object in self.matrix[i][j]:
@@ -266,6 +272,10 @@ class Draw(GameStrategy):
                         is_hide = False
                         locked_sides = []
                         for rule in self.level_rules:
+                            if f'{rule_object.name} is 3d' in rule.text_rule:
+                                flag = True
+                                RayCasting(self.screen, (rule_object.xpx + 25, rule_object.ypx + 25),
+                                           rule_object.angle_3d / 180 * math.pi, copy_matrix)
                             # TODO: Replace Conditional with Polymorphism instead of if-elif-elif-elif-elif-elif-else...
                             if f'{rule_object.name} is broken' in rule.text_rule:
                                 for sec_rule in self.level_rules:
@@ -283,7 +293,7 @@ class Draw(GameStrategy):
 
                             if f'{rule_object.name} is you' in rule.text_rule:
                                 rule_object.check_events(events)
-                                rule_object.move(copy_matrix, self.level_rules)
+                                rule_object.move(copy_matrix, self.level_rules, flag)
 
                             if f'{rule_object.name} is chill' in rule.text_rule:
                                 rand_dir = random.randint(0, 5)
@@ -470,22 +480,24 @@ class Draw(GameStrategy):
                     self.history_of_matrix[:-1])
             else:
                 self.matrix = self.copy_matrix(self.start_matrix)
-        if SHOW_GRID:
-            for x in range(0, RESOLUTION[0], 50):
-                for y in range(0, RESOLUTION[1], 50):
-                    pygame.draw.rect(
-                        self.screen, (255, 255, 255), (x, y, 50, 50), 1)
 
-        for line in self.matrix:
-            for cell in line:
-                for game_object in cell:
-                    if self.first_iteration or self.moved:
-                        if game_object.name in STICKY and not game_object.text:
-                            neighbours = self.get_neighbours(
-                                game_object.x, game_object.y)
-                            game_object.neighbours = neighbours
-                            game_object.animation_init()
-                    game_object.draw(self.screen)
+        if not flag:
+            if SHOW_GRID:
+                for x in range(0, RESOLUTION[0], 50):
+                    for y in range(0, RESOLUTION[1], 50):
+                        pygame.draw.rect(
+                            self.screen, (255, 255, 255), (x, y, 50, 50), 1)
+
+            for line in self.matrix:
+                for cell in line:
+                    for game_object in cell:
+                        if self.first_iteration or self.moved:
+                            if game_object.name in STICKY and not game_object.text:
+                                neighbours = self.get_neighbours(
+                                    game_object.x, game_object.y)
+                                game_object.neighbours = neighbours
+                                game_object.animation_init()
+                        game_object.draw(self.screen)
 
         if self.first_iteration:
             self.first_iteration = False
@@ -498,11 +510,15 @@ class Draw(GameStrategy):
                 self.check_horizontally(i, j)
                 self.check_vertically(i, j)
         self.level_rules = self.remove_copies_rules(self.level_rules)
-        for line in self.matrix:
-            for cell in line:
-                for game_object in cell:
-                    game_object.draw(self.screen)
+
+        if not flag:
+            for line in self.matrix:
+                for cell in line:
+                    for game_object in cell:
+                        game_object.draw(self.screen)
+
         self.animation_level()
+
         if state is None:
             state = State(GameState.flip, None)
         return state
