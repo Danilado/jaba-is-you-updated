@@ -1,21 +1,19 @@
 """draw_matrix.py hopefully refactored by Gospodin"""
 
-from copy import copy
-from sqlite3 import Timestamp
-from typing import List, Optional
-
-import pygame
-
-import classes.Rules as Rules
-from classes.game_state import GameState
-from classes.game_strategy import GameStrategy
-from classes.objects import Object
-from classes.TextRule import TextRule
-from classes.state import State
-from elements.global_classes import sound_manager
-from global_types import SURFACE
-from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY
 from utils import my_deepcopy
+from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY
+from global_types import SURFACE
+from elements.global_classes import sound_manager
+from classes.state import State
+from classes.TextRule import TextRule
+from classes.objects import Object
+from classes.game_strategy import GameStrategy
+from classes.game_state import GameState
+import classes.Rules as Rules
+import pygame
+from typing import List, Optional
+from sqlite3 import Timestamp
+from copy import copy
 
 
 class PlayLevel(GameStrategy):
@@ -44,6 +42,7 @@ class PlayLevel(GameStrategy):
 
         self.delay = pygame.time.get_ticks()
         self.small_matrix_change = False
+        self.delay = pygame.time.get_ticks()
 
     def parse_file(self, level_name: str):
         """
@@ -354,7 +353,6 @@ class PlayLevel(GameStrategy):
                 for y in range(0, RESOLUTION[1], 50):
                     pygame.draw.rect(
                         self.screen, (255, 255, 255), (x, y, 50, 50), 1)
-
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
             self.apply_rules(events, copy_matrix)
@@ -364,7 +362,6 @@ class PlayLevel(GameStrategy):
                 self.matrix = copy_matrix
 
             self.find_rules()
-
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:
