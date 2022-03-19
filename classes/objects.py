@@ -339,21 +339,21 @@ is_text:    {self.is_text}
                 for rule in level_rules:
                     if f'{objects.name} is stop' in rule.text_rule or f'{objects.name} is pull' in rule.text_rule \
                             or objects.name in OPERATORS or objects.name in PROPERTIES or (
-                            objects.name in NOUNS and objects.is_text)\
-                            or f'{objects.name} is push':
+                            objects.name in NOUNS and objects.is_text) \
+                            or f'{objects.name} is push' in rule.text_rule:
                         objects_is_stop = True
+                can_move = False
+                for rule in level_rules:
+                    if f'{self.name} is move' in rule.text_rule \
+                            or f'{self.name} is push' in rule.text_rule \
+                            or f'{self.name} is auto' in rule.text_rule \
+                            or f'{self.name} is nudge' in rule.text_rule \
+                            or f'{self.name} is chill' in rule.text_rule \
+                            or f'{self.name} is you' in rule.text_rule \
+                            or self.name in OPERATORS or self.name in PROPERTIES or (
+                            self.name in NOUNS and self.is_text) and objects.y != 0:
+                        can_move = True
                 if self.is_phantom or not objects_is_stop:
-                    can_move = False
-                    for rule in level_rules:
-                        if f'{self.name} is move' in rule.text_rule \
-                                or f'{self.name} is push' in rule.text_rule \
-                                or f'{self.name} is auto' in rule.text_rule \
-                                or f'{self.name} is nudge' in rule.text_rule \
-                                or f'{self.name} is chill' in rule.text_rule \
-                                or f'{self.name} is you' in rule.text_rule \
-                                or self.name in OPERATORS or self.name in PROPERTIES or (
-                                self.name in NOUNS and self.is_text):
-                            can_move = True
                     if can_move:
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
@@ -371,19 +371,9 @@ is_text:    {self.is_text}
                         self.animation = None
                         matrix[self.y][self.x].append(copy(self))
                     return True
-                elif objects.move_up(matrix, level_rules, 'push'):
-                    can_move = False
-                    for rule in level_rules:
-                        if f'{self.name} is move' in rule.text_rule \
-                                or f'{self.name} is push' in rule.text_rule \
-                                or f'{self.name} is auto' in rule.text_rule \
-                                or f'{self.name} is nudge' in rule.text_rule \
-                                or f'{self.name} is chill' in rule.text_rule \
-                                or f'{self.name} is you' in rule.text_rule \
-                                or self.name in OPERATORS or self.name in PROPERTIES or (
-                                self.name in NOUNS and self.is_text):
-                            can_move = True
-                    if can_move:
+                if can_move:
+                    if objects.move_up(matrix, level_rules, 'push'):
+
                         for i in range(len(matrix[self.y][self.x])):
                             if matrix[self.y][self.x][i].name == self.name:
                                 matrix[self.y][self.x].pop(i)
@@ -888,7 +878,7 @@ is_text:    {self.is_text}
                     if f'{objects.name} is stop' in rule.text_rule or f'{objects.name} is pull' in rule.text_rule\
                             or objects.name in OPERATORS or objects.name in PROPERTIES or (
                                 objects.name in NOUNS and objects.is_text)\
-                            or f'{objects.name} is push' in rule.text_rule:
+                            or f'{objects.name} is push' in rule.text_rule or objects.x >= RESOLUTION[0] // 50 - 1:
                         objects_is_stop = True
                 can_move = False
                 for rule in level_rules:
