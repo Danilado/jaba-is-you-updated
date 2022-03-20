@@ -256,7 +256,8 @@ class PlayLevel(GameStrategy):
         Rules.processor.update_lists(matrix=matrix,
                                      events=events,
                                      level_rules=self.level_rules,
-                                     objects_for_tp=self.objects_for_tp)
+                                     objects_for_tp=self.objects_for_tp,
+                                     state=self.state)
 
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
@@ -299,6 +300,12 @@ class PlayLevel(GameStrategy):
                             elif f'{rule_object.name} is safe' in rule.text_rule:
                                 rule_object.is_safe = True
                                 is_safe = True
+
+                            elif f'{rule_object.name} is win' in rule.text_rule:
+                                for object in matrix[i][j]:
+                                    for second_rule in self.level_rules:
+                                        if f'{object.name} is you' in second_rule.text_rule:
+                                            self.state = State(GameState.back)
 
                             elif f'{rule_object.name} is open' in rule.text_rule:
                                 rule_object.is_open = is_open
@@ -358,7 +365,6 @@ class PlayLevel(GameStrategy):
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
             self.apply_rules(events, copy_matrix)
-
             if self.matrix != copy_matrix or self.small_matrix_change:
                 self.history_of_matrix.append(self.copy_matrix(self.matrix))
                 self.matrix = copy_matrix
@@ -385,7 +391,7 @@ class PlayLevel(GameStrategy):
         if self.small_matrix_change:
             self.small_matrix_change = False
 
-        self.level_start_animation() if self.circle_radius > 0 else ...
+        #self.level_start_animation() if self.circle_radius > 0 else ...
 
         if self.state is None:
             self.state = State(GameState.flip, None)

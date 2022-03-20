@@ -119,6 +119,7 @@ is_text:    {self.is_text}
         self.is_open = False
         self.is_shut = False
         self.is_phantom = False
+        self.status_move = False
 
         if self.name != 'empty' and self.animation == None:
             self.animation = self.animation_init()
@@ -389,7 +390,7 @@ is_text:    {self.is_text}
                         self.movement_state += 1
                         self.animation = None
                         matrix[self.y][self.x].append(copy(self))
-                    return True
+                        return True
                 return False
             for rule in level_rules:
                 if f'{self.name} is pull' in rule.text_rule and status_push == 'pull' and not self.is_text:
@@ -546,23 +547,22 @@ is_text:    {self.is_text}
                     return True
                 if can_move:
                     if objects.move_down(matrix, level_rules, 'push'):
-                        for rule in level_rules:
-                            for i in range(len(matrix[self.y][self.x])):
-                                if matrix[self.y][self.x][i].name == self.name:
-                                    matrix[self.y][self.x].pop(i)
-                            if self.y > 0:
-                                for pull_object in matrix[self.y - 1][self.x]:
-                                    if not pull_object.is_text and pull_object.name in NOUNS:
-                                        pull_object.move_down(
-                                            matrix, level_rules, 'pull')
-                            self.status_of_rotate = 3
-                            self.y += 1
-                            self.ypx += 50
-                            self.direction = 2
-                            self.movement_state += 1
-                            self.animation = None
-                            matrix[self.y][self.x].append(copy(self))
-                    return True
+                        for i in range(len(matrix[self.y][self.x])):
+                            if matrix[self.y][self.x][i].name == self.name:
+                                matrix[self.y][self.x].pop(i)
+                        if self.y > 0:
+                            for pull_object in matrix[self.y - 1][self.x]:
+                                if not pull_object.is_text and pull_object.name in NOUNS:
+                                    pull_object.move_down(
+                                        matrix, level_rules, 'pull')
+                        self.status_of_rotate = 3
+                        self.y += 1
+                        self.ypx += 50
+                        self.direction = 2
+                        self.movement_state += 1
+                        self.animation = None
+                        matrix[self.y][self.x].append(copy(self))
+                        return True
                 return False
 
             for rule in level_rules:
@@ -736,7 +736,7 @@ is_text:    {self.is_text}
                         self.movement_state += 1
                         self.animation = None
                         matrix[self.y][self.x].append(copy(self))
-                    return True
+                        return True
                 return False
             for rule in level_rules:
                 if f'{self.name} is pull' in rule.text_rule and status_push == 'pull' and not self.is_text:
@@ -906,9 +906,7 @@ is_text:    {self.is_text}
                         self.movement_state += 1
                         self.animation = None
                         matrix[self.y][self.x].append(copy(self))
-
                     return True
-                return False
             for rule in level_rules:
                 if f'{self.name} is pull' in rule.text_rule and status_push == 'pull' and not self.is_text:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
@@ -957,7 +955,9 @@ is_text:    {self.is_text}
                 self.movement_state += 1
                 self.animation = None
                 matrix[self.y][self.x].append(copy(self))
-            return True
+                return True
+            return False
+
 
     def check_events(self, events: List[pygame.event.Event]):
         """Метод обработки событий"""

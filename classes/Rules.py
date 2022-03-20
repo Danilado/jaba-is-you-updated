@@ -4,6 +4,8 @@ import random
 
 from copy import copy
 from typing import List
+from classes.state import State
+from classes.game_state import GameState
 
 
 class Rule(abc.ABC):
@@ -272,10 +274,10 @@ class RuleProcessor:
             'turn': Turn(),
             'deturn': Deturn(),
             'shift': Shift(),
-            'tele': Tele(),
+            'tele': Tele()
         }
 
-    def update_lists(self, matrix, events, level_rules, objects_for_tp):
+    def update_lists(self, matrix, events, level_rules, objects_for_tp, state):
         self.matrix = matrix
         self.events = events
         self.rules = level_rules
