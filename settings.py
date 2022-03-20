@@ -87,8 +87,6 @@ OPERATORS = [
 
 'GOSPODIN:'
 """
-    3 safe
-    4 scary
     5 sink
     6 weak
     7 word
@@ -98,9 +96,9 @@ OPERATORS = [
 
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
-    'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver', 'white',
-    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'hot',
-    'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt', 'more', 'move', 'nudgeup', 'nudgeleft',
+    'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver',
+    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'white',
+    'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt', 'more', 'move', 'nudgeup', 'nudgeleft', 'hot',
     'nudgedown', 'nudgeright', 'open', 'shut', 'phantom', 'party', 'pet', 'power', 'pull', 'push', 'reverse',
     'sad', 'safe', 'scary', 'shift', 'sink', 'sleep', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win',
     'wonder', 'word', 'you', 'you2'

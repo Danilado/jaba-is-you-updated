@@ -286,6 +286,7 @@ is_text:    {self.is_text}
                         matrix[self.y + 1][self.x].append(copy(objects))
                         matrix[self.y][self.x].pop(objects.get_index(matrix))
                         return False
+
                 if not self.is_safe:
                     for rule in level_rules:
                         if f'{self.name} is melt' in rule.text_rule:
