@@ -261,6 +261,8 @@ class PlayLevel(GameStrategy):
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 for rule_object in self.matrix[i][j]:
+                    #for i in range(len(self.matrix) - 1, -1, -1))
+                    #for i in range(0, len(self.matrix), 1)
                     if not rule_object.special_text:
                         is_hot = False
                         is_hide = False
