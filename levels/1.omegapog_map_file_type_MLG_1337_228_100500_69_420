@@ -18,7 +18,7 @@
 31 0 1 stop False
 1 1 0 frog True
 2 1 0 is False
-3 1 0 safe False
+3 1 1 safe False
 4 1 0 frog True
 5 1 0 is False
 6 1 0 open False

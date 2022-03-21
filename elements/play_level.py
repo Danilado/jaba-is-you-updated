@@ -385,8 +385,7 @@ class PlayLevel(GameStrategy):
         if self.small_matrix_change:
             self.small_matrix_change = False
 
-        self.level_start_animation() if self.circle_radius > 0 else ...
-
+        #self.level_start_animation() if self.circle_radius > 0 else ...
         if self.state is None:
             self.state = State(GameState.flip, None)
         return self.state
