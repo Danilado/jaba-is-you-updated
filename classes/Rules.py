@@ -71,17 +71,13 @@ class Chill(Rule):
         self.level_rules = level_rules
         rand_dir = random.randint(0, 4)
         if rand_dir == 0:
-            self.rule_object.move_up(
-                self.matrix, self.level_rules)
+            self.rule_object.motion(0, -1, self.matrix, self.level_rules)
         elif rand_dir == 1:
-            self.rule_object.move_right(
-                self.matrix, self.level_rules)
+            self.rule_object.motion(1, 0, self.matrix, self.level_rules)
         elif rand_dir == 2:
-            self.rule_object.move_down(
-                self.matrix, self.level_rules)
+            self.rule_object.motion(0, 1, self.matrix, self.level_rules)
         elif rand_dir == 3:
-            self.rule_object.move_left(
-                self.matrix, self.level_rules)
+            self.rule_object.motion(-1, 0, self.matrix, self.level_rules)
 
 
 class Boom(Rule):
@@ -97,17 +93,36 @@ class Auto(Rule):
         self.matrix = matrix
         self.rule_object = rule_object
         if self.rule_object.direction == 0:
-            self.rule_object.move_up(
-                self.matrix, self.level_rules)
+            self.rule_object.motion(0, -1, self.matrix, self.level_rules)
         elif self.rule_object.direction == 1:
-            self.rule_object.move_right(
-                self.matrix, self.level_rules)
+            self.rule_object.motion(1, 0, self.matrix, self.level_rules)
         elif self.rule_object.direction == 2:
-            self.rule_object.move_down(
-                self.matrix, self.level_rules)
+            self.rule_object.motion(0, 1, self.matrix, self.level_rules)
         elif self.rule_object.direction == 3:
-            self.rule_object.move_left(
-                self.matrix, self.level_rules)
+            self.rule_object.motion(-1, 0, self.matrix, self.level_rules)
+
+class Move(Rule):
+    def apply(self, matrix, rule_object, level_rules, *_, **__):
+        self.level_rules = level_rules
+        self.matrix = matrix
+        self.rule_object = rule_object
+        if self.rule_object.direction == 0:
+            if not self.rule_object.motion(0, -1, self.matrix, self.level_rules):
+                self.rule_object.direction = 2
+                self.rule_object.motion(0, 1, self.matrix, self.level_rules)
+        elif self.rule_object.direction == 1:
+            if not self.rule_object.motion(1, 0, self.matrix, self.level_rules):
+                self.rule_object.direction = 3
+                self.rule_object.motion(-1, 0, self.matrix, self.level_rules)
+        elif self.rule_object.direction == 2:
+            if not self.rule_object.motion(0, 1, self.matrix, self.level_rules):
+                self.rule_object.direction = 0
+                self.rule_object.motion(0, -1, self.matrix, self.level_rules)
+        elif self.rule_object.direction == 3:
+            if not self.rule_object.motion(-1, 0, self.matrix, self.level_rules):
+                self.rule_object.direction = 1
+                self.rule_object.motion(1, 0, self.matrix, self.level_rules)
+
 
 
 class Direction(Rule):
@@ -138,7 +153,7 @@ class Fall(Rule):
         self.level_rules = level_rules
         self.matrix = matrix
         self.rule_object = rule_object
-        while self.rule_object.move_down(self.matrix, self.level_rules):
+        while self.rule_object.motion(0, 1, self.matrix, self.level_rules):
             ...
 
 
@@ -193,17 +208,13 @@ class Shift(Rule):
         for object in self.matrix[self.rule_object.y][self.rule_object.x]:
             if object.get_index(self.matrix) != self.rule_object.get_index(self.matrix):
                 if self.rule_object.direction == 0:
-                    object.move_up(
-                        self.matrix, self.level_rules, 'push')
+                    object.motion(0, -1, self.matrix, self.level_rules, 'push')
                 elif self.rule_object.direction == 1:
-                    object.move_right(
-                        self.matrix, self.level_rules, 'push')
+                    object.motion(1, 0, self.matrix, self.level_rules, 'push')
                 elif self.rule_object.direction == 2:
-                    object.move_down(
-                        self.matrix, self.level_rules, 'push')
+                    object.motion(0, 1, self.matrix, self.level_rules, 'push')
                 elif self.rule_object.direction == 3:
-                    object.move_left(
-                        self.matrix, self.level_rules, 'push')
+                    object.motion(-1, 0, self.matrix, self.level_rules, 'push')
 
 
 class Tele(Rule):
@@ -274,7 +285,8 @@ class RuleProcessor:
             'turn': Turn(),
             'deturn': Deturn(),
             'shift': Shift(),
-            'tele': Tele()
+            'tele': Tele(),
+            'move': Move()
         }
 
     def update_lists(self, matrix, events, level_rules, objects_for_tp, state):
