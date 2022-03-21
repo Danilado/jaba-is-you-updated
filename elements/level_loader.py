@@ -1,4 +1,5 @@
 import glob
+import re
 from functools import partial
 from typing import List, Optional
 
@@ -111,7 +112,7 @@ class Loader(GameStrategy):
         """
         levels_arr: List[str] = []
         for entry in glob.glob("levels/*.omegapog_map_file_type_MLG_1337_228_100500_69_420"):
-            levels_arr.append(entry.split('.')[0].split('/')[1])
+            levels_arr.append(re.split(r'[/\\]', entry.split('.')[0])[1])
         return levels_arr
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
