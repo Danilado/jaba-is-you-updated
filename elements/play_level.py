@@ -254,26 +254,25 @@ class PlayLevel(GameStrategy):
     def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
         for event in events:
             if event.type == pygame.KEYDOWN:
-                Rules.processor.update_lists(matrix=matrix,
-                                             events=events,
-                                             level_rules=self.level_rules,
-                                             objects_for_tp=self.objects_for_tp,
-                                             state=self.state)
                 if event.key in [pygame.K_w, pygame.K_a, pygame.K_SPACE, pygame.K_UP,
                                  pygame.K_LEFT]:
+                    Rules.processor.update_lists(level_processor=self,
+                                                 matrix=matrix,
+                                                 events=[event])
                     for i in range(len(self.matrix)):
                         for j in range(len(self.matrix[i])):
                             for rule_object in self.matrix[i][j]:
-                                self.apply_rules(
-                                    [event], matrix, rule_object, i, j)
+                                self.apply_rules(matrix, rule_object, i, j)
                 elif event.key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]:
+                    Rules.processor.update_lists(level_processor=self,
+                                                 matrix=matrix,
+                                                 events=[event])
                     for i in range(len(self.matrix) - 1, -1, -1):
                         for j in range(len(self.matrix[i]) - 1, -1, -1):
                             for rule_object in self.matrix[i][j]:
-                                self.apply_rules(
-                                    [event], matrix, rule_object, i, j)
+                                self.apply_rules(matrix, rule_object, i, j)
 
-    def apply_rules(self, events: List[pygame.event.Event], matrix, rule_object, i, j):
+    def apply_rules(self, matrix, rule_object, i, j):
         if not rule_object.special_text:
             is_hot = False
             is_hide = False
@@ -312,12 +311,6 @@ class PlayLevel(GameStrategy):
                 elif f'{rule_object.name} is safe' in rule.text_rule:
                     rule_object.is_safe = True
                     is_safe = True
-
-                elif f'{rule_object.name} is win' in rule.text_rule:
-                    for object in matrix[i][j]:
-                        for second_rule in self.level_rules:
-                            if f'{object.name} is you' in second_rule.text_rule:
-                                self.state = State(GameState.back)
 
                 elif f'{rule_object.name} is open' in rule.text_rule:
                     rule_object.is_open = is_open
@@ -379,8 +372,8 @@ class PlayLevel(GameStrategy):
             if self.matrix != copy_matrix or self.small_matrix_change:
                 self.history_of_matrix.append(self.copy_matrix(self.matrix))
                 self.matrix = copy_matrix
-
             self.find_rules()
+            
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:

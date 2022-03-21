@@ -6,6 +6,8 @@ from typing import List, Literal
 import pygame
 
 from classes.animation import Animation
+from classes.game_state import GameState
+from classes.state import State
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
 from settings import TEXT_ONLY, SPRITE_ONLY, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
@@ -119,6 +121,7 @@ is_text:    {self.is_text}
         self.is_open = False
         self.is_shut = False
         self.is_phantom = False
+        self.level_processor = None
 
         if self.name != 'empty' and self.animation == None:
             self.animation = self.animation_init()
@@ -247,8 +250,10 @@ is_text:    {self.is_text}
             if matrix[self.y][self.x][i].name == self.name:
                 return i
 
-    def move(self, matrix, level_rules):
+    def move(self, matrix, level_rules, level_processor):
         """Метод движения персонажа"""
+        self.level_processor = level_processor
+
         if self.turning_side == 0:
             self.motion(1, 0, matrix, level_rules)
             self.direction = 1
@@ -317,7 +322,8 @@ is_text:    {self.is_text}
                             return False
         for rule in level_rules:
             if self.is_hot and f'{rule_object.name} is melt' in rule.text_rule:
-                matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                matrix[self.y + delta_y][self.x +
+                                         delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_shut_open(self, delta_x, delta_y, matrix, level_rules, rule_object):
@@ -326,14 +332,16 @@ is_text:    {self.is_text}
                 if self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
                         or self.is_shut and f'{rule_object.name} is open' in rule.text_rule:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
-                    matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                    matrix[self.y + delta_y][self.x +
+                                             delta_x].pop(rule_object.get_index(matrix))
                     return False
         for rule in level_rules:
             if self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
                     or self.is_shut and f'{rule_object.name} is open' in rule.text_rule:
                 matrix[self.y][self.x].pop(self.get_index(
                     matrix)) if not self.is_safe else ...
-                matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                matrix[self.y + delta_y][self.x +
+                                         delta_x].pop(rule_object.get_index(matrix))
                 if not self.is_safe:
                     return False
                 else:
@@ -352,8 +360,18 @@ is_text:    {self.is_text}
             if f'{self.name} is defeat' in rule.text_rule:
                 for sec_rule in level_rules:
                     if f'{rule_object.name} is you' in sec_rule.text_rule:
-                        matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                        matrix[self.y + delta_y][self.x +
+                                                 delta_x].pop(rule_object.get_index(matrix))
         return True
+
+    def check_win(self, level_rules, rule_object):
+        for rule in level_rules:
+            if f'{rule_object.name} is win' in rule.text_rule:
+                for sec_rule in level_rules:
+                    if f'{self.name} is you' in sec_rule.text_rule:
+                        self.level_processor.state = State(GameState.back)
+                        return True
+        return False
 
     def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object):
         if self.check_swap(delta_x, delta_y, matrix, level_rules, rule_object) and \
@@ -390,7 +408,7 @@ is_text:    {self.is_text}
 
     def check_valid_range(self, delta_x, delta_y):
         return RESOLUTION[0] // 50 - 1 > self.x - delta_x > 0\
-                and RESOLUTION[1] // 50 - 1 > self.y - delta_y > 0
+            and RESOLUTION[1] // 50 - 1 > self.y - delta_y > 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules):
         if self.check_valid_range(delta_x, delta_y):
@@ -398,7 +416,8 @@ is_text:    {self.is_text}
                 if not rule_object.is_text and rule_object.name in NOUNS:
                     for rule in level_rules:
                         if f'{rule_object.name} is pull' in rule.text_rule:
-                            rule_object.motion(delta_x, delta_y, matrix, level_rules, 'pull')
+                            rule_object.motion(
+                                delta_x, delta_y, matrix, level_rules, 'pull')
 
     def check_locked(self, delta_x, delta_y):
         side = self.find_side(delta_x, delta_y)
@@ -419,18 +438,20 @@ is_text:    {self.is_text}
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
                 if not self.check_rules(delta_x, delta_y, matrix, level_rules, rule_object):
                     return False
-
+                self.check_win(level_rules, rule_object)
                 if self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules):
                     if self.object_can_move(rule_object, level_rules):
                         matrix[self.y][self.x].pop(self.get_index(matrix))
-                        self.pull_objects(delta_x, delta_y, matrix, level_rules)
+                        self.pull_objects(delta_x, delta_y,
+                                          matrix, level_rules)
                         self.update_parameters(delta_x, delta_y, matrix)
                     return True
 
                 if self.object_can_move(rule_object, level_rules):
                     if rule_object.motion(delta_x, delta_y, matrix, level_rules, 'push'):
                         matrix[self.y][self.x].pop(self.get_index(matrix))
-                        self.pull_objects(delta_x, delta_y, matrix, level_rules)
+                        self.pull_objects(delta_x, delta_y,
+                                          matrix, level_rules)
                         self.update_parameters(delta_x, delta_y, matrix)
                         return True
                     else:
@@ -458,9 +479,7 @@ is_text:    {self.is_text}
                     self.pull_objects(delta_x, delta_y, matrix, level_rules)
                     self.update_parameters(delta_x, delta_y, matrix)
 
-
             return True
-
 
     def check_events(self, events: List[pygame.event.Event]):
         """Метод обработки событий"""
