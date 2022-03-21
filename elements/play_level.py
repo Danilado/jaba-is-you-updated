@@ -251,89 +251,100 @@ class PlayLevel(GameStrategy):
                     self.status_cancel = False
                     self.moved = True
 
-    def apply_rules(self, events: List[pygame.event.Event], matrix):
-        Rules.processor.update_lists(matrix=matrix,
-                                     events=events,
-                                     level_rules=self.level_rules,
-                                     objects_for_tp=self.objects_for_tp,
-                                     state=self.state)
+    def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
+        for event in events:
+            if event.type == pygame.KEYDOWN:
+                Rules.processor.update_lists(matrix=matrix,
+                                             events=events,
+                                             level_rules=self.level_rules,
+                                             objects_for_tp=self.objects_for_tp,
+                                             state=self.state)
+                if event.key in [pygame.K_w, pygame.K_a, pygame.K_SPACE, pygame.K_UP,
+                                 pygame.K_LEFT]:
+                    for i in range(len(self.matrix)):
+                        for j in range(len(self.matrix[i])):
+                            for rule_object in self.matrix[i][j]:
+                                self.apply_rules(
+                                    [event], matrix, rule_object, i, j)
+                elif event.key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]:
+                    for i in range(len(self.matrix) - 1, -1, -1):
+                        for j in range(len(self.matrix[i]) - 1, -1, -1):
+                            for rule_object in self.matrix[i][j]:
+                                self.apply_rules(
+                                    [event], matrix, rule_object, i, j)
 
-        for i in range(len(self.matrix)):
-            for j in range(len(self.matrix[i])):
-                for rule_object in self.matrix[i][j]:
-                    #for i in range(len(self.matrix) - 1, -1, -1))
-                    #for i in range(0, len(self.matrix), 1)
-                    if not rule_object.special_text:
-                        is_hot = False
-                        is_hide = False
-                        is_safe = False
-                        locked_sides = []
-                        is_open = False
-                        is_shut = False
-                        is_phantom = False
+    def apply_rules(self, events: List[pygame.event.Event], matrix, rule_object, i, j):
+        if not rule_object.special_text:
+            is_hot = False
+            is_hide = False
+            is_safe = False
+            locked_sides = []
+            is_open = False
+            is_shut = False
+            is_phantom = False
 
-                        for rule in self.level_rules:
-                            if f'{rule_object.name} is hide' in rule.text_rule:
-                                is_hide = True
+            for rule in self.level_rules:
+                if f'{rule_object.name} is hide' in rule.text_rule:
+                    is_hide = True
 
-                            elif f'{rule_object.name} is hot' in rule.text_rule:
-                                is_hot = True
+                elif f'{rule_object.name} is hot' in rule.text_rule:
+                    is_hot = True
 
-                            elif f'{rule_object.name} is locked' in rule.text_rule:
-                                if f'{rule_object.name} is lockeddown' in rule.text_rule:
-                                    locked_sides.append('down')
-                                elif f'{rule_object.name} is lockedup' in rule.text_rule:
-                                    locked_sides.append('up')
-                                elif f'{rule_object.name} is lockedleft' in rule.text_rule:
-                                    locked_sides.append('left')
-                                elif f'{rule_object.name} is lockedright' in rule.text_rule:
-                                    locked_sides.append('right')
+                elif f'{rule_object.name} is locked' in rule.text_rule:
+                    if f'{rule_object.name} is lockeddown' in rule.text_rule:
+                        locked_sides.append('down')
+                    elif f'{rule_object.name} is lockedup' in rule.text_rule:
+                        locked_sides.append('up')
+                    elif f'{rule_object.name} is lockedleft' in rule.text_rule:
+                        locked_sides.append('left')
+                    elif f'{rule_object.name} is lockedright' in rule.text_rule:
+                        locked_sides.append('right')
 
-                            elif f'{rule_object.name} is melt' in rule.text_rule:
-                                if rule_object.is_hot:
-                                    matrix[i][j].remove(rule_object)
-                                else:
-                                    for object in matrix[i][j]:
-                                        if object.is_hot:
-                                            matrix[i][j].remove(
-                                                rule_object)
+                elif f'{rule_object.name} is melt' in rule.text_rule:
+                    if rule_object.is_hot:
+                        matrix[i][j].remove(rule_object)
+                    else:
+                        for object in matrix[i][j]:
+                            if object.is_hot:
+                                matrix[i][j].remove(
+                                    rule_object)
 
-                            elif f'{rule_object.name} is safe' in rule.text_rule:
-                                rule_object.is_safe = True
-                                is_safe = True
+                elif f'{rule_object.name} is safe' in rule.text_rule:
+                    rule_object.is_safe = True
+                    is_safe = True
 
-                            elif f'{rule_object.name} is win' in rule.text_rule:
-                                for object in matrix[i][j]:
-                                    for second_rule in self.level_rules:
-                                        if f'{object.name} is you' in second_rule.text_rule:
-                                            self.state = State(GameState.back)
+                elif f'{rule_object.name} is win' in rule.text_rule:
+                    for object in matrix[i][j]:
+                        for second_rule in self.level_rules:
+                            if f'{object.name} is you' in second_rule.text_rule:
+                                self.state = State(GameState.back)
 
-                            elif f'{rule_object.name} is open' in rule.text_rule:
-                                rule_object.is_open = is_open
-                                is_open = True
+                elif f'{rule_object.name} is open' in rule.text_rule:
+                    rule_object.is_open = is_open
+                    is_open = True
 
-                            elif f'{rule_object.name} is phantom' in rule.text_rule:
-                                rule_object.is_phantom = is_phantom
-                                is_phantom = True
+                elif f'{rule_object.name} is phantom' in rule.text_rule:
+                    rule_object.is_phantom = is_phantom
+                    is_phantom = True
 
-                            elif f'{rule_object.name} is shut' in rule.text_rule:
-                                rule_object.is_shut = is_shut
-                                is_shut = True
+                elif f'{rule_object.name} is shut' in rule.text_rule:
+                    rule_object.is_shut = is_shut
+                    is_shut = True
 
-                        rule_object.is_hot = is_hot
-                        rule_object.is_hide = is_hide
-                        rule_object.is_safe = is_safe
-                        rule_object.locked_sides = my_deepcopy(
-                            locked_sides)
-                        rule_object.is_open = is_open
-                        rule_object.is_shut = is_shut
-                        rule_object.is_phantom = is_phantom
+            rule_object.is_hot = is_hot
+            rule_object.is_hide = is_hide
+            rule_object.is_safe = is_safe
+            rule_object.locked_sides = my_deepcopy(
+                locked_sides)
+            rule_object.is_open = is_open
+            rule_object.is_shut = is_shut
+            rule_object.is_phantom = is_phantom
 
-                        for rule in self.level_rules:
+            for rule in self.level_rules:
 
-                            if rule_object.name in rule.text_rule:
-                                Rules.processor.update_object(rule_object)
-                                Rules.processor.process(rule.text_rule)
+                if rule_object.name in rule.text_rule:
+                    Rules.processor.update_object(rule_object)
+                    Rules.processor.process(rule.text_rule)
 
     def find_rules(self):
         self.level_rules = []
@@ -364,7 +375,7 @@ class PlayLevel(GameStrategy):
                         self.screen, (255, 255, 255), (x, y, 50, 50), 1)
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
-            self.apply_rules(events, copy_matrix)
+            self.detect_iteration_direction(events, copy_matrix)
             if self.matrix != copy_matrix or self.small_matrix_change:
                 self.history_of_matrix.append(self.copy_matrix(self.matrix))
                 self.matrix = copy_matrix
