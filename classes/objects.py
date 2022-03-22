@@ -543,12 +543,12 @@ is_text:    {self.is_text}
 
     def motion(self, delta_x, delta_y, matrix, level_rules, status=None):
         if self.check_locked(delta_x, delta_y) and not self.is_sleep:
-
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
                 if not self.check_rules(delta_x, delta_y, matrix, level_rules, rule_object):
                     return False
 
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
+                self.check_win(level_rules, rule_object)
                 if self.is_phantom\
                         or not rule_object.object_can_stop(rule_object, level_rules)\
                         or not self.can_interact(rule_object, level_rules):
