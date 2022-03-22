@@ -63,7 +63,7 @@ NOUNS = [
     'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed',
     'ring', 'road', 'robot', 'rock', 'rocket', 'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel',
     'sign', 'skull', 'spike', 'sprout', 'square', 'star', 'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth',
-    'text', 'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle',
+    'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle',
     'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm''algaе', 'all', 'anni', 'arrow', 'baba', 'badbad',
     'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom', 'boat', 'boba', 'bog', 'bolt', 'bomb', 'book',
     'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair',
@@ -88,11 +88,7 @@ OPERATORS = [
 
 'GOSPODIN:'
 """
-    5 sink
-    6 weak
-    7 word
-    8 sleep
-    9 still
+
 """
 
 PROPERTIES = [
