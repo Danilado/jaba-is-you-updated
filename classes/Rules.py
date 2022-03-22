@@ -32,6 +32,7 @@ class Deturn(Rule):
     def apply(self, matrix, rule_object, *_, **__):
         self.matrix = matrix
         self.rule_object = rule_object
+        matrix[self.rule_object.y][self.rule_object.x].pop(self.rule_object.get_index(matrix))
         self.rule_object.direction -= 1
         self.rule_object.status_of_rotate -= 1
         if self.rule_object.direction < 0:
@@ -39,12 +40,24 @@ class Deturn(Rule):
         if self.rule_object.status_of_rotate < 0:
             self.rule_object.status_of_rotate = 3
         self.rule_object.animation = self.rule_object.animation_init()
+        matrix[self.rule_object.y][self.rule_object.x].append(copy(self.rule_object))
+
+
+class Text(Rule):
+    def apply(self, matrix, rule_object, *_, **__):
+        self.matrix = matrix
+        self.rule_object = rule_object
+        matrix[self.rule_object.y][self.rule_object.x].pop(self.rule_object.get_index(matrix))
+        self.rule_object.is_text = True
+        self.rule_object.animation = self.rule_object.animation_init()
+        matrix[self.rule_object.y][self.rule_object.x].append(copy(self.rule_object))
 
 
 class Turn(Rule):
     def apply(self, matrix, rule_object, *_, **__):
         self.matrix = matrix
         self.rule_object = rule_object
+        matrix[self.rule_object.y][self.rule_object.x].pop(self.rule_object.get_index(matrix))
         self.rule_object.direction += 1
         self.rule_object.status_of_rotate += 1
         if self.rule_object.direction > 3:
@@ -52,6 +65,7 @@ class Turn(Rule):
         if self.rule_object.status_of_rotate > 3:
             self.rule_object.status_of_rotate = 0
         self.rule_object.animation = self.rule_object.animation_init()
+        matrix[self.rule_object.y][self.rule_object.x].append(copy(self.rule_object))
 
 
 class You(Rule):
@@ -206,7 +220,7 @@ class Shift(Rule):
         self.rule_object = rule_object
         self.level_rules = level_rules
         for object in self.matrix[self.rule_object.y][self.rule_object.x]:
-            if object.get_index(self.matrix) != self.rule_object.get_index(self.matrix):
+            if object.name != self.rule_object.name:
                 if self.rule_object.direction == 0:
                     object.motion(0, -1, self.matrix, self.level_rules, 'push')
                 elif self.rule_object.direction == 1:
@@ -286,7 +300,8 @@ class RuleProcessor:
             'deturn': Deturn(),
             'shift': Shift(),
             'tele': Tele(),
-            'move': Move()
+            'move': Move(),
+            'Text': Text()
         }
 
     def update_lists(self, matrix, events, level_rules, objects_for_tp, state):

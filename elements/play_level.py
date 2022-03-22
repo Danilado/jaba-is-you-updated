@@ -41,7 +41,6 @@ class PlayLevel(GameStrategy):
         self.circle_radius = 650
 
         self.delay = pygame.time.get_ticks()
-        self.small_matrix_change = False
         self.delay = pygame.time.get_ticks()
 
     def parse_file(self, level_name: str):
@@ -196,9 +195,11 @@ class PlayLevel(GameStrategy):
         for i in range(len(matrix)):
             for j in range(len(matrix[i])):
                 for obj in matrix[i][j]:
-                    copy_matrix[i][j].append(copy(obj))
+                    copy_object = copy(obj)
+                    copy_matrix[i][j].append(copy_object)
 
         return copy_matrix
+
 
     def music(self):
         # TODO by Gospodin: add music and theme choice in editor
@@ -247,6 +248,10 @@ class PlayLevel(GameStrategy):
                                  pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT]:
                     self.moved = True
             if event.type == pygame.KEYUP:
+                if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
+                                 pygame.K_d, pygame.K_SPACE, pygame.K_UP,
+                                 pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT]:
+                    self.moved = False
                 if event.key == pygame.K_z:
                     self.status_cancel = False
                     self.moved = True
@@ -282,13 +287,24 @@ class PlayLevel(GameStrategy):
             is_open = False
             is_shut = False
             is_phantom = False
+            is_text = False
+            is_still = False
+            is_sleep = False
+            is_weak = False
+            is_float = False
 
             for rule in self.level_rules:
                 if f'{rule_object.name} is hide' in rule.text_rule:
                     is_hide = True
 
+                elif f'{rule_object.name} is weak' in rule.text_rule:
+                    is_weak = True
+
                 elif f'{rule_object.name} is hot' in rule.text_rule:
                     is_hot = True
+
+                elif f'{rule_object.name} is still' in rule.text_rule:
+                    is_still = True
 
                 elif f'{rule_object.name} is locked' in rule.text_rule:
                     if f'{rule_object.name} is lockeddown' in rule.text_rule:
@@ -300,36 +316,26 @@ class PlayLevel(GameStrategy):
                     elif f'{rule_object.name} is lockedright' in rule.text_rule:
                         locked_sides.append('right')
 
-                elif f'{rule_object.name} is melt' in rule.text_rule:
-                    if rule_object.is_hot:
-                        matrix[i][j].remove(rule_object)
-                    else:
-                        for object in matrix[i][j]:
-                            if object.is_hot:
-                                matrix[i][j].remove(
-                                    rule_object)
-
                 elif f'{rule_object.name} is safe' in rule.text_rule:
-                    rule_object.is_safe = True
                     is_safe = True
 
-                elif f'{rule_object.name} is win' in rule.text_rule:
-                    for object in matrix[i][j]:
-                        for second_rule in self.level_rules:
-                            if f'{object.name} is you' in second_rule.text_rule:
-                                self.state = State(GameState.back)
-
                 elif f'{rule_object.name} is open' in rule.text_rule:
-                    rule_object.is_open = is_open
                     is_open = True
 
                 elif f'{rule_object.name} is phantom' in rule.text_rule:
-                    rule_object.is_phantom = is_phantom
                     is_phantom = True
 
                 elif f'{rule_object.name} is shut' in rule.text_rule:
-                    rule_object.is_shut = is_shut
                     is_shut = True
+
+                elif f'{rule_object.name} is text' in rule.text_rule:
+                    is_text = True
+
+                elif f'{rule_object.name} is sleep' in rule.text_rule:
+                    is_sleep = True
+
+                elif f'{rule_object.name} is float' in rule.text_rule:
+                    is_float = True
 
             rule_object.is_hot = is_hot
             rule_object.is_hide = is_hide
@@ -339,12 +345,24 @@ class PlayLevel(GameStrategy):
             rule_object.is_open = is_open
             rule_object.is_shut = is_shut
             rule_object.is_phantom = is_phantom
+            rule_object.is_text = is_text
+            rule_object.is_still = is_still
+            rule_object.is_sleep = is_sleep
+            rule_object.is_weak = is_weak
+            rule_object.is_float = is_float
 
             for rule in self.level_rules:
 
                 if rule_object.name in rule.text_rule:
                     Rules.processor.update_object(rule_object)
                     Rules.processor.process(rule.text_rule)
+
+            for rule in self.level_rules:
+                if f'{rule_object.name} is win' in rule.text_rule:
+                    for object in matrix[i][j]:
+                        for second_rule in self.level_rules:
+                            if f'{object.name} is you' in second_rule.text_rule:
+                                self.state = State(GameState.back)
 
     def find_rules(self):
         self.level_rules = []
@@ -376,9 +394,8 @@ class PlayLevel(GameStrategy):
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
             self.detect_iteration_direction(events, copy_matrix)
-            if self.matrix != copy_matrix or self.small_matrix_change:
-                self.history_of_matrix.append(self.copy_matrix(self.matrix))
-                self.matrix = copy_matrix
+            self.history_of_matrix.append(self.copy_matrix(self.matrix))
+            self.matrix = copy_matrix
 
             self.find_rules()
         for line in self.matrix:
@@ -395,13 +412,10 @@ class PlayLevel(GameStrategy):
             self.find_rules()
             self.first_iteration = False
 
-        if self.moved:
-            self.moved = False
-
-        if self.small_matrix_change:
-            self.small_matrix_change = False
 
         #self.level_start_animation() if self.circle_radius > 0 else ...
+        if self.moved:
+            self.moved = False
 
         if self.state is None:
             self.state = State(GameState.flip, None)
