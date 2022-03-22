@@ -1,10 +1,12 @@
 """draw_matrix.py hopefully refactored by Gospodin"""
+import math
 
 from utils import my_deepcopy
 from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY
 from global_types import SURFACE
 from elements.global_classes import sound_manager
 from classes.state import State
+from classes.ray_casting import raycasting
 from classes.TextRule import TextRule
 from classes.objects import Object
 from classes.game_strategy import GameStrategy
@@ -281,9 +283,13 @@ class PlayLevel(GameStrategy):
             is_open = False
             is_shut = False
             is_phantom = False
+            is_3d = False
 
             for rule in self.level_rules:
-                if f'{rule_object.name} is hide' in rule.text_rule:
+                if f'{rule_object.name} is 3d' in rule.text_rule:
+                    is_3d = True
+
+                elif f'{rule_object.name} is hide' in rule.text_rule:
                     is_hide = True
 
                 elif f'{rule_object.name} is hot' in rule.text_rule:
@@ -332,6 +338,7 @@ class PlayLevel(GameStrategy):
             rule_object.is_open = is_open
             rule_object.is_shut = is_shut
             rule_object.is_phantom = is_phantom
+            rule_object.is_3d = is_3d
 
             for rule in self.level_rules:
 
@@ -351,6 +358,7 @@ class PlayLevel(GameStrategy):
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         self.screen.fill("black")
         self.state = None
+        level_3d = False
 
         self.functional_event_check(events)
 
@@ -361,11 +369,6 @@ class PlayLevel(GameStrategy):
             else:
                 self.matrix = self.copy_matrix(self.start_matrix)
 
-        if SHOW_GRID:
-            for x in range(0, RESOLUTION[0], 50):
-                for y in range(0, RESOLUTION[1], 50):
-                    pygame.draw.rect(
-                        self.screen, (255, 255, 255), (x, y, 50, 50), 1)
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
             self.detect_iteration_direction(events, copy_matrix)
@@ -373,16 +376,32 @@ class PlayLevel(GameStrategy):
                 self.history_of_matrix.append(self.copy_matrix(self.matrix))
                 self.matrix = copy_matrix
             self.find_rules()
-            
+
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:
-                    if self.first_iteration or self.moved:
-                        if game_object.name in STICKY and not game_object.is_text:
-                            game_object.neighbours = self.get_neighbours(
-                                game_object.x, game_object.y)
-                            game_object.animation = game_object.animation_init()
-                    game_object.draw(self.screen)
+                    if game_object.is_3d:
+                        level_3d = True
+                        raycasting(self.screen, (game_object.xpx + 25, game_object.ypx + 25),
+                                   game_object.angle_3d / 180 * math.pi, self.matrix)
+                        break
+
+        if not level_3d:
+            for line in self.matrix:
+                for cell in line:
+                    for game_object in cell:
+                        if self.first_iteration or self.moved:
+                            if game_object.name in STICKY and not game_object.is_text:
+                                game_object.neighbours = self.get_neighbours(
+                                    game_object.x, game_object.y)
+                                game_object.animation = game_object.animation_init()
+                        game_object.draw(self.screen)
+
+            if SHOW_GRID:
+                for x in range(0, RESOLUTION[0], 50):
+                    for y in range(0, RESOLUTION[1], 50):
+                        pygame.draw.rect(
+                            self.screen, (255, 255, 255), (x, y, 50, 50), 1)
 
         if self.first_iteration:
             self.find_rules()

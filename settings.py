@@ -1,3 +1,4 @@
+import math
 from typing import Final, Tuple
 
 DEBUG: bool = True
@@ -103,3 +104,17 @@ PROPERTIES = [
     'sad', 'safe', 'scary', 'shift', 'sink', 'sleep', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win',
     'wonder', 'word', 'you', 'you2'
 ]
+
+# ray_cast settings
+HALF_WIDTH = RESOLUTION[0] // 2
+HALF_HEIGHT = RESOLUTION[1] // 2
+FPS = 60
+TILE = 50
+TEXTURE_SCALE = 50 // TILE
+FOV = math.pi / 3
+HALF_FOV = FOV / 2
+NUM_RAYS = 400
+MAX_DEPTH = 900
+DELTA_ANGLE = FOV / NUM_RAYS
+PROJ_COEFF = 3 * NUM_RAYS / (2 * math.tan(HALF_FOV)) * TILE
+SCALE = RESOLUTION[0] // NUM_RAYS
