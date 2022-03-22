@@ -1,5 +1,6 @@
 import abc
 from asyncio import events
+from operator import le
 import random
 
 from copy import copy
@@ -69,13 +70,23 @@ class Turn(Rule):
 
 
 class You(Rule):
-    def apply(self, matrix, rule_object, events, level_rules, *_, **__):
+    def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
         self.events = events
         self.level_rules = level_rules
         self.matrix = matrix
         self.rule_object = rule_object
         self.rule_object.check_events(self.events)
-        self.rule_object.move(self.matrix, self.level_rules)
+        self.rule_object.move(self.matrix, self.level_rules, level_processor)
+
+
+class Is_3d(Rule):
+    def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
+        self.events = events
+        self.level_rules = level_rules
+        self.matrix = matrix
+        self.rule_object = rule_object
+        self.rule_object.check_events(self.events)
+        self.rule_object.move(self.matrix, self.level_rules, level_processor)
 
 
 class Chill(Rule):
@@ -115,6 +126,7 @@ class Auto(Rule):
         elif self.rule_object.direction == 3:
             self.rule_object.motion(-1, 0, self.matrix, self.level_rules)
 
+
 class Move(Rule):
     def apply(self, matrix, rule_object, level_rules, *_, **__):
         self.level_rules = level_rules
@@ -136,7 +148,6 @@ class Move(Rule):
             if not self.rule_object.motion(-1, 0, self.matrix, self.level_rules):
                 self.rule_object.direction = 1
                 self.rule_object.motion(1, 0, self.matrix, self.level_rules)
-
 
 
 class Direction(Rule):
@@ -290,6 +301,7 @@ class RuleProcessor:
             'broken': Broken(),
             'deturn': Deturn(),
             'you': You(),
+            '3d': Is_3d(),
             'chill': Chill(),
             'boom': Boom(),
             'auto': Auto(),
@@ -304,11 +316,12 @@ class RuleProcessor:
             'Text': Text()
         }
 
-    def update_lists(self, matrix, events, level_rules, objects_for_tp, state):
+    def update_lists(self, level_processor, matrix, events):
+        self.level_processor = level_processor
         self.matrix = matrix
         self.events = events
-        self.rules = level_rules
-        self.objects_for_tp = objects_for_tp
+        self.rules = level_processor.level_rules
+        self.objects_for_tp = level_processor.objects_for_tp
 
     def update_object(self, object):
         self.object = object
@@ -321,7 +334,8 @@ class RuleProcessor:
                                                 rule_object=self.object,
                                                 events=self.events,
                                                 level_rules=self.rules,
-                                                objects_for_tp=self.objects_for_tp)
+                                                objects_for_tp=self.objects_for_tp,
+                                                level_processor=self.level_processor)
         return True
 
 

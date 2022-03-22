@@ -6,6 +6,8 @@ from typing import List, Literal
 import pygame
 
 from classes.animation import Animation
+from classes.game_state import GameState
+from classes.state import State
 from elements.global_classes import sprite_manager
 from global_types import SURFACE
 from settings import TEXT_ONLY, SPRITE_ONLY, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
@@ -57,7 +59,7 @@ is_text:    {self.is_text}
     def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
                  is_text: bool = True, movement_state: int = 0, neighbours=None,
                  turning_side: Literal[0, 1, 2, 3, -1] = -1, animation=None,
-                 safe=False):
+                 safe=False, angle_3d: int = 90, is_3d=False):
         """
         Инициализация объекта
 
@@ -88,6 +90,7 @@ is_text:    {self.is_text}
         self.turning_side = turning_side
         self.status_of_rotate: Literal[0, 1, 2, 3] = 0
         self.direction = direction
+        self.angle_3d = angle_3d
         self.direction_key_map = {
             0: 1,
             1: 0,
@@ -123,6 +126,8 @@ is_text:    {self.is_text}
         self.is_sleep = False
         self.is_weak = False
         self.is_float = False
+        self.is_3d = is_3d
+        self.level_processor = None
 
         if self.name != 'empty' and self.animation == None:
             self.animation = self.animation_init()
@@ -251,8 +256,16 @@ is_text:    {self.is_text}
             if matrix[self.y][self.x][i].name == self.name:
                 return i
 
-    def move(self, matrix, level_rules):
+    def move(self, matrix, level_rules, level_processor):
+        if self.is_3d:
+            self.move_3d(matrix, level_rules, level_processor)
+        else:
+            self.move_2d(matrix, level_rules, level_processor)
+
+    def move_2d(self, matrix, level_rules, level_processor):
         """Метод движения персонажа"""
+        self.level_processor = level_processor
+
         if self.turning_side == 0:
             self.motion(1, 0, matrix, level_rules)
             self.direction = 1
@@ -265,6 +278,32 @@ is_text:    {self.is_text}
         elif self.turning_side == 3:
             self.motion(0, 1, matrix, level_rules)
             self.direction = 2
+
+    def move_3d(self, matrix, level_rules, level_processor):
+        self.level_processor = level_processor
+        if self.turning_side == 2:
+            matrix[self.y][self.x].pop(self.get_index(matrix))
+            self.angle_3d = (self.angle_3d - 90) % 360
+            matrix[self.y][self.x].append(copy(self))
+        elif self.turning_side == 0:
+            matrix[self.y][self.x].pop(self.get_index(matrix))
+            self.angle_3d = (self.angle_3d + 90) % 360
+            matrix[self.y][self.x].append(copy(self))
+        elif self.turning_side == 1:
+            if self.angle_3d == 0:
+                self.direction = 1
+                self.motion(1, 0, matrix, level_rules)
+            if self.angle_3d == 180 or self.angle_3d == -180:
+                self.direction = 3
+                self.motion(-1, 0, matrix, level_rules)
+            if self.angle_3d == 90 or self.angle_3d == -270:
+                self.direction = 2
+                self.motion(0, 1, matrix, level_rules)
+            if self.angle_3d == -90 or self.angle_3d == 270:
+                self.direction = 0
+                self.motion(0, -1, matrix, level_rules)
+        elif self.turning_side == 3:
+            pass
 
     def find_side(self, delta_x, delta_y):
         side = None
@@ -322,7 +361,8 @@ is_text:    {self.is_text}
                             return False
         for rule in level_rules:
             if self.is_hot and f'{rule_object.name} is melt' in rule.text_rule:
-                matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                matrix[self.y + delta_y][self.x +
+                                         delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_weak(self, delta_x, delta_y, matrix, level_rules, rule_object):
@@ -342,18 +382,19 @@ is_text:    {self.is_text}
                 if self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
                         or self.is_shut and f'{rule_object.name} is open' in rule.text_rule:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
-                    matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                    matrix[self.y + delta_y][self.x +
+                                             delta_x].pop(rule_object.get_index(matrix))
                     return False
         for rule in level_rules:
             if self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
                     or self.is_shut and f'{rule_object.name} is open' in rule.text_rule:
                 matrix[self.y][self.x].pop(self.get_index(
                     matrix)) if not self.is_safe else ...
-                matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                matrix[self.y + delta_y][self.x +
+                                         delta_x].pop(rule_object.get_index(matrix))
                 if not self.is_safe:
                     return False
-                else:
-                    self.motion(delta_x, delta_y, matrix, level_rules)
+
         return True
 
     def check_defeat(self, delta_x, delta_y, matrix, level_rules, rule_object):
@@ -364,11 +405,18 @@ is_text:    {self.is_text}
                         if f'{self.name} is you' in sec_rule.text_rule:
                             matrix[self.y][self.x].pop(self.get_index(matrix))
                             return False
+                        elif f'{self.name} is 3d' in sec_rule.text_rule:
+                            matrix[self.y][self.x].pop(self.get_index(matrix))
+                            return False
         for rule in level_rules:
             if f'{self.name} is defeat' in rule.text_rule:
                 for sec_rule in level_rules:
                     if f'{rule_object.name} is you' in sec_rule.text_rule:
-                        matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                        matrix[self.y + delta_y][self.x +
+                                                 delta_x].pop(rule_object.get_index(matrix))
+                    elif f'{rule_object.name} is 3d' in sec_rule.text_rule:
+                        matrix[self.y + delta_y][self.x +
+                                                 delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_sink(self, delta_x, delta_y, matrix, level_rules, rule_object):
@@ -383,6 +431,18 @@ is_text:    {self.is_text}
                 matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
         return True
 
+    def check_win(self, level_rules, rule_object):
+        for rule in level_rules:
+            if f'{rule_object.name} is win' in rule.text_rule:
+                for sec_rule in level_rules:
+                    if f'{self.name} is you' in sec_rule.text_rule:
+                        self.level_processor.state = State(GameState.back)
+                        return True
+                    elif f'{self.name} is 3d' in sec_rule.text_rule:
+                        self.level_processor.state = State(GameState.back)
+                        return True
+        return False
+
     def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object):
         if self.can_interact(rule_object, level_rules):
             if self.check_swap(delta_x, delta_y, matrix, level_rules, rule_object) and \
@@ -391,9 +451,9 @@ is_text:    {self.is_text}
                     self.check_defeat(delta_x, delta_y, matrix, level_rules, rule_object) and \
                     self.check_sink(delta_x, delta_y, matrix, level_rules, rule_object) and \
                     self.check_weak(delta_x, delta_y, matrix, level_rules, rule_object):
-                    return 'good'
-            return 'bad'
-        return 'no interact'
+                return True
+        return False
+
 
 
     def object_can_stop(self, rule_object, level_rules):
@@ -416,6 +476,7 @@ is_text:    {self.is_text}
                     or f'{self.name} is chill' in rule.text_rule \
                     or f'{self.name} is you' in rule.text_rule \
                     or f'{self.name} is fall' in rule.text_rule \
+                    or f'{self.name} is 3d' in rule.text_rule \
                     or self.name in OPERATORS or self.name in PROPERTIES or (
                     self.name in NOUNS and self.is_text)\
                     and self.check_valid_range(0, 0):
@@ -423,8 +484,8 @@ is_text:    {self.is_text}
         return status
 
     def check_valid_range(self, delta_x, delta_y):
-        return RESOLUTION[0] // 50 - 1 > self.x - delta_x > 0\
-                and RESOLUTION[1] // 50 - 1 > self.y - delta_y > 0
+        return RESOLUTION[0] // 50 - 1 > self.x - delta_x > 0 \
+               and RESOLUTION[1] // 50 - 1 > self.y - delta_y > 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules):
         if self.check_valid_range(delta_x, delta_y):
@@ -432,7 +493,8 @@ is_text:    {self.is_text}
                 if not rule_object.is_text and rule_object.name in NOUNS:
                     for rule in level_rules:
                         if f'{rule_object.name} is pull' in rule.text_rule:
-                            rule_object.motion(delta_x, delta_y, matrix, level_rules, 'pull')
+                            rule_object.motion(
+                                delta_x, delta_y, matrix, level_rules, 'pull')
 
     def check_locked(self, delta_x, delta_y):
         side = self.find_side(delta_x, delta_y)
@@ -470,13 +532,10 @@ is_text:    {self.is_text}
 
     def motion(self, delta_x, delta_y, matrix, level_rules, status=None):
         if self.check_locked(delta_x, delta_y) and not self.is_sleep:
-            status_interact = True
 
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
-                status_interact = self.check_rules(delta_x, delta_y, matrix, level_rules, rule_object)
-
-            if status_interact == 'bad':
-                return False
+                if not self.check_rules(delta_x, delta_y, matrix, level_rules, rule_object):
+                    return False
 
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
                 if self.is_phantom\
@@ -484,14 +543,16 @@ is_text:    {self.is_text}
                         or not self.can_interact(rule_object, level_rules):
                     if self.object_can_move(rule_object, level_rules) and not self.is_still:
                         matrix[self.y][self.x].pop(self.get_index(matrix))
-                        self.pull_objects(delta_x, delta_y, matrix, level_rules)
+                        self.pull_objects(delta_x, delta_y,
+                                          matrix, level_rules)
                         self.update_parameters(delta_x, delta_y, matrix)
                         return True
 
                 if self.object_can_move(rule_object, level_rules) and not self.is_still:
                     if rule_object.motion(delta_x, delta_y, matrix, level_rules, 'push'):
                         matrix[self.y][self.x].pop(self.get_index(matrix))
-                        self.pull_objects(delta_x, delta_y, matrix, level_rules)
+                        self.pull_objects(delta_x, delta_y,
+                                          matrix, level_rules)
                         self.update_parameters(delta_x, delta_y, matrix)
                         return True
                     else:
@@ -524,7 +585,6 @@ is_text:    {self.is_text}
             return True
         else:
             return False
-
 
 
     def check_events(self, events: List[pygame.event.Event]):
@@ -569,6 +629,8 @@ is_text:    {self.is_text}
             neighbours=None,
             turning_side=self.turning_side,
             animation=self.animation,
-            safe=self.is_safe
+            safe=self.is_safe,
+            angle_3d=self.angle_3d,
+            is_3d=self.is_3d
         )
         return copy

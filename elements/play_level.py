@@ -1,10 +1,12 @@
 """draw_matrix.py hopefully refactored by Gospodin"""
+import math
 
 from utils import my_deepcopy
 from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY
 from global_types import SURFACE
 from elements.global_classes import sound_manager
 from classes.state import State
+from classes.ray_casting import raycasting
 from classes.TextRule import TextRule
 from classes.objects import Object
 from classes.game_strategy import GameStrategy
@@ -259,26 +261,25 @@ class PlayLevel(GameStrategy):
     def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
         for event in events:
             if event.type == pygame.KEYDOWN:
-                Rules.processor.update_lists(matrix=matrix,
-                                             events=events,
-                                             level_rules=self.level_rules,
-                                             objects_for_tp=self.objects_for_tp,
-                                             state=self.state)
                 if event.key in [pygame.K_w, pygame.K_a, pygame.K_SPACE, pygame.K_UP,
                                  pygame.K_LEFT]:
+                    Rules.processor.update_lists(level_processor=self,
+                                                 matrix=matrix,
+                                                 events=[event])
                     for i in range(len(self.matrix)):
                         for j in range(len(self.matrix[i])):
                             for rule_object in self.matrix[i][j]:
-                                self.apply_rules(
-                                    [event], matrix, rule_object, i, j)
+                                self.apply_rules(matrix, rule_object, i, j)
                 elif event.key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]:
+                    Rules.processor.update_lists(level_processor=self,
+                                                 matrix=matrix,
+                                                 events=[event])
                     for i in range(len(self.matrix) - 1, -1, -1):
                         for j in range(len(self.matrix[i]) - 1, -1, -1):
                             for rule_object in self.matrix[i][j]:
-                                self.apply_rules(
-                                    [event], matrix, rule_object, i, j)
+                                self.apply_rules(matrix, rule_object, i, j)
 
-    def apply_rules(self, events: List[pygame.event.Event], matrix, rule_object, i, j):
+    def apply_rules(self, matrix, rule_object, i, j):
         if not rule_object.special_text:
             is_hot = False
             is_hide = False
@@ -292,9 +293,13 @@ class PlayLevel(GameStrategy):
             is_sleep = False
             is_weak = False
             is_float = False
+            is_3d = False
 
             for rule in self.level_rules:
-                if f'{rule_object.name} is hide' in rule.text_rule:
+                if f'{rule_object.name} is 3d' in rule.text_rule:
+                    is_3d = True
+
+                elif f'{rule_object.name} is hide' in rule.text_rule:
                     is_hide = True
 
                 elif f'{rule_object.name} is weak' in rule.text_rule:
@@ -350,6 +355,7 @@ class PlayLevel(GameStrategy):
             rule_object.is_sleep = is_sleep
             rule_object.is_weak = is_weak
             rule_object.is_float = is_float
+            rule_object.is_3d = is_3d
 
             for rule in self.level_rules:
 
@@ -376,6 +382,7 @@ class PlayLevel(GameStrategy):
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         self.screen.fill("black")
         self.state = None
+        level_3d = False
 
         self.functional_event_check(events)
 
@@ -386,27 +393,38 @@ class PlayLevel(GameStrategy):
             else:
                 self.matrix = self.copy_matrix(self.start_matrix)
 
-        if SHOW_GRID:
-            for x in range(0, RESOLUTION[0], 50):
-                for y in range(0, RESOLUTION[1], 50):
-                    pygame.draw.rect(
-                        self.screen, (255, 255, 255), (x, y, 50, 50), 1)
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
             self.detect_iteration_direction(events, copy_matrix)
             self.history_of_matrix.append(self.copy_matrix(self.matrix))
             self.matrix = copy_matrix
-
             self.find_rules()
+
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:
-                    if self.first_iteration or self.moved:
-                        if game_object.name in STICKY and not game_object.is_text:
-                            game_object.neighbours = self.get_neighbours(
-                                game_object.x, game_object.y)
-                            game_object.animation = game_object.animation_init()
-                    game_object.draw(self.screen)
+                    if game_object.is_3d:
+                        level_3d = True
+                        raycasting(self.screen, (game_object.xpx + 25, game_object.ypx + 25),
+                                   game_object.angle_3d / 180 * math.pi, self.matrix)
+                        break
+
+        if not level_3d:
+            for line in self.matrix:
+                for cell in line:
+                    for game_object in cell:
+                        if self.first_iteration or self.moved:
+                            if game_object.name in STICKY and not game_object.is_text:
+                                game_object.neighbours = self.get_neighbours(
+                                    game_object.x, game_object.y)
+                                game_object.animation = game_object.animation_init()
+                        game_object.draw(self.screen)
+
+            if SHOW_GRID:
+                for x in range(0, RESOLUTION[0], 50):
+                    for y in range(0, RESOLUTION[1], 50):
+                        pygame.draw.rect(
+                            self.screen, (255, 255, 255), (x, y, 50, 50), 1)
 
         if self.first_iteration:
             self.find_rules()
