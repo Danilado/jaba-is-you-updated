@@ -128,7 +128,9 @@ is_text:    {self.is_text}
         self.is_float = False
         self.is_3d = is_3d
         self.level_processor = None
+
         self.moved = moved
+        self.recursively_used = False
 
         if self.name != 'empty' and self.animation == None:
             self.animation = self.animation_init()
@@ -256,12 +258,18 @@ is_text:    {self.is_text}
         for i in range(len(matrix[self.y][self.x])):
             if matrix[self.y][self.x][i].name == self.name:
                 return i
+        print('! Z bug appeared')
+        return -1
 
     def move(self, matrix, level_rules, level_processor):
-        if self.is_3d:
-            self.move_3d(matrix, level_rules, level_processor)
-        else:
-            self.move_2d(matrix, level_rules, level_processor)
+        try:
+            if self.is_3d:
+                self.move_3d(matrix, level_rules, level_processor)
+            else:
+                self.move_2d(matrix, level_rules, level_processor)
+        except IndexError:
+            print(
+                f'!!! an IndexError of some kind was caught while trying to move {self.name} (is you)')
 
     def move_2d(self, matrix, level_rules, level_processor):
         """Метод движения персонажа"""
@@ -375,7 +383,8 @@ is_text:    {self.is_text}
                     return False
         for rule in level_rules:
             if f'{rule_object.name} is weak' in rule.text_rule:
-                matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                matrix[self.y + delta_y][self.x +
+                                         delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_shut_open(self, delta_x, delta_y, matrix, level_rules, rule_object):
@@ -426,11 +435,13 @@ is_text:    {self.is_text}
             for rule in level_rules:
                 if f'{rule_object.name} is sink' in rule.text_rule:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
-                    matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                    matrix[self.y + delta_y][self.x +
+                                             delta_x].pop(rule_object.get_index(matrix))
                     return False
         for rule in level_rules:
             if f'{self.name} is sink' in rule.text_rule:
-                matrix[self.y + delta_y][self.x + delta_x].pop(rule_object.get_index(matrix))
+                matrix[self.y + delta_y][self.x +
+                                         delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_win(self, level_rules, rule_object):
@@ -455,8 +466,6 @@ is_text:    {self.is_text}
                     self.check_weak(delta_x, delta_y, matrix, level_rules, rule_object):
                 return True
         return False
-
-
 
     def object_can_stop(self, rule_object, level_rules):
         status = False
@@ -522,7 +531,7 @@ is_text:    {self.is_text}
                 status_float_rule_object = True
             if f'{rule_object.name} is push' in rule.text_rule \
                 and not (rule_object.name in OPERATORS or rule_object.name in PROPERTIES or (
-                        rule_object.name in NOUNS and rule_object.is_text)):
+                    rule_object.name in NOUNS and rule_object.is_text)):
                 status_push_rule_object = True
             if f'text is float' in rule.text_rule and self.is_text:
                 self.is_float = True
@@ -587,7 +596,6 @@ is_text:    {self.is_text}
             return True
         else:
             return False
-
 
     def check_events(self, events: List[pygame.event.Event]):
         """Метод обработки событий"""

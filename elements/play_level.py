@@ -202,7 +202,6 @@ class PlayLevel(GameStrategy):
 
         return copy_matrix
 
-
     def music(self):
         # TODO by Gospodin: add music and theme choice in editor
         sound_manager.load_music("sounds/Music/ruin")
@@ -379,6 +378,18 @@ class PlayLevel(GameStrategy):
         self.level_rules = self.remove_copied_rules(
             self.level_rules)
 
+    def update_sticky_neighbours(self, game_object: Object):
+        game_object.neighbours = self.get_neighbours(
+            game_object.x, game_object.y)
+        game_object.recursively_used = True
+        for neighbour_list in game_object.neighbours:
+            for neighbour in neighbour_list:
+                if not neighbour.recursively_used:
+                    neighbour.recursively_used = True
+                    self.update_sticky_neighbours(neighbour)
+        game_object.animation = game_object.animation_init()
+        game_object.moved = False
+
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         self.screen.fill("black")
         self.state = None
@@ -416,9 +427,7 @@ class PlayLevel(GameStrategy):
                         if self.first_iteration or self.moved:
                             if game_object.name in STICKY and not game_object.is_text and \
                                     (game_object.moved or self.first_iteration):
-                                game_object.neighbours = self.get_neighbours(
-                                    game_object.x, game_object.y)
-                                game_object.animation = game_object.animation_init()
+                                self.update_sticky_neighbours(game_object)
                         game_object.draw(self.screen)
 
             if SHOW_GRID:
@@ -430,7 +439,6 @@ class PlayLevel(GameStrategy):
         if self.first_iteration:
             self.find_rules()
             self.first_iteration = False
-
 
         #self.level_start_animation() if self.circle_radius > 0 else ...
         if self.moved:

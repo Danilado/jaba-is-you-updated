@@ -1,9 +1,6 @@
 0 0 0 turtle True
 1 0 0 is True
 2 0 0 you True
-3 0 1 wall True
-4 0 1 is False
-5 0 1 you False
 0 1 1 wall True
 1 1 1 is False
 2 1 1 push False

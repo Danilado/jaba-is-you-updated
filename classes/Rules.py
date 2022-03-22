@@ -33,7 +33,8 @@ class Deturn(Rule):
     def apply(self, matrix, rule_object, *_, **__):
         self.matrix = matrix
         self.rule_object = rule_object
-        matrix[self.rule_object.y][self.rule_object.x].pop(self.rule_object.get_index(matrix))
+        matrix[self.rule_object.y][self.rule_object.x].pop(
+            self.rule_object.get_index(matrix))
         self.rule_object.direction -= 1
         self.rule_object.status_of_rotate -= 1
         if self.rule_object.direction < 0:
@@ -41,24 +42,28 @@ class Deturn(Rule):
         if self.rule_object.status_of_rotate < 0:
             self.rule_object.status_of_rotate = 3
         self.rule_object.animation = self.rule_object.animation_init()
-        matrix[self.rule_object.y][self.rule_object.x].append(copy(self.rule_object))
+        matrix[self.rule_object.y][self.rule_object.x].append(
+            copy(self.rule_object))
 
 
 class Text(Rule):
     def apply(self, matrix, rule_object, *_, **__):
         self.matrix = matrix
         self.rule_object = rule_object
-        matrix[self.rule_object.y][self.rule_object.x].pop(self.rule_object.get_index(matrix))
+        matrix[self.rule_object.y][self.rule_object.x].pop(
+            self.rule_object.get_index(matrix))
         self.rule_object.is_text = True
         self.rule_object.animation = self.rule_object.animation_init()
-        matrix[self.rule_object.y][self.rule_object.x].append(copy(self.rule_object))
+        matrix[self.rule_object.y][self.rule_object.x].append(
+            copy(self.rule_object))
 
 
 class Turn(Rule):
     def apply(self, matrix, rule_object, *_, **__):
         self.matrix = matrix
         self.rule_object = rule_object
-        matrix[self.rule_object.y][self.rule_object.x].pop(self.rule_object.get_index(matrix))
+        matrix[self.rule_object.y][self.rule_object.x].pop(
+            self.rule_object.get_index(matrix))
         self.rule_object.direction += 1
         self.rule_object.status_of_rotate += 1
         if self.rule_object.direction > 3:
@@ -66,7 +71,8 @@ class Turn(Rule):
         if self.rule_object.status_of_rotate > 3:
             self.rule_object.status_of_rotate = 0
         self.rule_object.animation = self.rule_object.animation_init()
-        matrix[self.rule_object.y][self.rule_object.x].append(copy(self.rule_object))
+        matrix[self.rule_object.y][self.rule_object.x].append(
+            copy(self.rule_object))
 
 
 class You(Rule):
@@ -329,13 +335,19 @@ class RuleProcessor:
     def process(self, rule) -> bool:
         if rule.split()[-1] not in self.dictionary:
             return False
-
-        self.dictionary[rule.split()[-1]].apply(matrix=self.matrix,
-                                                rule_object=self.object,
-                                                events=self.events,
-                                                level_rules=self.rules,
-                                                objects_for_tp=self.objects_for_tp,
-                                                level_processor=self.level_processor)
+        try:
+            self.dictionary[rule.split()[-1]].apply(matrix=self.matrix,
+                                                    rule_object=self.object,
+                                                    events=self.events,
+                                                    level_rules=self.rules,
+                                                    objects_for_tp=self.objects_for_tp,
+                                                    level_processor=self.level_processor)
+        except IndexError:
+            print(
+                f'!!! IndexError appeared somewhere in {rule.split()[-1]} rule')
+        except RecursionError:
+            print(
+                f'!!! RecursionError appeared somewhere in {rule.split()[-1]} rule')
         return True
 
 
