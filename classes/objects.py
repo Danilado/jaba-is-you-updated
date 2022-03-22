@@ -59,7 +59,7 @@ is_text:    {self.is_text}
     def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
                  is_text: bool = True, movement_state: int = 0, neighbours=None,
                  turning_side: Literal[0, 1, 2, 3, -1] = -1, animation=None,
-                 safe=False, angle_3d: int = 90, is_3d=False):
+                 safe=False, angle_3d: int = 90, is_3d=False, moved=False):
         """
         Инициализация объекта
 
@@ -124,6 +124,7 @@ is_text:    {self.is_text}
         self.is_phantom = False
         self.is_3d = is_3d
         self.level_processor = None
+        self.moved = moved
 
         if self.name != 'empty' and self.animation == None:
             self.animation = self.animation_init()
@@ -263,16 +264,16 @@ is_text:    {self.is_text}
         self.level_processor = level_processor
 
         if self.turning_side == 0:
-            self.motion(1, 0, matrix, level_rules)
+            self.moved = self.motion(1, 0, matrix, level_rules)
             self.direction = 1
         elif self.turning_side == 1:
-            self.motion(0, -1, matrix, level_rules)
+            self.moved = self.motion(0, -1, matrix, level_rules)
             self.direction = 0
         elif self.turning_side == 2:
-            self.motion(-1, 0, matrix, level_rules)
+            self.moved = self.motion(-1, 0, matrix, level_rules)
             self.direction = 3
         elif self.turning_side == 3:
-            self.motion(0, 1, matrix, level_rules)
+            self.moved = self.motion(0, 1, matrix, level_rules)
             self.direction = 2
 
     def move_3d(self, matrix, level_rules, level_processor):
@@ -320,6 +321,7 @@ is_text:    {self.is_text}
         self.xpx -= delta_x * 50
         self.animation = None
         self.movement_state += 1
+        self.moved = True
         side = self.find_side(delta_x, delta_y)
         if side == 'down':
             self.status_of_rotate = 3
@@ -452,7 +454,7 @@ is_text:    {self.is_text}
 
     def check_valid_range(self, delta_x, delta_y):
         return RESOLUTION[0] // 50 - 1 > self.x - delta_x > 0 \
-               and RESOLUTION[1] // 50 - 1 > self.y - delta_y > 0
+            and RESOLUTION[1] // 50 - 1 > self.y - delta_y > 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules):
         if self.check_valid_range(delta_x, delta_y):
@@ -569,6 +571,7 @@ is_text:    {self.is_text}
             animation=self.animation,
             safe=self.is_safe,
             angle_3d=self.angle_3d,
-            is_3d=self.is_3d
+            is_3d=self.is_3d,
+            moved=self.moved
         )
         return copy

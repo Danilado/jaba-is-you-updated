@@ -391,7 +391,8 @@ class PlayLevel(GameStrategy):
                 for cell in line:
                     for game_object in cell:
                         if self.first_iteration or self.moved:
-                            if game_object.name in STICKY and not game_object.is_text:
+                            if game_object.name in STICKY and not game_object.is_text and \
+                                    (game_object.moved or self.first_iteration):
                                 game_object.neighbours = self.get_neighbours(
                                     game_object.x, game_object.y)
                                 game_object.animation = game_object.animation_init()

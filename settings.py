@@ -4,7 +4,7 @@ from typing import Final, Tuple
 DEBUG: bool = True
 
 RESOLUTION: Final[Tuple[int, int]] = (1600, 900)  # 32x18
-SHOW_GRID: Final[bool] = True
+SHOW_GRID: Final[bool] = False
 FRAMES_PER_SECOND: Final[int] = 60
 
 TEXT_ONLY = [
