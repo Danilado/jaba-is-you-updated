@@ -65,6 +65,16 @@ class You(Rule):
         self.rule_object.move(self.matrix, self.level_rules, level_processor)
 
 
+class Is_3d(Rule):
+    def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
+        self.events = events
+        self.level_rules = level_rules
+        self.matrix = matrix
+        self.rule_object = rule_object
+        self.rule_object.check_events(self.events)
+        self.rule_object.move(self.matrix, self.level_rules, level_processor)
+
+
 class Chill(Rule):
     def apply(self, matrix, rule_object, level_rules, *_, **__):
         self.matrix = matrix
@@ -277,6 +287,7 @@ class RuleProcessor:
             'broken': Broken(),
             'deturn': Deturn(),
             'you': You(),
+            '3d': Is_3d(),
             'chill': Chill(),
             'boom': Boom(),
             'auto': Auto(),
