@@ -45,17 +45,6 @@ class Object:
     :ivar animation: Анимация объекта
     """
 
-    def debug(self):
-        return print(f"""
--- {self.x} {self.y} ---
-x:          {self.x}
-y:          {self.y}
-direction:  {self.direction}
-name:       {self.name}
-is_text:    {self.is_text}
---- {(len(str(self.x)) + len(str(self.y))) * ' '} ---
-        """)  # TODO: Use logger library
-
     def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
                  is_text: bool = True, movement_state: int = 0, neighbours=None,
                  turning_side: Literal[0, 1, 2, 3, -1] = -1, animation=None,
@@ -501,7 +490,7 @@ is_text:    {self.is_text}
 
     def check_valid_range(self, delta_x, delta_y):
         return RESOLUTION[0] // 50 - 1 >= self.x + delta_x >= 0 \
-               and RESOLUTION[1] // 50 - 1 >= self.y + delta_y >= 0
+            and RESOLUTION[1] // 50 - 1 >= self.y + delta_y >= 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules):
         if self.check_valid_range(delta_x, delta_y):
@@ -549,7 +538,8 @@ is_text:    {self.is_text}
     def motion(self, delta_x, delta_y, matrix, level_rules, status=None):
         if self.check_locked(delta_x, delta_y) and not self.is_sleep:
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
-                self.check_rules(delta_x, delta_y, matrix, level_rules, rule_object)
+                self.check_rules(delta_x, delta_y, matrix,
+                                 level_rules, rule_object)
             if self.status == 'dead':
                 return True
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
@@ -558,8 +548,8 @@ is_text:    {self.is_text}
                     return False
             status_motion = 'no collision'
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
-                if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True)\
-                    or not self.can_interact(rule_object, level_rules)) and status_motion != False:
+                if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True)
+                        or not self.can_interact(rule_object, level_rules)) and status_motion != False:
                     if self.object_can_move(level_rules) and not self.is_still:
                         status_motion = True
 

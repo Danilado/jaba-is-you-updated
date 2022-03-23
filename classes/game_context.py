@@ -95,12 +95,7 @@ class GameContext:
                 draw_state = self.game_strategy.draw(events, delta_time)
 
                 if not pygame.mixer.music.get_busy():
-                    # TODO: try-except should be removed because they are slow and
-                    #  are in a game cycle that should be as fast as possible.
-                    try:
-                        pygame.mixer.music.play()
-                    except pygame.error:
-                        pass
+                    pygame.mixer.music.play()
 
                 if draw_state is not None:
                     if draw_state.game_state is GameState.stop:

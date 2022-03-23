@@ -14,7 +14,6 @@ from classes.game_state import GameState
 import classes.Rules as Rules
 import pygame
 from typing import List, Optional
-from sqlite3 import Timestamp
 from copy import copy
 
 
@@ -204,6 +203,7 @@ class PlayLevel(GameStrategy):
 
     def music(self):
         # TODO by Gospodin: add music and theme choice in editor
+        # Issue created.
         sound_manager.load_music("sounds/Music/ruin")
 
     @staticmethod
