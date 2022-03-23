@@ -82,6 +82,7 @@ is_text:    {self.is_text}
         :param is_text: Переменная определяющая является объект текстом, или нет
         """
 
+        self.status = ''
         self.name: str = name
         if self.name in TEXT_ONLY:
             self.is_text = True
@@ -358,7 +359,6 @@ is_text:    {self.is_text}
                 self.update_parameters(delta_x, delta_y, matrix)
                 matrix[self.y][self.x].pop(rule_object.get_index(matrix))
                 rule_object.update_parameters(-delta_x, -delta_y, matrix)
-                return False
         return True
 
     def check_melt(self, delta_x, delta_y, matrix, level_rules, rule_object):
@@ -457,27 +457,32 @@ is_text:    {self.is_text}
         return False
 
     def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object):
+        self.status = 'alive'
         if self.can_interact(rule_object, level_rules):
-            if self.check_swap(delta_x, delta_y, matrix, level_rules, rule_object) and \
-                    self.check_melt(delta_x, delta_y, matrix, level_rules, rule_object) and \
-                    self.check_shut_open(delta_x, delta_y, matrix, level_rules, rule_object) and \
-                    self.check_defeat(delta_x, delta_y, matrix, level_rules, rule_object) and \
-                    self.check_sink(delta_x, delta_y, matrix, level_rules, rule_object) and \
-                    self.check_weak(delta_x, delta_y, matrix, level_rules, rule_object):
-                return True
-        return False
+            self.check_win(level_rules, rule_object)
+            if not self.check_swap(delta_x, delta_y, matrix, level_rules, rule_object) or \
+                    not self.check_melt(delta_x, delta_y, matrix, level_rules, rule_object) or \
+                    not self.check_shut_open(delta_x, delta_y, matrix, level_rules, rule_object) or \
+                    not self.check_defeat(delta_x, delta_y, matrix, level_rules, rule_object) or \
+                    not self.check_sink(delta_x, delta_y, matrix, level_rules, rule_object) or \
+                    not self.check_weak(delta_x, delta_y, matrix, level_rules, rule_object):
+                self.status = 'dead'
+        return True
 
-    def object_can_stop(self, rule_object, level_rules):
+    def object_can_stop(self, rule_object, level_rules, with_push=False):
         status = False
         for rule in level_rules:
             if f'{rule_object.name} is stop' in rule.text_rule or f'{rule_object.name} is pull' in rule.text_rule \
-                    or rule_object.name in OPERATORS or rule_object.name in PROPERTIES or (
-                    rule_object.name in NOUNS and rule_object.is_text) \
-                    or f'{rule_object.name} is push' in rule.text_rule and self.can_interact(rule_object, level_rules):
+                    and self.can_interact(rule_object, level_rules):
                 status = True
+            if with_push:
+                if f'{rule_object.name} is push' in rule.text_rule \
+                        or rule_object.name in OPERATORS or rule_object.name in PROPERTIES \
+                        or (rule_object.name in NOUNS and rule_object.is_text):
+                    status = True
         return status
 
-    def object_can_move(self, rule_object, level_rules):
+    def object_can_move(self, level_rules):
         status = False
         for rule in level_rules:
             if f'{self.name} is move' in rule.text_rule \
@@ -489,14 +494,14 @@ is_text:    {self.is_text}
                     or f'{self.name} is fall' in rule.text_rule \
                     or f'{self.name} is 3d' in rule.text_rule \
                     or self.name in OPERATORS or self.name in PROPERTIES or (
-                    self.name in NOUNS and self.is_text)\
+                    self.name in NOUNS and self.is_text) \
                     and self.check_valid_range(0, 0):
                 status = True
         return status
 
     def check_valid_range(self, delta_x, delta_y):
-        return RESOLUTION[0] // 50 - 1 > self.x - delta_x > 0 \
-            and RESOLUTION[1] // 50 - 1 > self.y - delta_y > 0
+        return RESOLUTION[0] // 50 - 1 >= self.x + delta_x >= 0 \
+               and RESOLUTION[1] // 50 - 1 >= self.y + delta_y >= 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules):
         if self.check_valid_range(delta_x, delta_y):
@@ -525,49 +530,53 @@ is_text:    {self.is_text}
         status_float_rule_object = False
         status_push_rule_object = False
         for rule in level_rules:
-            if f'{rule_object.name} is float' in rule.text_rule\
+            if f'{rule_object.name} is float' in rule.text_rule \
                     and not (rule_object.name in OPERATORS or rule_object.name in PROPERTIES or (
                     rule_object.name in NOUNS and rule_object.is_text)):
                 status_float_rule_object = True
             if f'{rule_object.name} is push' in rule.text_rule \
-                and not (rule_object.name in OPERATORS or rule_object.name in PROPERTIES or (
+                    and not (rule_object.name in OPERATORS or rule_object.name in PROPERTIES or (
                     rule_object.name in NOUNS and rule_object.is_text)):
                 status_push_rule_object = True
             if f'text is float' in rule.text_rule and self.is_text:
                 self.is_float = True
-        if self.is_float == status_float_rule_object\
+        if self.is_float == status_float_rule_object \
                 or rule_object.name in OPERATORS or rule_object.name in PROPERTIES or (
-                    rule_object.name in NOUNS and rule_object.is_text) or status_push_rule_object:
+                rule_object.name in NOUNS and rule_object.is_text) or status_push_rule_object:
             return True
         return False
 
     def motion(self, delta_x, delta_y, matrix, level_rules, status=None):
         if self.check_locked(delta_x, delta_y) and not self.is_sleep:
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
-                if not self.check_rules(delta_x, delta_y, matrix, level_rules, rule_object):
-                    return False
-
+                self.check_rules(delta_x, delta_y, matrix, level_rules, rule_object)
+            if self.status == 'dead':
+                return True
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
-                self.check_win(level_rules, rule_object)
-                if self.is_phantom\
-                        or not rule_object.object_can_stop(rule_object, level_rules)\
-                        or not self.can_interact(rule_object, level_rules):
-                    if self.object_can_move(rule_object, level_rules) and not self.is_still:
-                        matrix[self.y][self.x].pop(self.get_index(matrix))
-                        self.pull_objects(delta_x, delta_y,
-                                          matrix, level_rules)
-                        self.update_parameters(delta_x, delta_y, matrix)
-                        return True
+                if rule_object.object_can_stop(rule_object, level_rules) \
+                        and self.can_interact(rule_object, level_rules):
+                    return False
+            status_motion = 'no collision'
+            for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
+                if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True)\
+                    or not self.can_interact(rule_object, level_rules)) and status_motion != False:
+                    if self.object_can_move(level_rules) and not self.is_still:
+                        status_motion = True
 
-                if self.object_can_move(rule_object, level_rules) and not self.is_still:
+                elif self.object_can_move(level_rules) and not self.is_still and status_motion != False:
                     if rule_object.motion(delta_x, delta_y, matrix, level_rules, 'push'):
-                        matrix[self.y][self.x].pop(self.get_index(matrix))
-                        self.pull_objects(delta_x, delta_y,
-                                          matrix, level_rules)
-                        self.update_parameters(delta_x, delta_y, matrix)
-                        return True
+                        status_motion = True
                     else:
-                        return False
+                        status_motion = False
+
+            if status_motion == True:
+                matrix[self.y][self.x].pop(self.get_index(matrix))
+                self.pull_objects(delta_x, delta_y,
+                                  matrix, level_rules)
+                self.update_parameters(delta_x, delta_y, matrix)
+                return True
+            elif status_motion == False:
+                return False
 
             for rule in level_rules:
                 if f'{self.name} is push' in rule.text_rule and status == 'push' and not self.is_text:
@@ -597,20 +606,43 @@ is_text:    {self.is_text}
         else:
             return False
 
-    def check_events(self, events: List[pygame.event.Event]):
+    def check_events(self, events: List[pygame.event.Event], number):
         """Метод обработки событий"""
         for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_d:
-                    self.turning_side = 0
-                if event.key == pygame.K_w:
-                    self.turning_side = 1
-                if event.key == pygame.K_a:
-                    self.turning_side = 2
-                if event.key == pygame.K_s:
-                    self.turning_side = 3
-                if event.key == pygame.K_SPACE:
-                    self.turning_side = -1
+            if number == 1:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_d:
+                        self.turning_side = 0
+                    if event.key == pygame.K_w:
+                        self.turning_side = 1
+                    if event.key == pygame.K_a:
+                        self.turning_side = 2
+                    if event.key == pygame.K_s:
+                        self.turning_side = 3
+                    if event.key in [pygame.K_RIGHT, pygame.K_LEFT, pygame.K_DOWN,
+                                     pygame.K_UP, pygame.K_SPACE]:
+                        self.turning_side = -1
+                if event.type == pygame.KEYUP:
+                    if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
+                                     pygame.K_d, pygame.K_SPACE]:
+                        self.turning_side = -1
+            if number == 2:
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RIGHT:
+                        self.turning_side = 0
+                    if event.key == pygame.K_UP:
+                        self.turning_side = 1
+                    if event.key == pygame.K_LEFT:
+                        self.turning_side = 2
+                    if event.key == pygame.K_DOWN:
+                        self.turning_side = 3
+                    if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
+                                     pygame.K_d, pygame.K_SPACE]:
+                        self.turning_side = -1
+                if event.type == pygame.KEYUP:
+                    if event.key in [pygame.K_RIGHT, pygame.K_LEFT, pygame.K_DOWN,
+                                     pygame.K_UP, pygame.K_SPACE]:
+                        self.turning_side = -1
 
     @property
     def is_operator(self) -> bool:

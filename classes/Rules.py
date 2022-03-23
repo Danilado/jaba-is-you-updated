@@ -81,7 +81,16 @@ class You(Rule):
         self.level_rules = level_rules
         self.matrix = matrix
         self.rule_object = rule_object
-        self.rule_object.check_events(self.events)
+        self.rule_object.check_events(self.events, 1)
+        self.rule_object.move(self.matrix, self.level_rules, level_processor)
+
+class You2(Rule):
+    def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
+        self.events = events
+        self.level_rules = level_rules
+        self.matrix = matrix
+        self.rule_object = rule_object
+        self.rule_object.check_events(self.events, 2)
         self.rule_object.move(self.matrix, self.level_rules, level_processor)
 
 
@@ -319,7 +328,8 @@ class RuleProcessor:
             'shift': Shift(),
             'tele': Tele(),
             'move': Move(),
-            'Text': Text()
+            'text': Text(),
+            'you2': You2(),
         }
 
     def update_lists(self, level_processor, matrix, events):
@@ -342,9 +352,9 @@ class RuleProcessor:
                                                     level_rules=self.rules,
                                                     objects_for_tp=self.objects_for_tp,
                                                     level_processor=self.level_processor)
-        except IndexError:
-            print(
-                f'!!! IndexError appeared somewhere in {rule.split()[-1]} rule')
+        #except IndexError:
+         #   print(
+        #        f'!!! IndexError appeared somewhere in {rule.split()[-1]} rule')
         except RecursionError:
             print(
                 f'!!! RecursionError appeared somewhere in {rule.split()[-1]} rule')
