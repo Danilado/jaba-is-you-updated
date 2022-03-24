@@ -14,7 +14,7 @@ from classes.game_state import GameState
 from classes.state import State
 
 pygame.font.init()
-font = pygame.font.SysFont('segoeuisemibold', 15)
+font = pygame.font.Font("fonts/ConsolateElf.ttf", 15)
 
 
 # TODO by quswadress

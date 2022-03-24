@@ -39,8 +39,8 @@ class Input:
         self.placeholder = placeholder
         self.settings = settings
         self.outline = outline
-        self.font = pygame.font.SysFont(
-            'segoeuisemibold', self.settings.text_size)
+        self.font = pygame.font.Font(
+            "fonts/ConsolateElf.ttf", self.settings.text_size)
         self.focused = False
         self.pressed = False
 
