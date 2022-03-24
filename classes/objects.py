@@ -81,10 +81,15 @@ is_text:    {self.is_text}
         self.name: str = name
         if self.name in TEXT_ONLY:
             self.is_text = True
+<<<<<<< HEAD
         self.is_text = is_text
 
         self.turning_side = turning_side
         self.status_of_rotate: Literal[0, 1, 2, 3] = 0
+=======
+        self.text = is_text  # TODO: Rename text to is_text.
+        # Используется с правилами move, turn, shift и т.д.
+>>>>>>> 9c306d385fae7cafc3d81fcc942063b51922f454
         self.direction = direction
         self.direction_key_map = {
             0: 1,
@@ -112,7 +117,12 @@ is_text:    {self.is_text}
         self.is_hide = False
         self.is_hot = False
         self.locked_sides = []
+<<<<<<< HEAD
 
+=======
+        self.angle_3d = -90 + 90 * self.direction
+        self.animation = None
+>>>>>>> 9c306d385fae7cafc3d81fcc942063b51922f454
         if self.name != 'empty':
             self.animation = self.animation_init()
 
@@ -235,23 +245,29 @@ is_text:    {self.is_text}
         """Сериализовать объект в строку"""
         return f'{self.x} {self.y} {self.direction} {self.name} {self.is_text}'
 
-    def move(self, matrix, level_rules):  # TODO: use Δt to calculate distance move
+    def move(self, matrix, level_rules, flag_3d):
+        if flag_3d:
+            self.move_3d(matrix, level_rules, flag_3d)
+        else:
+            self.move_2d(matrix, level_rules, flag_3d)
+
+    def move_2d(self, matrix, level_rules, flag_3d):  # TODO: use Δt to calculate distance move
         """Метод движения персонажа"""
         moved = False
         if self.turning_side == 0:
-            self.move_right(matrix, level_rules)
+            self.move_right(matrix, level_rules, flag_3d=flag_3d)
             self.direction = 1
             moved = True
         elif self.turning_side == 1:
-            self.move_up(matrix, level_rules)
+            self.move_up(matrix, level_rules, flag_3d=flag_3d)
             self.direction = 0
             moved = True
         elif self.turning_side == 2:
-            self.move_left(matrix, level_rules)
+            self.move_left(matrix, level_rules, flag_3d=flag_3d)
             self.direction = 3
             moved = True
         elif self.turning_side == 3:
-            self.move_down(matrix, level_rules)
+            self.move_down(matrix, level_rules, flag_3d=flag_3d)
             self.direction = 2
             moved = True
         if moved:
@@ -259,7 +275,48 @@ is_text:    {self.is_text}
             self.animation_init()
             self.turning_side = -1
 
-    def move_up(self, matrix, level_rules, status_push=None):
+    def move_3d(self, matrix, level_rules, flag_3d):  # TODO: use Δt to calculate distance move
+        moved = False
+        if self.turning_side == 2:
+            self.angle_3d = (self.angle_3d - 90) % 360
+
+        elif self.turning_side == 0:
+            self.angle_3d = (self.angle_3d + 90) % 360
+
+        elif self.turning_side == 1:
+            if self.angle_3d == 0:
+                self.direction = 1
+                self.move_right(matrix, level_rules, flag_3d=flag_3d)
+            if self.angle_3d == 180 or self.angle_3d == -180:
+                self.direction = 3
+                self.move_left(matrix, level_rules, flag_3d=flag_3d)
+            if self.angle_3d == 90 or self.angle_3d == -270:
+                self.direction = 2
+                self.move_down(matrix, level_rules, flag_3d=flag_3d)
+            if self.angle_3d == -90 or self.angle_3d == 270:
+                self.direction = 0
+                self.move_up(matrix, level_rules, flag_3d=flag_3d)
+            moved = True
+        elif self.turning_side == 3:
+            if self.angle_3d == 0:
+                self.direction = 1
+                self.move_left(matrix, level_rules, flag_3d=flag_3d)
+            if self.angle_3d == 180 or self.angle_3d == -180:
+                self.direction = 3
+                self.move_right(matrix, level_rules, flag_3d=flag_3d)
+            if self.angle_3d == 90 or self.angle_3d == -270:
+                self.direction = 2
+                self.move_up(matrix, level_rules, flag_3d=flag_3d)
+            if self.angle_3d == -90 or self.angle_3d == 270:
+                self.direction = 0
+                self.move_down(matrix, level_rules, flag_3d=flag_3d)
+            moved = True
+        if moved:
+            self.movement_state += 1
+            self.animation_init()
+        self.turning_side = -1
+
+    def move_up(self, matrix, level_rules, status_push=None, flag_3d=False):
         """Метод движения объекта вверх"""
         if self.y > 0:
             if 'up' in self.locked_sides:
@@ -283,7 +340,8 @@ is_text:    {self.is_text}
                     self.status_of_rotate = 1
                     self.y -= 1
                     self.ypx -= 50
-                    self.direction = 0
+                    if not flag_3d:
+                        self.direction = 0
                     matrix[self.y][self.x].append(Object(
                         self.x,
                         self.y,
@@ -321,7 +379,8 @@ is_text:    {self.is_text}
                 self.status_of_rotate = 1
                 self.y -= 1
                 self.ypx -= 50
-                self.direction = 0
+                if not flag_3d:
+                    self.direction = 0
                 matrix[self.y][self.x].append(Object(
                     self.x,
                     self.y,
@@ -332,7 +391,7 @@ is_text:    {self.is_text}
                 ))
             return True
 
-    def move_down(self, matrix, level_rules, status_push=None):
+    def move_down(self, matrix, level_rules, status_push=None, flag_3d=False):
         """Метод движения объекта вниз"""
         if self.y < RESOLUTION[1] // 50 - 1:
             if 'down' in self.locked_sides:
@@ -393,7 +452,8 @@ is_text:    {self.is_text}
                 self.status_of_rotate = 3
                 self.y += 1
                 self.ypx += 50
-                self.direction = 2
+                if not flag_3d:
+                    self.direction = 2
                 matrix[self.y][self.x].append(Object(
                     self.x,
                     self.y,
@@ -404,7 +464,7 @@ is_text:    {self.is_text}
                 ))
             return True
 
-    def move_left(self, matrix, level_rules, status_push=None):
+    def move_left(self, matrix, level_rules, status_push=None, flag_3d=False):
         """Метод движения персонажа влево"""
         if self.x > 0:
             if 'left' in self.locked_sides:
@@ -428,7 +488,8 @@ is_text:    {self.is_text}
                     self.status_of_rotate = 2
                     self.x -= 1
                     self.xpx -= 50
-                    self.direction = 3
+                    if not flag_3d:
+                        self.direction = 3
                     matrix[self.y][self.x].append(Object(
                         self.x,
                         self.y,
@@ -466,7 +527,8 @@ is_text:    {self.is_text}
                 self.status_of_rotate = 2
                 self.x -= 1
                 self.xpx -= 50
-                self.direction = 3
+                if not flag_3d:
+                    self.direction = 3
                 matrix[self.y][self.x].append(Object(
                     self.x,
                     self.y,
@@ -477,7 +539,7 @@ is_text:    {self.is_text}
                 ))
             return True
 
-    def move_right(self, matrix, level_rules, status_push=None):
+    def move_right(self, matrix, level_rules, status_push=None, flag_3d=False):
         """Метод движения объекта вправо"""
         if self.x < RESOLUTION[0] // 50 - 1:
             if 'right' in self.locked_sides:
@@ -501,7 +563,8 @@ is_text:    {self.is_text}
                     self.status_of_rotate = 0
                     self.x += 1
                     self.xpx += 50
-                    self.direction = 1
+                    if not flag_3d:
+                        self.direction = 1
                     matrix[self.y][self.x].append(Object(
                         self.x,
                         self.y,
@@ -539,7 +602,8 @@ is_text:    {self.is_text}
                 self.status_of_rotate = 0
                 self.x += 1
                 self.xpx += 50
-                self.direction = 1
+                if not flag_3d:
+                    self.direction = 1
                 matrix[self.y][self.x].append(Object(
                     self.x,
                     self.y,
