@@ -1,14 +1,14 @@
 from pprint import pprint
 from typing import Final, TYPE_CHECKING, Callable, List, Union, Type
-
 import pygame
 
+
+from settings import RESOLUTION, FRAMES_PER_SECOND, DEBUG
 from classes.game_state import GameState
 from global_types import SURFACE
 
 if TYPE_CHECKING:
     from classes.game_strategy import GameStrategy
-from settings import RESOLUTION, FRAMES_PER_SECOND, DEBUG
 
 
 class GameContext:
@@ -98,14 +98,14 @@ class GameContext:
                     pygame.mixer.music.play()
 
                 if draw_state is not None:
-                    if draw_state.game_state is GameState.stop:
+                    if draw_state.game_state is GameState.STOP:
                         raise KeyboardInterrupt
-                    elif draw_state.game_state is GameState.switch:
+                    if draw_state.game_state is GameState.SWITCH:
                         self.game_strategy = draw_state.switch_to
                         self.game_strategy.music()
-                    elif draw_state.game_state is GameState.flip:
+                    elif draw_state.game_state is GameState.FLIP:
                         pygame.display.flip()
-                    elif draw_state.game_state is GameState.back:
+                    elif draw_state.game_state is GameState.BACK:
                         if len(self.history) > 1:
                             self.game_strategy = self.history[-2]
                             self.game_strategy.music()

@@ -324,7 +324,8 @@ class Object:
         elif self.turning_side == 3:
             pass
 
-    def find_side(self, delta_x, delta_y) -> str:
+    @staticmethod
+    def find_side(delta_x, delta_y) -> str:
         """Поиск направления движения
 
         :param delta_x: Сдвиг объекта по оси x
@@ -528,9 +529,11 @@ class Object:
                         if f'{self.name} is you' in sec_rule.text_rule:
                             matrix[self.y][self.x].pop(self.get_index(matrix))
                             return False
-                        elif f'{self.name} is 3d' in sec_rule.text_rule:
+
+                        if f'{self.name} is 3d' in sec_rule.text_rule:
                             matrix[self.y][self.x].pop(self.get_index(matrix))
                             return False
+
         for rule in level_rules:
             if f'{self.name} is defeat' in rule.text_rule:
                 for sec_rule in level_rules:
@@ -589,11 +592,13 @@ class Object:
         for rule in level_rules:
             if f'{rule_object.name} is win' in rule.text_rule:
                 for sec_rule in level_rules:
+
                     if f'{self.name} is you' in sec_rule.text_rule:
-                        self.level_processor.state = State(GameState.back)
+                        self.level_processor.state = State(GameState.BACK)
                         return True
-                    elif f'{self.name} is 3d' in sec_rule.text_rule:
-                        self.level_processor.state = State(GameState.back)
+
+                    if f'{self.name} is 3d' in sec_rule.text_rule:
+                        self.level_processor.state = State(GameState.BACK)
                         return True
         return False
 
@@ -662,18 +667,21 @@ class Object:
         :rtype: bool
         """
         status = False
+        moveable_rules_list = [
+            f'{self.name} is move',
+            f'{self.name} is push',
+            f'{self.name} is auto',
+            f'{self.name} is nudge',
+            f'{self.name} is chill',
+            f'{self.name} is you',
+            f'{self.name} is fall',
+            f'{self.name} is 3d',
+        ]
         for rule in level_rules:
-            if f'{self.name} is move' in rule.text_rule \
-                    or f'{self.name} is push' in rule.text_rule \
-                    or f'{self.name} is auto' in rule.text_rule \
-                    or f'{self.name} is nudge' in rule.text_rule \
-                    or f'{self.name} is chill' in rule.text_rule \
-                    or f'{self.name} is you' in rule.text_rule \
-                    or f'{self.name} is fall' in rule.text_rule \
-                    or f'{self.name} is 3d' in rule.text_rule \
-                    or self.name in OPERATORS or self.name in PROPERTIES or (
-                    self.name in NOUNS and self.is_text) \
-                    and self.check_valid_range(0, 0):
+            if rule.text_rule in moveable_rules_list or \
+               self.name in OPERATORS or self.name in PROPERTIES or (
+                   self.name in NOUNS and self.is_text) and \
+               self.check_valid_range(0, 0):
                 status = True
         return status
 
@@ -759,7 +767,7 @@ class Object:
                     and not (rule_object.name in OPERATORS or rule_object.name in PROPERTIES or (
                     rule_object.name in NOUNS and rule_object.is_text)):
                 status_push_rule_object = True
-            if f'text is float' in rule.text_rule and self.is_text:
+            if 'text is float' in rule.text_rule and self.is_text:
                 self.is_float = True
         if self.is_float == status_float_rule_object \
                 or rule_object.name in OPERATORS or rule_object.name in PROPERTIES or (
@@ -801,10 +809,8 @@ class Object:
                         status_motion = True
 
                 elif self.object_can_move(level_rules) and not self.is_still and status_motion is not False:
-                    if rule_object.motion(delta_x, delta_y, matrix, level_rules, 'push'):
-                        status_motion = True
-                    else:
-                        status_motion = False
+                    status_motion = rule_object.motion(
+                        delta_x, delta_y, matrix, level_rules, 'push')
 
             if status_motion is True:
                 matrix[self.y][self.x].pop(self.get_index(matrix))
@@ -812,7 +818,7 @@ class Object:
                                   matrix, level_rules)
                 self.update_parameters(delta_x, delta_y, matrix)
                 return True
-            elif status_motion is False:
+            if status_motion is False:
                 return False
 
             for rule in level_rules:
@@ -840,8 +846,7 @@ class Object:
                     self.update_parameters(delta_x, delta_y, matrix)
 
             return True
-        else:
-            return False
+        return False
 
     def check_events(self, events: List[pygame.event.Event], number):
         """Метод обработки событий

@@ -64,7 +64,7 @@ class EditorOverlay(GameStrategy):
     def cancel(self):
         """Отменяет вход в оверлей и возвращает к редактору
         """
-        self.state = State(GameState.back)
+        self.state = State(GameState.BACK)
 
     def load(self):
         """
@@ -72,17 +72,17 @@ class EditorOverlay(GameStrategy):
         и вызывает загрузчик для загрузки уровня в редактор
         """
         self.editor.extreme_exit()
-        self.state = State(GameState.switch, partial(
+        self.state = State(GameState.SWITCH, partial(
             Loader, self.screen, self))
 
     def force_exit(self):
         """Осуществляет выход из редактора с сохранением"""
-        self.state = State(GameState.back)
+        self.state = State(GameState.BACK)
         self.editor.exit_flag = True
 
     def hard_force_exit(self):
         """Осуществляет выход без сохранения"""
-        self.state = State(GameState.back)
+        self.state = State(GameState.BACK)
         self.editor.exit_flag = True
         self.editor.discard = True
 
@@ -95,17 +95,17 @@ class EditorOverlay(GameStrategy):
         :type delta_time_in_milliseconds: int
         :return: Возвращает состояние для правильной работы game_context
         """
-        self.state = State(GameState.back) if self.loaded_flag else None
+        self.state = State(GameState.BACK) if self.loaded_flag else None
         self.editor.new_loaded = bool(self.loaded_flag)
         self.screen.fill('black')
 
         for event in events:
             if event.type == pygame.QUIT:
-                self.state = State(GameState.back)
+                self.state = State(GameState.BACK)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.editor.level_name = str(self.buttons[3])
-                    self.state = State(GameState.back)
+                    self.state = State(GameState.BACK)
             if event.type == pygame.KEYUP:
                 if str(self.buttons[3]):
                     self.label = str(self.buttons[3])
@@ -123,5 +123,5 @@ class EditorOverlay(GameStrategy):
                     self.editor.level_name = None
             self.screen = pygame.display.set_mode((1800, 900))
         if self.state is None:
-            self.state = State(GameState.flip)
+            self.state = State(GameState.FLIP)
         return self.state

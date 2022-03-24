@@ -7,11 +7,11 @@ from global_types import SURFACE
 from elements.global_classes import sound_manager
 from classes.state import State
 from classes.ray_casting import raycasting
-from classes.TextRule import TextRule
+from classes.text_rule import TextRule
 from classes.objects import Object
 from classes.game_strategy import GameStrategy
 from classes.game_state import GameState
-import classes.Rules as Rules
+import classes.rules as rules
 import pygame
 from typing import List, Optional
 from copy import copy
@@ -56,7 +56,7 @@ class PlayLevel(GameStrategy):
         """
         path_to_file = f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
 
-        with open(path_to_file, 'r') as level_file:
+        with open(path_to_file, mode='r', encoding='utf-8') as level_file:
             for line in level_file.readlines():
                 parameters = line.strip().split(' ')
 
@@ -113,8 +113,8 @@ class PlayLevel(GameStrategy):
 
     def form_rule(self, first_object: Object, operator_object: Object, *other_objects: List[Object]):
         rule_string = f'{first_object} {operator_object}'
-        for object in other_objects:
-            rule_string += f' {object}'
+        for rule_object in other_objects:
+            rule_string += f' {rule_object}'
         self.level_rules.append(TextRule(
             rule_string,
             [first_object, operator_object, *other_objects]
@@ -132,7 +132,7 @@ class PlayLevel(GameStrategy):
                             if second_object.is_noun or second_object.is_property:
                                 return self.form_rule(first_object.name, operator.name, second_object.name)
 
-                            elif second_object.name == 'not' and len(self.matrix[i]) - j > 3:
+                            if second_object.name == 'not' and len(self.matrix[i]) - j > 3:
                                 for third_object in self.matrix[i][j + 3]:
                                     if third_object.is_noun or third_object.is_property:
                                         return self.form_rule(first_object.name, operator.name, second_object.name, third_object.name)
@@ -162,7 +162,7 @@ class PlayLevel(GameStrategy):
                                     TextRule(f'{first_object.name} {operator.name} {second_object.name}',
                                              [first_object, operator, second_object]))
                                 return len(self.level_rules)
-                            elif second_object.name == 'not' and len(self.matrix) - i > 3:
+                            if second_object.name == 'not' and len(self.matrix) - i > 3:
                                 for third_object in self.matrix[i + 3][j]:
                                     if third_object.is_noun or third_object.name in PROPERTIES:
                                         self.level_rules.append(
@@ -172,9 +172,9 @@ class PlayLevel(GameStrategy):
                                                 [first_object, operator, second_object, third_object]))
                                         return len(self.level_rules)
                     elif operator.name == 'and':
-                        a = self.check_horizontally(i + 2, j)
-                        if a != 0:
-                            rule = self.level_rules[a - 1]
+                        flag = self.check_horizontally(i + 2, j)
+                        if flag != 0:
+                            rule = self.level_rules[flag - 1]
                             text = rule.text_rule.split()
                             objects = rule.objects_in_rule
                             objects[0] = first_object
@@ -214,8 +214,8 @@ class PlayLevel(GameStrategy):
 
         for letter in level_text:
             if letter not in [' ', '_', '-']:
-                a = Object(x_offset, 6, 1, letter, True)
-                text_in_objects.append(a)
+                img_letter = Object(x_offset, 6, 1, letter, True)
+                text_in_objects.append(img_letter)
             x_offset += 1
 
         return text_in_objects
@@ -237,10 +237,10 @@ class PlayLevel(GameStrategy):
     def functional_event_check(self, events: List[pygame.event.Event]):
         for event in events:
             if event.type == pygame.QUIT:
-                self.state = State(GameState.back)
+                self.state = State(GameState.BACK)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.state = State(GameState.back)
+                    self.state = State(GameState.BACK)
                 if event.key == pygame.K_z:
                     self.status_cancel = True
                     self.moved = True
@@ -262,7 +262,7 @@ class PlayLevel(GameStrategy):
             if event.type == pygame.KEYDOWN:
                 if event.key in [pygame.K_w, pygame.K_a, pygame.K_SPACE, pygame.K_UP,
                                  pygame.K_LEFT]:
-                    Rules.processor.update_lists(level_processor=self,
+                    rules.processor.update_lists(level_processor=self,
                                                  matrix=matrix,
                                                  events=[event])
                     for i in range(len(self.matrix)):
@@ -270,7 +270,7 @@ class PlayLevel(GameStrategy):
                             for rule_object in self.matrix[i][j]:
                                 self.apply_rules(matrix, rule_object, i, j)
                 elif event.key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]:
-                    Rules.processor.update_lists(level_processor=self,
+                    rules.processor.update_lists(level_processor=self,
                                                  matrix=matrix,
                                                  events=[event])
                     for i in range(len(self.matrix) - 1, -1, -1):
@@ -359,15 +359,15 @@ class PlayLevel(GameStrategy):
             for rule in self.level_rules:
 
                 if rule_object.name in rule.text_rule:
-                    Rules.processor.update_object(rule_object)
-                    Rules.processor.process(rule.text_rule)
+                    rules.processor.update_object(rule_object)
+                    rules.processor.process(rule.text_rule)
 
             for rule in self.level_rules:
                 if f'{rule_object.name} is win' in rule.text_rule:
                     for object in matrix[i][j]:
                         for second_rule in self.level_rules:
                             if f'{object.name} is you' in second_rule.text_rule:
-                                self.state = State(GameState.back)
+                                self.state = State(GameState.BACK)
 
     def find_rules(self):
         self.level_rules = []
@@ -445,5 +445,5 @@ class PlayLevel(GameStrategy):
             self.moved = False
 
         if self.state is None:
-            self.state = State(GameState.flip, None)
+            self.state = State(GameState.FLIP, None)
         return self.state

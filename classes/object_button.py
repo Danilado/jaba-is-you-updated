@@ -38,7 +38,8 @@ class ObjectButton(Button):
         if (self.is_text or self.text in TEXT_ONLY) and self.text not in SPRITE_ONLY:
             path = os.path.join('./', 'sprites', 'text')
             self.animation = Animation(
-                [pygame.transform.scale(sprite_manager.get(os.path.join(f"{path}", self.text, f"{self.text}_0_{index + 1}")),
+                [pygame.transform.scale(sprite_manager.get(
+                                        os.path.join(f"{path}", self.text, f"{self.text}_0_{index + 1}")),
                                         (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
         else:
             path = os.path.join('./', 'sprites', self.text)
@@ -84,7 +85,8 @@ class ObjectButton(Button):
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.text}_{self.movement_state % 4 + max(self.direction * 8, 0)}_{index + 1}')),
+                                     f'{self.text}_{self.movement_state % 4 + max(self.direction * 8, 0)}\
+                                        _{index + 1}')),
                         (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
             else:
                 print(f'{self.text} somehow fucked up while setting animation')

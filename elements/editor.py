@@ -280,7 +280,7 @@ class Editor(GameStrategy):
     def overlay(self):
         """Вызывает меню управления редактора"""
         self.unresize()
-        self.state = State(GameState.switch, partial(EditorOverlay, self))
+        self.state = State(GameState.SWITCH, partial(EditorOverlay, self))
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает редактор (включая все его элементы) и обрабатывает все действия пользователя
@@ -302,7 +302,7 @@ class Editor(GameStrategy):
         if self.exit_flag:
             if not self.discard:
                 self.safe_exit()
-            self.state = State(GameState.back)
+            self.state = State(GameState.BACK)
             self.unresize()
         if self.new_loaded:
             self.changes.clear()
@@ -320,7 +320,7 @@ class Editor(GameStrategy):
         for event in events:
             if event.type == pygame.QUIT:
                 self.extreme_exit()
-                self.state = State(GameState.back)
+                self.state = State(GameState.BACK)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.overlay()
@@ -395,7 +395,7 @@ class Editor(GameStrategy):
                     object_button.draw(self.screen)
 
         if self.state is None:
-            self.state = State(GameState.flip)
+            self.state = State(GameState.FLIP)
         return self.state
 
     def music(self):

@@ -4,7 +4,7 @@ import enum
 @enum.unique
 class GameState(enum.Enum):
     """Перечисление изменений которые может сделать GameStrategy в GameContext"""
-    stop = enum.auto()  #: Остановить игру
-    switch = enum.auto()  #: Сменить стратегию
-    back = enum.auto()  #: Вернуть прошлую стратегию
-    flip = enum.auto()  #: Нарисовать на экране
+    STOP = enum.auto()  #: Остановить игру
+    SWITCH = enum.auto()  #: Сменить стратегию
+    BACK = enum.auto()  #: Вернуть прошлую стратегию
+    FLIP = enum.auto()  #: Нарисовать на экране
