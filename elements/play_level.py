@@ -38,6 +38,10 @@ class PlayLevel(GameStrategy):
         self.first_iteration = True
         self.objects_for_tp = []
 
+        self.num_obj_3d = 0
+        self.count_3d_obj = 0
+        self.flag = True
+
         self.level_name_object_text = self.text_to_png(level_name)
         self.circle_radius = 650
 
@@ -89,12 +93,12 @@ class PlayLevel(GameStrategy):
 
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == RESOLUTION[1]//50-1:
+        elif x == RESOLUTION[1] // 50 - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == RESOLUTION[0]//50-1:
+        elif y == RESOLUTION[0] // 50 - 1:
             neighbours[1] = [self.empty_object]
         for index, offset in enumerate(offsets):
             if neighbours[index] == []:
@@ -135,7 +139,8 @@ class PlayLevel(GameStrategy):
                             if second_object.name == 'not' and len(self.matrix[i]) - j > 3:
                                 for third_object in self.matrix[i][j + 3]:
                                     if third_object.is_noun or third_object.is_property:
-                                        return self.form_rule(first_object.name, operator.name, second_object.name, third_object.name)
+                                        return self.form_rule(first_object.name, operator.name,
+                                                              second_object.name, third_object.name)
 
                     elif operator.name == 'and':
                         further_rule_number = self.check_horizontally(i, j + 2)
@@ -394,6 +399,7 @@ class PlayLevel(GameStrategy):
         self.screen.fill("black")
         self.state = None
         level_3d = False
+        count_3d_obj = 0
 
         self.functional_event_check(events)
 
@@ -411,14 +417,37 @@ class PlayLevel(GameStrategy):
             self.matrix = copy_matrix
             self.find_rules()
 
+            if self.flag:
+                for line in self.matrix:
+                    for cell in line:
+                        for game_object in cell:
+                            if game_object.is_3d:
+                                game_object.num_3d = self.count_3d_obj
+                                self.count_3d_obj += 1
+            self.flag = False
+
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:
                     if game_object.is_3d:
                         level_3d = True
-                        raycasting(self.screen, (game_object.xpx + 25, game_object.ypx + 25),
-                                   game_object.angle_3d / 180 * math.pi, self.matrix)
-                        break
+                        if game_object.num_3d == self.num_obj_3d:
+                            raycasting(self.screen, (game_object.xpx + 25, game_object.ypx + 25),
+                                       game_object.angle_3d / 180 * math.pi, self.matrix)
+                        count_3d_obj += 1
+
+        if level_3d:
+            if self.count_3d_obj != count_3d_obj:
+                self.count_3d_obj = 0
+                for line in self.matrix:
+                    for cell in line:
+                        for game_object in cell:
+                            if game_object.is_3d:
+                                game_object.num_3d = self.count_3d_obj
+                                self.count_3d_obj += 1
+
+            if count_3d_obj != 0:
+                self.num_obj_3d %= self.count_3d_obj
 
         if not level_3d:
             for line in self.matrix:

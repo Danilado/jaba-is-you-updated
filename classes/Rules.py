@@ -1,4 +1,4 @@
-import abc
+import pygame
 import random
 
 from copy import copy
@@ -73,9 +73,13 @@ class You2:
 
 class Is_3d:
     @staticmethod
-    def apply(matrix, rule_object, events, level_rules, level_processor, *_, **__):
-        rule_object.check_events(events)
-        rule_object.move(matrix, level_rules, level_processor)
+    def apply(matrix, rule_object, events, level_rules, level_processor, num_obj_3d, *_, **__):
+        if rule_object.num_3d == num_obj_3d:
+            rule_object.check_events(events)
+            if events[0].key == pygame.K_s:
+                num_obj_3d += 1
+            level_processor.num_obj_3d = num_obj_3d
+            rule_object.move(matrix, level_rules, level_processor)
 
 
 class Chill:
@@ -296,6 +300,7 @@ class RuleProcessor:
         self.events = events
         self.rules = level_processor.level_rules
         self.objects_for_tp = level_processor.objects_for_tp
+        self.num_obj_3d = level_processor.num_obj_3d
 
     def update_object(self, rule_object):
         self.object = rule_object
@@ -309,6 +314,7 @@ class RuleProcessor:
                                                     events=self.events,
                                                     level_rules=self.rules,
                                                     objects_for_tp=self.objects_for_tp,
+                                                    num_obj_3d=self.num_obj_3d,
                                                     level_processor=self.level_processor)
         # except IndexError:
          #   print(

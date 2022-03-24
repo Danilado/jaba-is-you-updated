@@ -60,7 +60,8 @@ class Object:
     def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
                  is_text: bool = True, movement_state: int = 0, neighbours=None,
                  turning_side: Literal[0, 1, 2, 3, -1] = -1, animation=None,
-                 safe=False, angle_3d: int = 90, is_3d=False, moved=False):
+                 safe=False, angle_3d: int = 90, is_3d=False, moved=False,
+                 num_3d: int = 0):
 
         self.status = ''
         self.name: str = name
@@ -71,7 +72,6 @@ class Object:
         self.turning_side = turning_side
         self.status_of_rotate: Literal[0, 1, 2, 3] = 0
         self.direction = direction
-        self.angle_3d = angle_3d
         self.direction_key_map = {
             0: 1,
             1: 0,
@@ -87,6 +87,9 @@ class Object:
         self.y = y
         self.xpx = x * 50
         self.ypx = y * 50
+
+        self.angle_3d = angle_3d
+        self.num_3d = num_3d
 
         self.width = 50
         self.height = 50
@@ -953,6 +956,8 @@ class Object:
             safe=self.is_safe,
             angle_3d=self.angle_3d,
             is_3d=self.is_3d,
-            moved=self.moved
+            moved=self.moved,
+            num_3d=self.num_3d
+
         )
         return copied_object
