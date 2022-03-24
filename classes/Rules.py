@@ -84,6 +84,7 @@ class You(Rule):
         self.rule_object.check_events(self.events, 1)
         self.rule_object.move(self.matrix, self.level_rules, level_processor)
 
+
 class You2(Rule):
     def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
         self.events = events
@@ -197,47 +198,45 @@ class Fall(Rule):
             ...
 
 
-class More(Rule):
-    def apply(self, matrix, rule_object, level_rules, *_, **__):
-        self.matrix = matrix
-        self.rule_object = rule_object
-        self.level_rules = level_rules
-
-        if self.rule_object.y < len(self.matrix) - 1:
-            if not self.matrix[self.rule_object.y + 1][self.rule_object.x]:
-                new_object = copy(self.rule_object)
+class More:
+    @staticmethod
+    def apply(matrix, rule_object, *_, **__):
+        if rule_object.y < len(matrix) - 1:
+            if not matrix[rule_object.y + 1][rule_object.x]:
+                new_object = copy(rule_object)
                 new_object.y += 1
                 new_object.animation = new_object.animation_init()
-                self.matrix[
-                    self.rule_object.y + 1][
-                    self.rule_object.x].append(new_object)
+                matrix[
+                    rule_object.y + 1][
+                    rule_object.x].append(new_object)
 
-        if self.rule_object.x < len(self.matrix[self.rule_object.y]) - 1:
-            if not self.matrix[self.rule_object.y][self.rule_object.x + 1]:
-                new_object = copy(self.rule_object)
+        if rule_object.x < len(matrix[rule_object.y]) - 1:
+            if not matrix[rule_object.y][rule_object.x + 1]:
+                new_object = copy(rule_object)
                 new_object.x += 1
                 new_object.animation = new_object.animation_init()
-                self.matrix[
-                    self.rule_object.y][
-                    self.rule_object.x + 1].append(new_object)
+                matrix[
+                    rule_object.y][
+                    rule_object.x + 1].append(new_object)
 
-        if self.rule_object.x > 0:
-            if not self.matrix[self.rule_object.y][self.rule_object.x - 1]:
-                new_object = copy(self.rule_object)
+        if rule_object.x > 0:
+            if not matrix[rule_object.y][rule_object.x - 1]:
+                new_object = copy(rule_object)
                 new_object.x -= 1
                 new_object.animation = new_object.animation_init()
-                self.matrix[
-                    self.rule_object.y][
-                    self.rule_object.x - 1].append(new_object)
+                matrix[
+                    rule_object.y][
+                    rule_object.x - 1].append(new_object)
 
-        if self.rule_object.y > 0:
-            if not self.matrix[self.rule_object.y - 1][self.rule_object.x]:
-                new_object = copy(self.rule_object)
+        if rule_object.y > 0:
+            if not matrix[rule_object.y - 1][rule_object.x]:
+                new_object = copy(rule_object)
                 new_object.y -= 1
                 new_object.animation = new_object.animation_init()
-                self.matrix[
-                    self.rule_object.y - 1][
-                    self.rule_object.x].append(new_object)
+                matrix[
+                    rule_object.y - 1][
+                    rule_object.x].append(new_object)
+
 
 
 class Shift(Rule):
@@ -260,49 +259,35 @@ class Shift(Rule):
 class Tele(Rule):
     def apply(self, matrix, rule_object, objects_for_tp, *_, **__):
         self.matrix = matrix
-        self.rule_object = rule_object
-        if len(objects_for_tp) == 1:
-            if objects_for_tp[0] == 'skip':
-                objects_for_tp[0] = 'skip again'
-            elif objects_for_tp[0] == 'skip again':
-                objects_for_tp = []
-        elif len(objects_for_tp) == 0:
-            coord = [self.rule_object.y, self.rule_object.x]
-            first = []
-            for object in self.matrix[self.rule_object.y][self.rule_object.x]:
-                if object.get_index(self.matrix) != self.rule_object.get_index(self.matrix):
-                    first.append(object)
-                    self.matrix[object.y][object.x].pop(
-                        object.get_index(self.matrix))
-            objects_for_tp.append(coord)
-            objects_for_tp.append(first)
+        self.first_tp = rule_object
+        status = False
+        teleports = []
+        x1 = self.first_tp.x
+        y1 = self.first_tp.y
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix[i])):
+                for second_object_tp in self.matrix[i][j]:
+                    if not second_object_tp.is_text:
+                        if second_object_tp.name == self.first_tp.name \
+                                and (second_object_tp.x != self.first_tp.x or second_object_tp.y != self.first_tp.y)\
+                                and len(self.matrix[i][j]) > 1:
+                            status = True
+                            teleports.append(copy(second_object_tp))
+        if not status:
+            return False
+        second_tp = teleports[random.randint(0, len(teleports)-1)]
+        x2 = second_tp.x
+        y2 = second_tp.y
+        for objects in self.matrix[y1][x1]:
+            if objects.name != self.first_tp.name:
+                self.matrix[y1][x1].pop(objects.get_index(self.matrix))
+                objects.update_parameters(x2 - x1, y2 - y1, matrix)
+        for objects in self.matrix[y2][x2]:
+            if objects.name != second_tp.name:
+                self.matrix[y2][x2].pop(objects.get_index(self.matrix))
+                objects.update_parameters(-(x2 - x1), -(y2 - y1), matrix)
 
-        else:
-            coor_x = objects_for_tp[0][1]
-            coor_y = objects_for_tp[0][0]
-            second = []
-            for object in self.matrix[self.rule_object.y][self.rule_object.x]:
-                if object.get_index(self.matrix) != self.rule_object.get_index(self.matrix):
-                    second.append(object)
-                    self.matrix[object.y][object.x].pop(
-                        object.get_index(self.matrix))
-            objects_for_tp.append(second)
-            for object in objects_for_tp[1]:
-                object.y = self.rule_object.y
-                object.x = self.rule_object.x
-                object.ypx = object.y * 50
-                object.xpx = object.x * 50
-                object.animation = object.animation_init()
-                matrix[self.rule_object.y][self.rule_object.x].append(object)
-            for object in objects_for_tp[2]:
-                object.y = coor_y
-                object.x = coor_x
-                object.ypx = coor_y * 50
-                object.xpx = coor_x * 50
-                object.animation = object.animation_init()
-                matrix[coor_y][coor_x].append(object)
-            objects_for_tp = ['skip']
-        return objects_for_tp
+
 
 
 class RuleProcessor:
@@ -352,8 +337,8 @@ class RuleProcessor:
                                                     level_rules=self.rules,
                                                     objects_for_tp=self.objects_for_tp,
                                                     level_processor=self.level_processor)
-        #except IndexError:
-         #   print(
+        # except IndexError:
+        #   print(
         #        f'!!! IndexError appeared somewhere in {rule.split()[-1]} rule')
         except RecursionError:
             print(

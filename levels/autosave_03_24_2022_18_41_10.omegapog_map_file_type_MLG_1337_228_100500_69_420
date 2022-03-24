@@ -1,0 +1,12 @@
+11 2 1 blob False
+28 3 1 banana True
+29 3 1 is False
+30 3 1 push False
+28 5 1 blob True
+29 5 1 is False
+30 5 1 swap False
+11 6 1 banana False
+28 7 1 bat True
+29 7 1 is False
+30 7 1 you False
+17 9 1 bat False
