@@ -85,8 +85,8 @@ class ObjectButton(Button):
                 self.animation = Animation(
                     [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.text}_{self.movement_state % 4 + max(self.direction * 8, 0)}\
-                                        _{index + 1}')),
+                                     f'{self.text}_{self.movement_state % 4 + max(self.direction * 8, 0)}' +
+                                     f'_{index + 1}')),
                         (50, 50)) for index in range(0, 3)], 200, (self.x, self.y))
             else:
                 print(f'{self.text} somehow fucked up while setting animation')

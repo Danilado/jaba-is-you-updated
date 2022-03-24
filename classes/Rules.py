@@ -75,7 +75,7 @@ class Is_3d:
     @staticmethod
     def apply(matrix, rule_object, events, level_rules, level_processor, num_obj_3d, *_, **__):
         if rule_object.num_3d == num_obj_3d:
-            rule_object.check_events(events)
+            rule_object.check_events(events, 1)
             if events[0].key == pygame.K_s:
                 num_obj_3d += 1
             level_processor.num_obj_3d = num_obj_3d

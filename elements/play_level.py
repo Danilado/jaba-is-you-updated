@@ -469,7 +469,9 @@ class PlayLevel(GameStrategy):
             self.find_rules()
             self.first_iteration = False
 
-        #self.level_start_animation() if self.circle_radius > 0 else ...
+        if self.circle_radius:
+            self.level_start_animation()
+
         if self.moved:
             self.moved = False
 
