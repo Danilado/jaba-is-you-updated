@@ -59,11 +59,11 @@ class Loader(GameStrategy):
         :type level_name: str
         """
         # Gospodin: Надеюсь, когда-нибудь это будет игрой.
-        self._state = State(GameState.switch, partial(PlayLevel, level_name))
+        self._state = State(GameState.SWITCH, partial(PlayLevel, level_name))
 
     def go_back(self):
         """Простая отмена (выход в предыдущее меню)"""
-        self._state = State(GameState.back)
+        self._state = State(GameState.BACK)
 
     def return_and_quit(self, level_name: str):
         """
@@ -76,7 +76,7 @@ class Loader(GameStrategy):
         self.overlay.loaded_flag = True
         self.overlay.editor.current_state = self.parse_file(level_name)
         self.overlay.editor.level_name = level_name
-        self._state = State(GameState.back)
+        self._state = State(GameState.BACK)
 
     @staticmethod
     def parse_file(level_name: str) -> List[List[List[Object]]]:
@@ -130,13 +130,13 @@ class Loader(GameStrategy):
             self.screen.fill("black")
             for event in events:
                 if event.type == pygame.QUIT:
-                    self._state = State(GameState.back)
+                    self._state = State(GameState.BACK)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        self._state = State(GameState.back)
+                        self._state = State(GameState.BACK)
             for button in self.buttons:
                 button.draw(self.screen)
                 button.update(events)
             if self._state is None:
-                self._state = State(GameState.flip, None)
+                self._state = State(GameState.FLIP, None)
         return self._state

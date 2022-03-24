@@ -88,8 +88,8 @@ class Animation:
     def current_sprite(self, value: pygame.Surface):
         try:
             index = self.sprites.index(value)
-        except ValueError:
-            raise ValueError("current sprite should be in sprites")
+        except ValueError as error:
+            raise ValueError("current sprite should be in sprites") from error
         self.current_sprites_index = index
 
     def __copy__(self) -> "Animation":

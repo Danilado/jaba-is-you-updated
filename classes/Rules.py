@@ -1,200 +1,165 @@
-import abc
-from asyncio import events
-from operator import le
+import pygame
 import random
 
 from copy import copy
-from typing import List
-from classes.state import State
-from classes.game_state import GameState
 
 
-class Rule(abc.ABC):
-    def __init__(self):
-        ...
-
-    def apply(self, matrix, rule_object):
-        ...
-
-
-class Broken(Rule):
-    def apply(self, matrix, rule_object, rules, *_, **__):
-        self.matrix = matrix
-        self.rule_object = rule_object
-        self.rules = rules
-        self.object_name = self.rule_object.name
-        for sec_rule in self.level_rules:
-            if f'{self.object_name}' in sec_rule.text_rule and \
-                    sec_rule.text_rule != f'{self.object_name} is broken':
-                self.level_rules.remove(sec_rule)
+class Broken:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        object_name = rule_object.name
+        for sec_rule in level_rules:
+            if f'{object_name}' in sec_rule.text_rule and \
+                    sec_rule.text_rule != f'{object_name} is broken':
+                level_rules.remove(sec_rule)
 
 
-class Deturn(Rule):
-    def apply(self, matrix, rule_object, *_, **__):
-        self.matrix = matrix
-        self.rule_object = rule_object
-        matrix[self.rule_object.y][self.rule_object.x].pop(
-            self.rule_object.get_index(matrix))
-        self.rule_object.direction -= 1
-        self.rule_object.status_of_rotate -= 1
-        if self.rule_object.direction < 0:
-            self.rule_object.direction = 3
-        if self.rule_object.status_of_rotate < 0:
-            self.rule_object.status_of_rotate = 3
-        self.rule_object.animation = self.rule_object.animation_init()
-        matrix[self.rule_object.y][self.rule_object.x].append(
-            copy(self.rule_object))
+class Deturn:
+    @staticmethod
+    def apply(matrix, rule_object, *_, **__):
+        matrix[rule_object.y][rule_object.x].pop(
+            rule_object.get_index(matrix))
+        rule_object.direction -= 1
+        rule_object.status_of_rotate -= 1
+        if rule_object.direction < 0:
+            rule_object.direction = 3
+        if rule_object.status_of_rotate < 0:
+            rule_object.status_of_rotate = 3
+        rule_object.animation = rule_object.animation_init()
+        matrix[rule_object.y][rule_object.x].append(
+            copy(rule_object))
 
 
-class Text(Rule):
-    def apply(self, matrix, rule_object, *_, **__):
-        self.matrix = matrix
-        self.rule_object = rule_object
-        matrix[self.rule_object.y][self.rule_object.x].pop(
-            self.rule_object.get_index(matrix))
-        self.rule_object.is_text = True
-        self.rule_object.animation = self.rule_object.animation_init()
-        matrix[self.rule_object.y][self.rule_object.x].append(
-            copy(self.rule_object))
+class Text:
+    @staticmethod
+    def apply(matrix, rule_object, *_, **__):
+        matrix[rule_object.y][rule_object.x].pop(
+            rule_object.get_index(matrix))
+        rule_object.is_text = True
+        rule_object.animation = rule_object.animation_init()
+        matrix[rule_object.y][rule_object.x].append(
+            copy(rule_object))
 
 
-class Turn(Rule):
-    def apply(self, matrix, rule_object, *_, **__):
-        self.matrix = matrix
-        self.rule_object = rule_object
-        matrix[self.rule_object.y][self.rule_object.x].pop(
-            self.rule_object.get_index(matrix))
-        self.rule_object.direction += 1
-        self.rule_object.status_of_rotate += 1
-        if self.rule_object.direction > 3:
-            self.rule_object.direction = 0
-        if self.rule_object.status_of_rotate > 3:
-            self.rule_object.status_of_rotate = 0
-        self.rule_object.animation = self.rule_object.animation_init()
-        matrix[self.rule_object.y][self.rule_object.x].append(
-            copy(self.rule_object))
+class Turn:
+    @staticmethod
+    def apply(matrix, rule_object, *_, **__):
+        matrix[rule_object.y][rule_object.x].pop(
+            rule_object.get_index(matrix))
+        rule_object.direction += 1
+        rule_object.status_of_rotate += 1
+        if rule_object.direction > 3:
+            rule_object.direction = 0
+        if rule_object.status_of_rotate > 3:
+            rule_object.status_of_rotate = 0
+        rule_object.animation = rule_object.animation_init()
+        matrix[rule_object.y][rule_object.x].append(
+            copy(rule_object))
 
 
-class You(Rule):
-    def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
-        self.events = events
-        self.level_rules = level_rules
-        self.matrix = matrix
-        self.rule_object = rule_object
-        self.rule_object.check_events(self.events, 1)
-        self.rule_object.move(self.matrix, self.level_rules, level_processor)
+class You:
+    @staticmethod
+    def apply(matrix, rule_object, events, level_rules, level_processor, *_, **__):
+        rule_object.check_events(events, 1)
+        rule_object.move(matrix, level_rules, level_processor)
+
+class You2:
+    @staticmethod
+    def apply(matrix, rule_object, events, level_rules, level_processor, *_, **__):
+        rule_object.check_events(events, 2)
+        rule_object.move(matrix, level_rules, level_processor)
+
+class Is_3d:
+    @staticmethod
+    def apply(matrix, rule_object, events, level_rules, level_processor, num_obj_3d, *_, **__):
+        if rule_object.num_3d == num_obj_3d:
+            rule_object.check_events(events, 1)
+            if events[0].key == pygame.K_s:
+                num_obj_3d += 1
+            level_processor.num_obj_3d = num_obj_3d
+            rule_object.move(matrix, level_rules, level_processor)
 
 
-class You2(Rule):
-    def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
-        self.events = events
-        self.level_rules = level_rules
-        self.matrix = matrix
-        self.rule_object = rule_object
-        self.rule_object.check_events(self.events, 2)
-        self.rule_object.move(self.matrix, self.level_rules, level_processor)
-
-
-class Is_3d(Rule):
-    def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
-        self.events = events
-        self.level_rules = level_rules
-        self.matrix = matrix
-        self.rule_object = rule_object
-        self.rule_object.check_events(self.events)
-        self.rule_object.move(self.matrix, self.level_rules, level_processor)
-
-
-class Chill(Rule):
-    def apply(self, matrix, rule_object, level_rules, *_, **__):
-        self.matrix = matrix
-        self.rule_object = rule_object
-        self.level_rules = level_rules
+class Chill:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
         rand_dir = random.randint(0, 4)
         if rand_dir == 0:
-            self.rule_object.motion(0, -1, self.matrix, self.level_rules)
+            rule_object.motion(0, -1, matrix, level_rules)
         elif rand_dir == 1:
-            self.rule_object.motion(1, 0, self.matrix, self.level_rules)
+            rule_object.motion(1, 0, matrix, level_rules)
         elif rand_dir == 2:
-            self.rule_object.motion(0, 1, self.matrix, self.level_rules)
+            rule_object.motion(0, 1, matrix, level_rules)
         elif rand_dir == 3:
-            self.rule_object.motion(-1, 0, self.matrix, self.level_rules)
+            rule_object.motion(-1, 0, matrix, level_rules)
 
 
-class Boom(Rule):
-    def apply(self, matrix, rule_object, *_, **__):
-        self.matrix = matrix
-        self.rule_object = rule_object
-        self.matrix[self.rule_object.y][self.rule_object.x].clear()
+class Boom:
+    @staticmethod
+    def apply(matrix, rule_object, *_, **__):
+        matrix[rule_object.y][rule_object.x].clear()
 
 
-class Auto(Rule):
-    def apply(self, matrix, rule_object, level_rules, *_, **__):
-        self.level_rules = level_rules
-        self.matrix = matrix
-        self.rule_object = rule_object
-        if self.rule_object.direction == 0:
-            self.rule_object.motion(0, -1, self.matrix, self.level_rules)
-        elif self.rule_object.direction == 1:
-            self.rule_object.motion(1, 0, self.matrix, self.level_rules)
-        elif self.rule_object.direction == 2:
-            self.rule_object.motion(0, 1, self.matrix, self.level_rules)
-        elif self.rule_object.direction == 3:
-            self.rule_object.motion(-1, 0, self.matrix, self.level_rules)
+class Auto:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        if rule_object.direction == 0:
+            rule_object.motion(0, -1, matrix, level_rules)
+        elif rule_object.direction == 1:
+            rule_object.motion(1, 0, matrix, level_rules)
+        elif rule_object.direction == 2:
+            rule_object.motion(0, 1, matrix, level_rules)
+        elif rule_object.direction == 3:
+            rule_object.motion(-1, 0, matrix, level_rules)
 
 
-class Move(Rule):
-    def apply(self, matrix, rule_object, level_rules, *_, **__):
-        self.level_rules = level_rules
-        self.matrix = matrix
-        self.rule_object = rule_object
-        if self.rule_object.direction == 0:
-            if not self.rule_object.motion(0, -1, self.matrix, self.level_rules):
-                self.rule_object.direction = 2
-                self.rule_object.motion(0, 1, self.matrix, self.level_rules)
-        elif self.rule_object.direction == 1:
-            if not self.rule_object.motion(1, 0, self.matrix, self.level_rules):
-                self.rule_object.direction = 3
-                self.rule_object.motion(-1, 0, self.matrix, self.level_rules)
-        elif self.rule_object.direction == 2:
-            if not self.rule_object.motion(0, 1, self.matrix, self.level_rules):
-                self.rule_object.direction = 0
-                self.rule_object.motion(0, -1, self.matrix, self.level_rules)
-        elif self.rule_object.direction == 3:
-            if not self.rule_object.motion(-1, 0, self.matrix, self.level_rules):
-                self.rule_object.direction = 1
-                self.rule_object.motion(1, 0, self.matrix, self.level_rules)
+class Move:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        if rule_object.direction == 0:
+            if not rule_object.motion(0, -1, matrix, level_rules):
+                rule_object.direction = 2
+                rule_object.motion(0, 1, matrix, level_rules)
+        elif rule_object.direction == 1:
+            if not rule_object.motion(1, 0, matrix, level_rules):
+                rule_object.direction = 3
+                rule_object.motion(-1, 0, matrix, level_rules)
+        elif rule_object.direction == 2:
+            if not rule_object.motion(0, 1, matrix, level_rules):
+                rule_object.direction = 0
+                rule_object.motion(0, -1, matrix, level_rules)
+        elif rule_object.direction == 3:
+            if not rule_object.motion(-1, 0, matrix, level_rules):
+                rule_object.direction = 1
+                rule_object.motion(1, 0, matrix, level_rules)
 
 
-class Direction(Rule):
-    def apply(self, matrix, rule_object, direction, *_, **__):
-        self.direction = direction
-        self.matrix = matrix
-        self.rule_object = rule_object
+class Direction:
+    @staticmethod
+    def apply(rule_object, direction, *_, **__):
+        if direction == 'up':
+            rule_object.direction = 0
+            rule_object.status_of_rotate = 1
 
-        if self.direction == 'up':
-            self.rule_object.direction = 0
-            self.rule_object.status_of_rotate = 1
+        elif direction == 'right':
+            rule_object.direction = 1
+            rule_object.status_of_rotate = 0
 
-        elif self.direction == 'right':
-            self.rule_object.direction = 1
-            self.rule_object.status_of_rotate = 0
+        elif direction == 'down':
+            rule_object.direction = 2
+            rule_object.status_of_rotate = 3
 
-        elif self.direction == 'down':
-            self.rule_object.direction = 2
-            self.rule_object.status_of_rotate = 3
-
-        elif self.direction == 'left':
-            self.rule_object.direction = 3
-            self.rule_object.status_of_rotate = 2
+        elif direction == 'left':
+            rule_object.direction = 3
+            rule_object.status_of_rotate = 2
 
 
-class Fall(Rule):
-    def apply(self, matrix, rule_object, level_rules, *_, **__):
-        self.level_rules = level_rules
-        self.matrix = matrix
-        self.rule_object = rule_object
-        while self.rule_object.motion(0, 1, self.matrix, self.level_rules):
+class Fall:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        # FIXME by Gospodin
+        # Падающий объект не толкает на пути другие
+        while rule_object.motion(0, 1, matrix, level_rules):
             ...
 
 
@@ -238,39 +203,36 @@ class More:
                     rule_object.x].append(new_object)
 
 
+class Shift:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        for object in matrix[rule_object.y][rule_object.x]:
+            if object.name != rule_object.name:
+                if rule_object.direction == 0:
+                    object.motion(0, -1, matrix, level_rules, 'push')
+                elif rule_object.direction == 1:
+                    object.motion(1, 0, matrix, level_rules, 'push')
+                elif rule_object.direction == 2:
+                    object.motion(0, 1, matrix, level_rules, 'push')
+                elif rule_object.direction == 3:
+                    object.motion(-1, 0, matrix, level_rules, 'push')
 
-class Shift(Rule):
-    def apply(self, matrix, rule_object, level_rules, *_, **__):
-        self.matrix = matrix
-        self.rule_object = rule_object
-        self.level_rules = level_rules
-        for object in self.matrix[self.rule_object.y][self.rule_object.x]:
-            if object.name != self.rule_object.name:
-                if self.rule_object.direction == 0:
-                    object.motion(0, -1, self.matrix, self.level_rules, 'push')
-                elif self.rule_object.direction == 1:
-                    object.motion(1, 0, self.matrix, self.level_rules, 'push')
-                elif self.rule_object.direction == 2:
-                    object.motion(0, 1, self.matrix, self.level_rules, 'push')
-                elif self.rule_object.direction == 3:
-                    object.motion(-1, 0, self.matrix, self.level_rules, 'push')
-
-
-class Tele(Rule):
-    def apply(self, matrix, rule_object, objects_for_tp, *_, **__):
-        self.matrix = matrix
-        self.first_tp = rule_object
+class Tele:
+    @staticmethod
+    def apply(matrix, rule_object, objects_for_tp, *_, **__):
+        matrix = matrix
+        first_tp = rule_object
         status = False
         teleports = []
-        x1 = self.first_tp.x
-        y1 = self.first_tp.y
-        for i in range(len(self.matrix)):
-            for j in range(len(self.matrix[i])):
-                for second_object_tp in self.matrix[i][j]:
+        x1 = first_tp.x
+        y1 = first_tp.y
+        for i in range(len(matrix)):
+            for j in range(len(matrix[i])):
+                for second_object_tp in matrix[i][j]:
                     if not second_object_tp.is_text:
-                        if second_object_tp.name == self.first_tp.name \
-                                and (second_object_tp.x != self.first_tp.x or second_object_tp.y != self.first_tp.y)\
-                                and len(self.matrix[i][j]) > 1:
+                        if second_object_tp.name == first_tp.name \
+                                and (second_object_tp.x != first_tp.x or second_object_tp.y != first_tp.y)\
+                                and len(matrix[i][j]) > 1:
                             status = True
                             teleports.append(copy(second_object_tp))
         if not status:
@@ -278,14 +240,15 @@ class Tele(Rule):
         second_tp = teleports[random.randint(0, len(teleports)-1)]
         x2 = second_tp.x
         y2 = second_tp.y
-        for objects in self.matrix[y1][x1]:
-            if objects.name != self.first_tp.name:
-                self.matrix[y1][x1].pop(objects.get_index(self.matrix))
+        for objects in matrix[y1][x1]:
+            if objects.name != first_tp.name:
+                matrix[y1][x1].pop(objects.get_index(matrix))
                 objects.update_parameters(x2 - x1, y2 - y1, matrix)
-        for objects in self.matrix[y2][x2]:
+        for objects in matrix[y2][x2]:
             if objects.name != second_tp.name:
-                self.matrix[y2][x2].pop(objects.get_index(self.matrix))
+                matrix[y2][x2].pop(objects.get_index(matrix))
                 objects.update_parameters(-(x2 - x1), -(y2 - y1), matrix)
+
 
 
 
@@ -296,10 +259,10 @@ class RuleProcessor:
         self.object = None
         self.events = None
         self.rules = None
+        self.level_processor = None
 
         self.dictionary = {
             'broken': Broken(),
-            'deturn': Deturn(),
             'you': You(),
             '3d': Is_3d(),
             'chill': Chill(),
@@ -323,9 +286,10 @@ class RuleProcessor:
         self.events = events
         self.rules = level_processor.level_rules
         self.objects_for_tp = level_processor.objects_for_tp
+        self.num_obj_3d = level_processor.num_obj_3d
 
-    def update_object(self, object):
-        self.object = object
+    def update_object(self, rule_object):
+        self.object = rule_object
 
     def process(self, rule) -> bool:
         if rule.split()[-1] not in self.dictionary:
@@ -336,10 +300,8 @@ class RuleProcessor:
                                                     events=self.events,
                                                     level_rules=self.rules,
                                                     objects_for_tp=self.objects_for_tp,
+                                                    num_obj_3d=self.num_obj_3d,
                                                     level_processor=self.level_processor)
-        # except IndexError:
-        #   print(
-        #        f'!!! IndexError appeared somewhere in {rule.split()[-1]} rule')
         except RecursionError:
             print(
                 f'!!! RecursionError appeared somewhere in {rule.split()[-1]} rule')

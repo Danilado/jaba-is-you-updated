@@ -53,18 +53,18 @@ OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed
 
 NOUNS = [
     'algaе', 'all', 'anni', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom',
-    'boat', 'boba', 'bog', 'bolt', 'bomb', 'book', 'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake',
-    'car', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal',
+    'car', 'boba', 'bog', 'bolt', 'bomb', 'book', 'bottle', 'box', 'brick', 'bubble', 'bucket', 'burger', 'cake', 'cog',
+    'boat', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle', 'cliff', 'clock', 'cloud',  'crab', 'crystal', 'pawn',
     'cup', 'cursor', 'dog', 'donut', 'door', 'door2', 'dot', 'drink', 'drum', 'dust', 'ear', 'edge', 'egg', 'empty',
     'error', 'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit',
     'fungi', 'fungus', 'gate', 'gem', 'ghost', 'grass', 'group', 'guitar', 'hand', 'hedge', 'hihat', 'house', 'husk',
     'husks', 'ice', 'image', 'it', 'jaba', 'jelly', 'jiji', 'keke', 'key', 'knight', 'ladder', 'lamp', 'lava', 'leaf',
     'line', 'lizard', 'lock', 'love', 'letters', 'me', 'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb', 'pants',
-    'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed',
+    'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed', 'bug',
     'ring', 'road', 'robot', 'rock', 'rocket', 'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel',
     'sign', 'skull', 'spike', 'sprout', 'square', 'star', 'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth',
     'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle',
-    'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm''algaе', 'all', 'anni', 'arrow', 'baba', 'badbad',
+    'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm', 'algaе', 'all', 'anni', 'arrow', 'baba', 'badbad',
     'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom', 'boat', 'boba', 'bog', 'bolt', 'bomb', 'book',
     'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair',
     'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup', 'cursor', 'dog', 'donut', 'door',
@@ -86,15 +86,10 @@ OPERATORS = [
     'powered', 'seldom', 'sharp', 'without', 'write'
 ]
 
-'GOSPODIN:'
-"""
-
-"""
-
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver',
-    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'white',
+    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right', 'end', 'fall', 'float', 'hide', 'hold', 'white',
     'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt', 'more', 'move', 'nudgeup', 'nudgeleft', 'hot',
     'nudgedown', 'nudgeright', 'open', 'shut', 'phantom', 'party', 'pet', 'power', 'pull', 'push', 'reverse',
     'sad', 'safe', 'scary', 'shift', 'sink', 'sleep', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win',
