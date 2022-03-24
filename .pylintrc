@@ -201,7 +201,13 @@ good-names=i,
            k,
            ex,
            Run,
+<<<<<<< HEAD
            _
+=======
+           _,
+           x,
+           y
+>>>>>>> some_rules
 
 # Good variable names regexes, separated by a comma. If names match any regex,
 # they will always be accepted
@@ -513,7 +519,7 @@ max-returns=6
 max-statements=50
 
 # Minimum number of public methods for a class (see R0903).
-min-public-methods=2
+min-public-methods=1
 
 
 [IMPORTS]

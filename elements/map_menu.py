@@ -119,7 +119,7 @@ class MapMenu(GameStrategy):
                     if k < len(self.matrix[i][j]) and j < 31:
                         if self.matrix[i][j][k].name == 'cursor' and not self.matrix[i][j][k].is_text:
                             if self.matrix[i][j][0].name in self.cursor.levels:
-                                self._state = State(GameState.switch, partial(PlayLevel,
+                                self._state = State(GameState.SWITCH, partial(PlayLevel,
                                                                               self.matrix[i][j][0].name.split("/")[0]))
                             if self.matrix[i][j][0].name in self.cursor.reference_point:
                                 pass
@@ -148,10 +148,10 @@ class MapMenu(GameStrategy):
             self.screen.fill("black")
             for event in events:
                 if event.type == pygame.QUIT:
-                    self._state = State(GameState.back)
+                    self._state = State(GameState.BACK)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        self._state = State(GameState.back)
+                        self._state = State(GameState.BACK)
                     if event.key == pygame.K_RETURN:
                         self.delay = pygame.time.get_ticks()
                         self.flag_anime = True
@@ -174,7 +174,7 @@ class MapMenu(GameStrategy):
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
                     game_object.draw(self.screen)
 
         if self.first_iteration:
@@ -191,7 +191,7 @@ class MapMenu(GameStrategy):
                 self.go_to_game()
 
         if self._state is None:
-            self._state = State(GameState.flip, None)
+            self._state = State(GameState.FLIP, None)
 
         return self._state
 

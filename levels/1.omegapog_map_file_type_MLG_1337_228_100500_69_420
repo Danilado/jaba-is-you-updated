@@ -1,6 +1,9 @@
 1 0 1 frog True
 2 0 1 is False
 3 0 1 you False
+4 0 1 door True
+5 0 0 is False
+6 0 0 shut False
 15 0 1 rock True
 16 0 1 is False
 17 0 1 push False
@@ -13,6 +16,15 @@
 29 0 1 bug True
 30 0 1 is False
 31 0 1 stop False
+1 1 0 frog True
+2 1 0 is False
+3 1 1 safe False
+4 1 0 frog True
+5 1 0 is False
+6 1 0 open False
+15 1 1 rock True
+16 1 1 is False
+17 1 1 open False
 31 1 1 flag True
 0 2 1 rose False
 1 2 1 rose False
@@ -46,6 +58,11 @@
 29 2 1 rose False
 30 2 1 rose False
 31 2 1 is False
+13 3 1 rock False
+14 3 1 rock False
+15 3 1 rock False
+16 3 1 rock False
+17 3 1 rock False
 18 3 1 fire False
 19 3 1 fire False
 20 3 1 fire False

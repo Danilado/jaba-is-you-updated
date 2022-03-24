@@ -1,3 +1,4 @@
+import math
 from typing import Final, Tuple
 
 import math
@@ -5,7 +6,7 @@ import math
 DEBUG: bool = True
 
 RESOLUTION: Final[Tuple[int, int]] = (1600, 900)  # 32x18
-SHOW_GRID: Final[bool] = True
+SHOW_GRID: Final[bool] = False
 FRAMES_PER_SECOND: Final[int] = 60
 
 TEXT_ONLY = [
@@ -21,8 +22,8 @@ TEXT_ONLY = [
     'n', 'near', 'nextto', 'not', 'nudgedown', 'nudgeleft', 'nudgeright', 'nudgeup',
     'o', 'often', 'on', 'open', 'orange', 'p', 'p1', 'p2', 'party', 'pet', 'phantom', 'pink',
     'play', 'power', 'power2', 'power3', 'powered', 'powered2', 'powered3', 'pull',
-    'purple', 'push', 'q', 'r', 'red', 'reverse', 'revert', 'right', 'rosy', 's', 'sad', 'safe',
-    'scary', 'seeing', 'seldom', 'select', 'sharp', 'shift', 'shut', 'silver', 'sink',
+    'purple', 'push', 'q', 'r', 'red', 'reverse', 'right', 'rosy', 's', 'sad', 'safe',
+    'scary', 'seeing', 'seldom', 'sharp', 'shift', 'shut', 'silver', 'sink',
     'sleep', 'still', 'stop', 'swap', 't', 'tele', 'turn', 'u', 'up', 'v', 'w', 'weak',
     'white', 'win', 'without', 'wonder', 'word', 'write', 'x', 'y', 'yellow', 'you', 'you2', 'z'
 ]
@@ -52,28 +53,24 @@ OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed
            'trumpet', 'turnip', 'turtle', 'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm'
            ]
 
-# Povelitel's tools
-
 NOUNS = [
     'algaе', 'all', 'anni', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom',
-    'boat', 'boba', 'bog', 'bolt', 'bomb', 'book', 'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake',
-    'car', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal',
+    'car', 'boba', 'bog', 'bolt', 'bomb', 'book', 'bottle', 'box', 'brick', 'bubble', 'bucket', 'burger', 'cake', 'cog',
+    'boat', 'cart', 'cash', 'cat', 'chair', 'cheese', 'circle', 'cliff', 'clock', 'cloud',  'crab', 'crystal', 'pawn',
     'cup', 'cursor', 'dog', 'donut', 'door', 'door2', 'dot', 'drink', 'drum', 'dust', 'ear', 'edge', 'egg', 'empty',
     'error', 'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo', 'foliage', 'foot', 'fort', 'frog', 'fruit',
     'fungi', 'fungus', 'gate', 'gem', 'ghost', 'grass', 'group', 'guitar', 'hand', 'hedge', 'hihat', 'house', 'husk',
     'husks', 'ice', 'image', 'it', 'jaba', 'jelly', 'jiji', 'keke', 'key', 'knight', 'ladder', 'lamp', 'lava', 'leaf',
-    'level', 'lever', 'lift', 'lily',
     'line', 'lizard', 'lock', 'love', 'letters', 'me', 'mirror', 'monitor', 'monster', 'moon', 'nose', 'orb', 'pants',
-    'pawn', 'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed',
+    'piano', 'pillar', 'pipe', 'pixel', 'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed', 'bug',
     'ring', 'road', 'robot', 'rock', 'rocket', 'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel',
     'sign', 'skull', 'spike', 'sprout', 'square', 'star', 'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth',
-    'text', 'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle',
-    'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm''algaе', 'all', 'anni', 'arrow', 'baba', 'badbad',
+    'tile', 'tower', 'track', 'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle',
+    'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm', 'algaе', 'all', 'anni', 'arrow', 'baba', 'badbad',
     'banana', 'bat', 'bed', 'bee', 'belt', 'bird', 'blob', 'blossom', 'boat', 'boba', 'bog', 'bolt', 'bomb', 'book',
     'bottle', 'box', 'brick', 'bubble', 'bucket', 'bug', 'burger', 'cake', 'car', 'cart', 'cash', 'cat', 'chair',
     'cheese', 'circle', 'cliff', 'clock', 'cloud', 'cog', 'crab', 'crystal', 'cup', 'cursor', 'dog', 'donut', 'door',
-    'door2', 'dot', 'drink',
-    'drum', 'dust', 'ear', 'edge', 'egg', 'empty', 'error', 'eye', 'fence', 'fire', 'fish', 'flag', 'flower', 'fofo',
+    'door2', 'dot', 'drink', 'drum', 'dust', 'ear', 'edge', 'egg', 'empty', 'error', 'eye', 'fence', 'fire', 'fish',
     'foliage', 'foot', 'fort', 'frog', 'fruit', 'fungi', 'fungus', 'gate', 'gem', 'ghost', 'grass', 'group', 'guitar',
     'hand', 'hedge', 'hihat', 'house', 'husk', 'husks', 'ice', 'image', 'it', 'jelly', 'jiji', 'keke', 'key', 'knight',
     'ladder', 'lamp', 'lava', 'leaf', 'level', 'lever', 'lift', 'lily', 'line', 'lizard', 'lock', 'love', 'letters',
@@ -81,8 +78,8 @@ NOUNS = [
     'pizza', 'plane', 'planet', 'plank', 'potato', 'pumpkin', 'rain', 'reed', 'ring', 'road', 'robot', 'rock', 'rocket',
     'rose', 'rubble', 'sax', 'seastar', 'seed', 'shell', 'shirt', 'shovel', 'sign', 'skull', 'spike', 'sprout',
     'square', 'star', 'statue', 'stick', 'stump', 'sun', 'sword', 'table', 'teeth', 'text', 'tile', 'tower', 'track',
-    'train', 'trash', 'tree',
-    'trees', 'triangle', 'trumpet', 'turnip', 'turtle', 'ufo', 'vase', 'vine', 'wall', 'water', 'what', 'wind', 'worm'
+    'train', 'trash', 'tree', 'trees', 'triangle', 'trumpet', 'turnip', 'turtle', 'ufo', 'vase', 'vine', 'wall',
+    'water', 'what', 'wind', 'worm', 'flag', 'flower', 'fofo', 'level', 'lever', 'lift', 'lily',
 ]
 
 OPERATORS = [
@@ -91,15 +88,14 @@ OPERATORS = [
     'powered', 'seldom', 'sharp', 'without', 'write'
 ]
 
-
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
-    'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver', 'white',
-    'defeat', 'return', 'done', 'up', 'left', 'down', 'right' 'end', 'fall', 'float', 'hide', 'hold', 'hot',
-    'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt',
-    'more', 'move', 'nudge', 'open', 'party', 'pet', 'phantom', 'power', 'pull', 'push', 'reverse', 'revert', 'sad',
-    'safe', 'scary', 'select', 'shift', 'shut', 'sink', 'sleep', 'stick', 'still', 'stop', 'swap', 'tele', 'turn',
-    'weak', 'win', 'wonder', 'word', 'you', 'you2'
+    'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver',
+    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right', 'end', 'fall', 'float', 'hide', 'hold', 'white',
+    'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt', 'more', 'move', 'nudgeup', 'nudgeleft', 'hot',
+    'nudgedown', 'nudgeright', 'open', 'shut', 'phantom', 'party', 'pet', 'power', 'pull', 'push', 'reverse',
+    'sad', 'safe', 'scary', 'shift', 'sink', 'sleep', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win',
+    'wonder', 'word', 'you', 'you2'
 ]
 
 # ray_cast settings

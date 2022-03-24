@@ -196,7 +196,7 @@ class Editor(GameStrategy):
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
 
     def get_neighbours(self, y, x) -> List[Object]:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -257,10 +257,10 @@ class Editor(GameStrategy):
                     # ЭТО НУЖНО ДЕЛАТЬ ПОСЛЕ ДОБАВЛЕНИЯ ОБЪЕКТА В МАТРИЦУ
                     for array in neighbours:
                         for neighbour in array:
-                            if neighbour.name in STICKY and not neighbour.text:
+                            if neighbour.name in STICKY and not neighbour.is_text:
                                 neighbour.neighbours = self.get_neighbours(
                                     neighbour.x, neighbour.y)
-                                neighbour.animation_init()
+                                neighbour.animation = neighbour.animation_init()
 
     def delete(self):
         """Если в клетке есть объекты, удаляет последний созданный из них"""
@@ -272,15 +272,15 @@ class Editor(GameStrategy):
                 self.focus[0], self.focus[1])
             for array in neighbours:
                 for neighbour in array:
-                    if neighbour.name in STICKY and not neighbour.text:
+                    if neighbour.name in STICKY and not neighbour.is_text:
                         neighbour.neighbours = self.get_neighbours(
                             neighbour.x, neighbour.y)
-                        neighbour.animation_init()
+                        neighbour.animation = neighbour.animation_init()
 
     def overlay(self):
         """Вызывает меню управления редактора"""
         self.unresize()
-        self.state = State(GameState.switch, partial(EditorOverlay, self))
+        self.state = State(GameState.SWITCH, partial(EditorOverlay, self))
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает редактор (включая все его элементы) и обрабатывает все действия пользователя
@@ -302,7 +302,7 @@ class Editor(GameStrategy):
         if self.exit_flag:
             if not self.discard:
                 self.safe_exit()
-            self.state = State(GameState.back)
+            self.state = State(GameState.BACK)
             self.unresize()
         if self.new_loaded:
             self.changes.clear()
@@ -314,13 +314,13 @@ class Editor(GameStrategy):
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
 
         self.screen.fill("black")
         for event in events:
             if event.type == pygame.QUIT:
                 self.extreme_exit()
-                self.state = State(GameState.back)
+                self.state = State(GameState.BACK)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.overlay()
@@ -395,7 +395,7 @@ class Editor(GameStrategy):
                     object_button.draw(self.screen)
 
         if self.state is None:
-            self.state = State(GameState.flip)
+            self.state = State(GameState.FLIP)
         return self.state
 
     def music(self):

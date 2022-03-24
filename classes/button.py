@@ -61,8 +61,8 @@ class Button:
 
         if self.text != "":
             pygame.font.init()
-            font = pygame.font.SysFont(
-                'segoeuisemibold', self.settings.text_size)
+            font = pygame.font.Font(
+                "fonts/ConsolateElf.ttf", self.settings.text_size)
             lines = self.text.split('\n')
             text_height = 0
             for index, line in enumerate(lines):

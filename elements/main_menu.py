@@ -18,22 +18,23 @@ class MainMenu(GameStrategy):
     """
     Стратегия главного меню
     """
+
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
         self._state: Optional[State] = None
         sound_manager.load_music("sounds/Music/menu")
 
     def _start_the_game(self):
-        self._state = State(GameState.switch, MapMenu)
+        self._state = State(GameState.SWITCH, MapMenu)
 
     def _go_to_editor(self):
-        self._state = State(GameState.switch, Editor)
+        self._state = State(GameState.SWITCH, Editor)
 
     def _exit_the_game(self):
-        self._state = State(GameState.stop, None)
+        self._state = State(GameState.STOP, None)
 
     def _go_to_loader(self):
-        self._state = State(GameState.switch, Loader)
+        self._state = State(GameState.SWITCH, Loader)
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int):
         buttons = [
@@ -61,7 +62,7 @@ class MainMenu(GameStrategy):
                 button.draw(self.screen)
                 button.update(events)
             if self._state is None:
-                self._state = State(GameState.flip, None)
+                self._state = State(GameState.FLIP, None)
         return self._state
 
     def music(self):

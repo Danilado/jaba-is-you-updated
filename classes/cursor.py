@@ -25,36 +25,42 @@ class MoveCursor:
                 self.move_down(matrix)
 
     def move_up(self, matrix):
-        for i in range(len(matrix)):
-            for j in range((len(matrix[i]))):
-                for k in range(len(matrix[i][j])):
-                    if k < len(matrix[i][j]) and i > 0:
-                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].is_text:
-                            if len(matrix[i - 1][j]) != 0:
-                                if matrix[i - 1][j][0].name.split("_")[0] == 'line' \
-                                        or matrix[i - 1][j][0].name.split("_")[0] in self.blocks:
-                                    matrix[i - 1][j].append(matrix[i][j][k])
-                                    matrix[i - 1][j][-1].y -= 1
-                                    matrix[i - 1][j][-1].animation.position = (
-                                        matrix[i - 1][j][-1].x * 50, matrix[i - 1][j][-1].y * 50)
-                                    matrix[i][j].pop(k)
+        for i, line in enumerate(matrix):
+            for j, cell in enumerate(line):
+                for k, element in enumerate(cell):
+
+                    if k < len(cell) and i > 0 and \
+                       element.name == 'cursor' and not element.is_text and \
+                       len(matrix[i - 1][j]) != 0 and \
+                       (matrix[i - 1][j][0].name.split("_")[0] == 'line' or
+                            matrix[i - 1][j][0].name.split("_")[0] in self.blocks):
+
+                        matrix[i - 1][j].append(element)
+                        matrix[i - 1][j][-1].y -= 1
+                        matrix[i - 1][j][-1].animation.position = (
+                            matrix[i - 1][j][-1].x * 50, matrix[i - 1][j][-1].y * 50)
+                        cell.pop(k)
 
     def move_down(self, matrix):
         num_el = None
         x = None
         y = None
-        for i in range(len(matrix)):
-            for j in range((len(matrix[i]))):
-                for k in range(len(matrix[i][j])):
-                    if k < len(matrix[i][j]) and i < 17:
-                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].is_text:
-                            if len(matrix[i + 1][j]) != 0:
-                                if matrix[i + 1][j][0].name.split("_")[0] == 'line' \
-                                        or matrix[i + 1][j][0].name.split("_")[0] in self.blocks:
-                                    num_el = k
-                                    x = i
-                                    y = j
+        for i, line in enumerate(matrix):
+            for j, cell in enumerate(line):
+                for k, element in enumerate(cell):
+
+                    if k < len(cell) and i < 17 and \
+                       element.name == 'cursor' and not element.is_text and \
+                       len(matrix[i + 1][j]) != 0 and \
+                       (matrix[i + 1][j][0].name.split("_")[0] == 'line' or
+                            matrix[i + 1][j][0].name.split("_")[0] in self.blocks):
+
+                        num_el = k
+                        x = i
+                        y = j
+
         if num_el is not None and x is not None and y is not None:
+
             matrix[x + 1][y].append(matrix[x][y][num_el])
             matrix[x + 1][y][-1].y += 1
             matrix[x + 1][y][-1].animation.position = (
@@ -62,35 +68,41 @@ class MoveCursor:
             matrix[x][y].pop(num_el)
 
     def move_left(self, matrix):
-        for i in range(len(matrix)):
-            for j in range((len(matrix[i]))):
-                for k in range(len(matrix[i][j])):
-                    if k < len(matrix[i][j]) and j > 0:
-                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].is_text:
-                            if len(matrix[i][j - 1]) != 0:
-                                if matrix[i][j - 1][0].name.split("_")[0] == 'line' \
-                                        or matrix[i][j - 1][0].name.split("_")[0] in self.blocks:
-                                    matrix[i][j - 1].append(matrix[i][j][k])
-                                    matrix[i][j - 1][-1].x -= 1
-                                    matrix[i][j - 1][-1].animation.position = (
-                                        matrix[i][j - 1][-1].x * 50, matrix[i][j - 1][-1].y * 50)
-                                    matrix[i][j].pop(k)
+        for i, line in enumerate(matrix):
+            for j, cell in enumerate(line):
+                for k, element in enumerate(cell):
+
+                    if k < len(cell) and j > 0 and \
+                       element.name == 'cursor' and not element.is_text and \
+                       len(matrix[i][j - 1]) != 0 and \
+                       (matrix[i][j - 1][0].name.split("_")[0] == 'line' or
+                            matrix[i][j - 1][0].name.split("_")[0] in self.blocks):
+
+                        matrix[i][j - 1].append(element)
+                        matrix[i][j - 1][-1].x -= 1
+                        matrix[i][j - 1][-1].animation.position = (
+                            matrix[i][j - 1][-1].x * 50, matrix[i][j - 1][-1].y * 50)
+                        cell.pop(k)
 
     def move_right(self, matrix):
         num_el = None
         x = None
         y = None
-        for i in range(len(matrix)):
-            for j in range((len(matrix[i]))):
-                for k in range(len(matrix[i][j])):
-                    if k < len(matrix[i][j]) and j < 31:
-                        if matrix[i][j][k].name == 'cursor' and not matrix[i][j][k].is_text:
-                            if len(matrix[i][j + 1]) != 0:
-                                if matrix[i][j + 1][0].name.split("_")[0] == 'line' \
-                                        or matrix[i][j + 1][0].name.split("_")[0] in self.blocks:
-                                    num_el = k
-                                    x = i
-                                    y = j
+
+        for i, line in enumerate(matrix):
+            for j, cell in enumerate(line):
+                for k, element in enumerate(cell):
+
+                    if k < len(cell) and j < 31 and \
+                       element.name == 'cursor' and not element.is_text and \
+                       len(matrix[i][j + 1]) != 0 and \
+                       (matrix[i][j + 1][0].name.split("_")[0] == 'line' or
+                            matrix[i][j + 1][0].name.split("_")[0] in self.blocks):
+
+                        num_el = k
+                        x = i
+                        y = j
+
         if num_el is not None and x is not None and y is not None:
             matrix[x][y + 1].append(matrix[x][y][num_el])
             matrix[x][y + 1][-1].x += 1
