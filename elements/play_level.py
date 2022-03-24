@@ -2,7 +2,7 @@
 import math
 
 from utils import my_deepcopy
-from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY
+from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, TEXT_ONLY
 from global_types import SURFACE
 from elements.global_classes import sound_manager
 from classes.state import State
@@ -213,12 +213,15 @@ class PlayLevel(GameStrategy):
 
     @staticmethod
     def text_to_png(level_name):
-        x_offset = 12
         level_text = 'level ' + level_name
+        if len(level_text) >= 32:
+            x_offset = 0
+        else:
+            x_offset = (32 - len(level_text)) // 2
         text_in_objects = []
 
         for letter in level_text:
-            if letter not in [' ', '_', '-']:
+            if letter in TEXT_ONLY:
                 img_letter = Object(x_offset, 6, 1, letter, True)
                 text_in_objects.append(img_letter)
             x_offset += 1
