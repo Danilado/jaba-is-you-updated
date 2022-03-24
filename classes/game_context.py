@@ -95,7 +95,10 @@ class GameContext:
                 draw_state = self.game_strategy.draw(events, delta_time)
 
                 if not pygame.mixer.music.get_busy():
-                    pygame.mixer.music.play()
+                    try:
+                        pygame.mixer.music.play()
+                    except pygame.error:
+                        pass
 
                 if draw_state is not None:
                     if draw_state.game_state is GameState.STOP:

@@ -712,12 +712,18 @@ class Object:
         :type level_rules: List[TextRule]
         """
         if self.check_valid_range(delta_x, delta_y):
-            for rule_object in matrix[self.y - delta_y][self.x - delta_x]:
-                if not rule_object.is_text and rule_object.name in NOUNS:
-                    for rule in level_rules:
-                        if f'{rule_object.name} is pull' in rule.text_rule:
-                            rule_object.motion(
-                                delta_x, delta_y, matrix, level_rules, 'pull')
+            # FIXME by Gospodin
+            # Indexerror В случае object is move при движении в стену
+            # (Код работает правильно, но вылезает ошибка)
+            try:
+                for rule_object in matrix[self.y - delta_y][self.x - delta_x]:
+                    if not rule_object.is_text and rule_object.name in NOUNS:
+                        for rule in level_rules:
+                            if f'{rule_object.name} is pull' in rule.text_rule:
+                                rule_object.motion(
+                                    delta_x, delta_y, matrix, level_rules, 'pull')
+            except IndexError as error:
+                print(error, f'in {self.name} pull_objects()')
 
     def check_locked(self, delta_x, delta_y) -> bool:
         """Блокирует стороны для движения в случае
