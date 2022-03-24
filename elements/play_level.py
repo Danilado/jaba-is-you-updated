@@ -295,6 +295,12 @@ class PlayLevel(GameStrategy):
             is_3d = False
 
             for rule in self.level_rules:
+                for noun in NOUNS:
+                    if f'{rule_object.name} is {noun}' in rule.text_rule and not rule_object.is_text:
+                        matrix[i][j].pop(rule_object.get_index(matrix))
+                        rule_object.name = noun
+                        matrix[i][j].append(copy(rule_object))
+
                 if f'{rule_object.name} is 3d' in rule.text_rule:
                     is_3d = True
 
