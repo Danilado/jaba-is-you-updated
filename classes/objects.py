@@ -67,8 +67,10 @@ class Object:
         self.name: str = name
         if self.name in TEXT_ONLY:
             self.is_text = True
-        self.text = is_text  # TODO: Rename text to is_text.
-        # Используется с правилами move, turn, shift и т.д.
+        self.is_text = is_text
+
+        self.turning_side = turning_side
+        self.status_of_rotate: Literal[0, 1, 2, 3] = 0
         self.direction = direction
         self.direction_key_map = {
             0: 1,
@@ -101,10 +103,7 @@ class Object:
         self.is_reverse = False
         self.is_safe = safe
         self.locked_sides = []
-        self.angle_3d = -90 + 90 * self.direction
-        self.animation = None
-        if self.name != 'empty':
-            self.is_open = False
+        self.is_open = False
         self.is_shut = False
         self.is_phantom = False
         self.is_still = False

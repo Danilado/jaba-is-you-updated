@@ -1,4 +1,5 @@
 import math
+
 import pygame
 
 from settings import TILE, HALF_FOV, RESOLUTION, NUM_RAYS, PROJ_COEFF, TEXTURE_SCALE, SCALE, HALF_HEIGHT, DELTA_ANGLE
