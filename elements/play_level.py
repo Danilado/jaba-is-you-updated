@@ -42,10 +42,12 @@ class PlayLevel(GameStrategy):
         self.count_3d_obj = 0
         self.flag = True
 
-        self.level_name_object_text = self.text_to_png(level_name)
+        self.flag_to_win_animation = False
+        self.flag_to_delay = False
+
+        self.level_name_object_text = self.text_to_png('level ' + level_name)
         self.circle_radius = 650
 
-        self.delay = pygame.time.get_ticks()
         self.delay = pygame.time.get_ticks()
 
     def parse_file(self, level_name: str):
@@ -88,7 +90,7 @@ class PlayLevel(GameStrategy):
         :rtype: List[]
         """
 
-        offsets = [(0, -1), (1,  0), (0,  1), (-1, 0)]
+        offsets = [(0, -1), (1, 0), (0, 1), (-1, 0)]
         neighbours = [[] for _ in range(4)]
 
         if x == 0:
@@ -212,15 +214,14 @@ class PlayLevel(GameStrategy):
         sound_manager.load_music("sounds/Music/ruin")
 
     @staticmethod
-    def text_to_png(level_name):
-        level_text = 'level ' + level_name
-        if len(level_text) >= 32:
+    def text_to_png(some_text):
+        if len(some_text) >= 32:
             x_offset = 0
         else:
-            x_offset = (32 - len(level_text)) // 2
+            x_offset = (32 - len(some_text)) // 2
         text_in_objects = []
 
-        for letter in level_text:
+        for letter in some_text:
             if letter in TEXT_ONLY:
                 img_letter = Object(x_offset, 6, 1, letter, True)
                 text_in_objects.append(img_letter)
@@ -241,6 +242,24 @@ class PlayLevel(GameStrategy):
                     character_object.draw(self.screen)
             if pygame.time.get_ticks() - self.delay > 3000:
                 self.circle_radius -= 8
+
+    def win_animation(self):
+        offsets = [[(200, 100, 1150, 500), (0, 50, 30)], [(250, 125, 1050, 450), (0, 100, 30)],
+                   [(300, 150, 950, 400), (0, 150, 30)], [(350, 175, 850, 350), (0, 200, 30)]]
+        if self.circle_radius < 0 and self.flag_to_win_animation:
+            if 0 <= pygame.time.get_ticks() - self.delay <= 3000:
+                pygame.draw.rect(self.screen, offsets[0][1], offsets[0][0])
+            if 200 <= pygame.time.get_ticks() - self.delay <= 3000:
+                pygame.draw.rect(self.screen, offsets[1][1], offsets[1][0])
+            if 400 <= pygame.time.get_ticks() - self.delay <= 3000:
+                pygame.draw.rect(self.screen, offsets[2][1], offsets[2][0])
+            if 600 <= pygame.time.get_ticks() - self.delay <= 3000:
+                pygame.draw.rect(self.screen, offsets[3][1], offsets[3][0])
+            if 800 <= pygame.time.get_ticks() - self.delay <= 3000:
+                for character_object in self.text_to_png('congratulations'):
+                    character_object.draw(self.screen)
+            if pygame.time.get_ticks() - self.delay > 3000:
+                self.state = State(GameState.BACK)
 
     def functional_event_check(self, events: List[pygame.event.Event]):
         for event in events:
@@ -264,6 +283,10 @@ class PlayLevel(GameStrategy):
                 if event.key == pygame.K_z:
                     self.status_cancel = False
                     self.moved = True
+                if event.key == pygame.K_SPACE and self.flag_to_win_animation:
+                    self.state = State(GameState.BACK)
+
+
 
     def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
         for event in events:
@@ -385,8 +408,9 @@ class PlayLevel(GameStrategy):
                 if f'{rule_object.name} is win' in rule.text_rule:
                     for level_object in matrix[i][j]:
                         for second_rule in self.level_rules:
-                            if f'{level_object.name} is you' in second_rule.text_rule:
-                                self.state = State(GameState.BACK)
+                            if f'{level_object.name} is you' in second_rule.text_rule \
+                                    or f'{level_object.name} is 3d' in second_rule.text_rule:
+                                pass
 
     def find_rules(self):
         self.level_rules = []
@@ -485,6 +509,9 @@ class PlayLevel(GameStrategy):
 
         if self.circle_radius:
             self.level_start_animation()
+
+        if self.flag_to_win_animation:
+            self.win_animation()
 
         if self.moved:
             self.moved = False
