@@ -88,8 +88,8 @@ class Loader(GameStrategy):
         """
         matrix: List[List[List[Object]]] = [[[]
                                              for _ in range(32)] for _ in range(18)]
-        leve_file = open(
-            f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r')
+        leve_file = open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
+                         'r', 'utf-8')
         lines = leve_file.read().split('\n')
         for line in lines:
             parameters = line.split(' ')

@@ -1,8 +1,6 @@
 import math
 from typing import Final, Tuple
 
-import math
-
 DEBUG: bool = True
 
 RESOLUTION: Final[Tuple[int, int]] = (1600, 900)  # 32x18

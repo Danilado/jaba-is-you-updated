@@ -147,8 +147,9 @@ class Object:
         char_dict = ['u', 'r', 'b', 'l']
         key = ''
         for index, array in enumerate(self.neighbours):
-            for object in array:
-                if not object.is_text and object.name == self.name and char_dict[index] not in key:
+            for level_object in array:
+                if not level_object.is_text and level_object.name == self.name and \
+                        char_dict[index] not in key:
                     key += char_dict[index]
         return key_dict[key]
 

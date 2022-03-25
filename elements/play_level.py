@@ -1,6 +1,9 @@
 """draw_matrix.py hopefully refactored by Gospodin"""
 import math
 
+from copy import copy
+from typing import List, Optional
+import pygame
 from utils import my_deepcopy
 from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, TEXT_ONLY
 from global_types import SURFACE
@@ -11,10 +14,7 @@ from classes.text_rule import TextRule
 from classes.objects import Object
 from classes.game_strategy import GameStrategy
 from classes.game_state import GameState
-import classes.rules as rules
-import pygame
-from typing import List, Optional
-from copy import copy
+from classes import rules
 
 
 class PlayLevel(GameStrategy):
@@ -198,9 +198,9 @@ class PlayLevel(GameStrategy):
         copy_matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
 
-        for i in range(len(matrix)):
-            for j in range(len(matrix[i])):
-                for obj in matrix[i][j]:
+        for i, line in enumerate(matrix):
+            for j, cell in enumerate(line):
+                for obj in cell:
                     copy_object = copy(obj)
                     copy_matrix[i][j].append(copy_object)
 
@@ -273,9 +273,9 @@ class PlayLevel(GameStrategy):
                     rules.processor.update_lists(level_processor=self,
                                                  matrix=matrix,
                                                  events=[event])
-                    for i in range(len(self.matrix)):
-                        for j in range(len(self.matrix[i])):
-                            for rule_object in self.matrix[i][j]:
+                    for i, line in enumerate(self.matrix):
+                        for j, cell in enumerate(line):
+                            for rule_object in cell:
                                 self.apply_rules(matrix, rule_object, i, j)
                 elif event.key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]:
                     rules.processor.update_lists(level_processor=self,
@@ -383,15 +383,15 @@ class PlayLevel(GameStrategy):
 
             for rule in self.level_rules:
                 if f'{rule_object.name} is win' in rule.text_rule:
-                    for object in matrix[i][j]:
+                    for level_object in matrix[i][j]:
                         for second_rule in self.level_rules:
-                            if f'{object.name} is you' in second_rule.text_rule:
+                            if f'{level_object.name} is you' in second_rule.text_rule:
                                 self.state = State(GameState.BACK)
 
     def find_rules(self):
         self.level_rules = []
-        for i in range(len(self.matrix)):
-            for j in range(len(self.matrix[i])):
+        for i, line in enumerate(self.matrix):
+            for j, _ in enumerate(line):
                 self.check_horizontally(i, j)
                 self.check_vertically(i, j)
         self.level_rules = self.remove_copied_rules(
