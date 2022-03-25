@@ -44,6 +44,7 @@ class PlayLevel(GameStrategy):
 
         self.flag_to_win_animation = False
         self.flag_to_delay = False
+        self.win_text = self.text_to_png('congratulations')
 
         self.level_name_object_text = self.text_to_png('level ' + level_name)
         self.circle_radius = 650
@@ -245,7 +246,8 @@ class PlayLevel(GameStrategy):
 
     def win_animation(self):
         offsets = [[(200, 100, 1150, 500), (0, 50, 30)], [(250, 125, 1050, 450), (0, 100, 30)],
-                   [(300, 150, 950, 400), (0, 150, 30)], [(350, 175, 850, 350), (0, 200, 30)]]
+                   [(300, 150, 950, 400), (0, 150, 30)], [(350, 175, 850, 350), (0, 200, 30)],
+                   [(400, 200, 750, 300), (0, 250, 30)], [(450, 225, 650, 250), (0, 250, 80)]]
         if self.circle_radius < 0 and self.flag_to_win_animation:
             if 0 <= pygame.time.get_ticks() - self.delay <= 3000:
                 pygame.draw.rect(self.screen, offsets[0][1], offsets[0][0])
@@ -256,7 +258,11 @@ class PlayLevel(GameStrategy):
             if 600 <= pygame.time.get_ticks() - self.delay <= 3000:
                 pygame.draw.rect(self.screen, offsets[3][1], offsets[3][0])
             if 800 <= pygame.time.get_ticks() - self.delay <= 3000:
-                for character_object in self.text_to_png('congratulations'):
+                pygame.draw.rect(self.screen, offsets[4][1], offsets[4][0])
+            if 1000 <= pygame.time.get_ticks() - self.delay <= 3000:
+                pygame.draw.rect(self.screen, offsets[5][1], offsets[5][0])
+            if 100 <= pygame.time.get_ticks() - self.delay <= 3000:
+                for character_object in self.win_text:
                     character_object.draw(self.screen)
             if pygame.time.get_ticks() - self.delay > 3000:
                 self.state = State(GameState.BACK)
@@ -285,8 +291,6 @@ class PlayLevel(GameStrategy):
                     self.moved = True
                 if event.key == pygame.K_SPACE and self.flag_to_win_animation:
                     self.state = State(GameState.BACK)
-
-
 
     def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
         for event in events:
