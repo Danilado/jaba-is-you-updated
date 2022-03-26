@@ -33,7 +33,7 @@ class ProgressBarMenu(GameStrategy):
 
                                             progress_background_color="green")
             font = pygame.font.Font(
-                "fonts/ConsolateElf.ttf", 72*2.5)
+                "fonts/ConsolateElf.ttf", int(72*2.5))
             self.loading_text = font.render("Загрузка звуков", True, (255,)*3)
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
