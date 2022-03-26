@@ -17,7 +17,8 @@ class PaletteChoose(GameStrategy):
     def __init__(self, editor: "Editor", screen: SURFACE):
         self.editor: "Editor" = editor
         font = pygame.font.SysFont("Arial", int(72 * 2.5))
-        self._choose_palette_text = font.render("Выберите палитру:", True, (255, 255, 255))
+        self._choose_palette_text = font.render(
+            "Выберите палитру:", True, (255, 255, 255))
         super().__init__(screen)
 
     def _process_palette(self, x_pixel_offset=0, y_pixel_offset=0) -> Optional[Palette]:
@@ -46,14 +47,17 @@ class PaletteChoose(GameStrategy):
                 color_mask = pygame.surface.Surface((pixel_size * length_of_palette_pixels_abscissa,
                                                      pixel_size * length_of_palette_pixels_ordinate))
                 color_mask.fill("lightgray")
-                palette_surface.blit(color_mask, (0, 0), special_flags=pygame.BLEND_MULT)
+                palette_surface.blit(color_mask, (0, 0),
+                                     special_flags=pygame.BLEND_MULT)
                 if pygame.mouse.get_pressed()[0]:
                     return palette
             self.screen.blit(palette_surface, (x_pixel_offset, y_pixel_offset))
 
-            x_pixel_offset += length_of_palette_pixels_abscissa * pixel_size + distance_between_palettes
+            x_pixel_offset += length_of_palette_pixels_abscissa * \
+                pixel_size + distance_between_palettes
             if x_pixel_offset + length_of_palette_pixels_abscissa * pixel_size > self.screen.get_width():
-                y_pixel_offset += pixel_size * length_of_palette_pixels_ordinate + distance_between_palettes
+                y_pixel_offset += pixel_size * \
+                    length_of_palette_pixels_ordinate + distance_between_palettes
                 x_pixel_offset = 0
         return None
 
@@ -63,15 +67,16 @@ class PaletteChoose(GameStrategy):
             self.screen.fill('black')
             for event in events:
                 if event.type == pygame.QUIT or (event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE):
-                    state = State(GameState.back)
+                    state = State(GameState.BACK)
 
             self.screen.blit(self._choose_palette_text, (0, 0))
-            palette = self._process_palette(0, self._choose_palette_text.get_height())
+            palette = self._process_palette(
+                0, self._choose_palette_text.get_height())
             if palette is not None:
                 self.editor.current_palette = palette
 
             if state is None:
-                state = State(GameState.flip)
+                state = State(GameState.FLIP)
         return state
 
     def music(self):
