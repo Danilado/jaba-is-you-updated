@@ -11,26 +11,10 @@ from classes.game_strategy import GameStrategy
 from classes.object_button import ObjectButton
 from classes.objects import Object
 from classes.state import State
-from elements.global_classes import EuiSettings, IuiSettings, sound_manager
+from elements.global_classes import EuiSettings, IuiSettings, sound_manager, palette_manager
 from elements.overlay import EditorOverlay
 from settings import SHOW_GRID, RESOLUTION, OBJECTS, STICKY
-
-
-def my_deepcopy(arr):
-    """Полное копирование трёхмерного массива без использования указателей
-
-    :param arr: Исходный массив
-    :type arr: list
-    :return: Копия в других ячейках памяти
-    :rtype: list
-    """
-    new_arr = []
-    for val in arr:
-        if isinstance(val, list):
-            new_arr.append(my_deepcopy(val))
-        else:
-            new_arr.append(val)
-    return new_arr
+from utils import my_deepcopy
 
 
 def unparse_all(state):
@@ -112,22 +96,24 @@ class Editor(GameStrategy):
         self.screen = pygame.display.set_mode((1800, 900))
         self.page_turn(0)
         self.empty_object = Object(-1, -1, 0, 'empty', False)
+        # quswadress' palette logic
+        self.current_palette = palette_manager.get_palette("default")
 
-    @staticmethod
-    def save(state, name=None):
+    def save(self, state, name=None):
         """Сохранение трёхмерного массива в память
 
         :param state: Трёхмерный массив состояния сетки
         :type state: list
         """
-        string, counter = unparse_all(state)
-        if counter > 0:
-            print(name)
-            if name is None:
-                name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-            with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
-                      encoding='utf-8') as file:
-                file.write(string)
+        string = f"{self.current_palette.name}\n"
+        string_state, counter = unparse_all(state)
+        string += string_state
+        print(name)
+        if name is None:
+            name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+        with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
+                  encoding='utf-8') as file:
+            file.write(string)
 
     def page_turn(self, number: int):
         """Меняет страницу списка объектов
@@ -208,11 +194,11 @@ class Editor(GameStrategy):
             for line in self.current_state:
                 for cell in line:
                     for game_object in cell:
-                        if game_object.name in STICKY and not game_object.text:
+                        if game_object.name in STICKY and not game_object.is_text:
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
 
     def get_neighbours(self, y, x) -> List[Object]:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -273,10 +259,10 @@ class Editor(GameStrategy):
                     # ЭТО НУЖНО ДЕЛАТЬ ПОСЛЕ ДОБАВЛЕНИЯ ОБЪЕКТА В МАТРИЦУ
                     for array in neighbours:
                         for neighbour in array:
-                            if neighbour.name in STICKY and not neighbour.text:
+                            if neighbour.name in STICKY and not neighbour.is_text:
                                 neighbour.neighbours = self.get_neighbours(
                                     neighbour.x, neighbour.y)
-                                neighbour.animation_init()
+                                neighbour.animation = neighbour.animation_init()
 
     def delete(self):
         """Если в клетке есть объекты, удаляет последний созданный из них"""
@@ -288,15 +274,15 @@ class Editor(GameStrategy):
                 self.focus[0], self.focus[1])
             for array in neighbours:
                 for neighbour in array:
-                    if neighbour.name in STICKY and not neighbour.text:
+                    if neighbour.name in STICKY and not neighbour.is_text:
                         neighbour.neighbours = self.get_neighbours(
                             neighbour.x, neighbour.y)
-                        neighbour.animation_init()
+                        neighbour.animation = neighbour.animation_init()
 
     def overlay(self):
         """Вызывает меню управления редактора"""
         self.unresize()
-        self.state = State(GameState.switch, partial(EditorOverlay, self))
+        self.state = State(GameState.SWITCH, partial(EditorOverlay, self))
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает редактор (включая все его элементы) и обрабатывает все действия пользователя
@@ -318,7 +304,7 @@ class Editor(GameStrategy):
         if self.exit_flag:
             if not self.discard:
                 self.safe_exit()
-            self.state = State(GameState.back)
+            self.state = State(GameState.BACK)
             self.unresize()
         if self.new_loaded:
             self.changes.clear()
@@ -326,17 +312,17 @@ class Editor(GameStrategy):
             for line in self.current_state:
                 for cell in line:
                     for game_object in cell:
-                        if game_object.name in STICKY and not game_object.text:
+                        if game_object.name in STICKY and not game_object.is_text:
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
-                            game_object.animation_init()
+                            game_object.animation = game_object.animation_init()
 
         self.screen.fill("black")
         for event in events:
             if event.type == pygame.QUIT:
                 self.extreme_exit()
-                self.state = State(GameState.back)
+                self.state = State(GameState.BACK)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.overlay()
@@ -411,7 +397,7 @@ class Editor(GameStrategy):
                     object_button.draw(self.screen)
 
         if self.state is None:
-            self.state = State(GameState.flip)
+            self.state = State(GameState.FLIP)
         return self.state
 
     def music(self):

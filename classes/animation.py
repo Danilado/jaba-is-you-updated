@@ -30,8 +30,9 @@ class Animation:
         :param synchronize:
             Синхронизировать ли с остальными анимациями, чтобы кадры менялись одновременно в всех анимациях.
         """
-        if len(sprites) == 0:
-            raise ValueError("Sprites are empty")
+        # quswadress: Под чем я был когда писал это?
+        # if len(sprites) == 0:
+        #     raise ValueError("Sprites are empty")
         self.position: Tuple[int, int] = position
         self.sprites: List[pygame.surface.Surface] = []
         for sprite in sprites:
@@ -87,8 +88,8 @@ class Animation:
     def current_sprite(self, value: pygame.Surface):
         try:
             index = self.sprites.index(value)
-        except ValueError:
-            raise ValueError("current sprite should be in sprites")
+        except ValueError as error:
+            raise ValueError("current sprite should be in sprites") from error
         self.current_sprites_index = index
 
     def __copy__(self) -> "Animation":

@@ -1,4 +1,5 @@
 import glob
+import re
 from functools import partial
 from typing import List, Optional
 
@@ -9,8 +10,8 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
-from elements.draw_matrix import Draw
-from elements.global_classes import GuiSettings
+from elements.play_level import PlayLevel
+from elements.global_classes import GuiSettings, palette_manager
 from global_types import SURFACE
 from settings import RESOLUTION
 
@@ -58,11 +59,11 @@ class Loader(GameStrategy):
         :type level_name: str
         """
         # Gospodin: Надеюсь, когда-нибудь это будет игрой.
-        self._state = State(GameState.switch, partial(Draw, level_name))
+        self._state = State(GameState.SWITCH, partial(PlayLevel, level_name))
 
     def go_back(self):
         """Простая отмена (выход в предыдущее меню)"""
-        self._state = State(GameState.back)
+        self._state = State(GameState.BACK)
 
     def return_and_quit(self, level_name: str):
         """
@@ -75,10 +76,9 @@ class Loader(GameStrategy):
         self.overlay.loaded_flag = True
         self.overlay.editor.current_state = self.parse_file(level_name)
         self.overlay.editor.level_name = level_name
-        self._state = State(GameState.back)
+        self._state = State(GameState.BACK)
 
-    @staticmethod
-    def parse_file(level_name: str) -> List[List[List[Object]]]:
+    def parse_file(self, level_name: str) -> List[List[List[Object]]]:
         """
         Преобразует записанную в файле уровня информацию в матрицу
 
@@ -87,11 +87,12 @@ class Loader(GameStrategy):
         """
         matrix: List[List[List[Object]]] = [[[]
                                              for _ in range(32)] for _ in range(18)]
-        leve_file = open(
-            f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r')
+        leve_file = open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
+                         'r', 'utf-8')
         lines = leve_file.read().split('\n')
-        for line in lines:
-            parameters = line.split(' ')
+        for line_index, line in enumerate(lines):
+            # TODO by quswadress: Very similar to the method parse_file of Draw class.
+            parameters = line.strip().split(' ')
             if len(parameters) > 1:
                 matrix[int(parameters[1])][int(parameters[0])].append(Object(
                     int(parameters[0]),
@@ -100,6 +101,9 @@ class Loader(GameStrategy):
                     parameters[3],
                     False if parameters[4] == 'False' else True
                 ))
+            elif line_index == 0:
+                self.overlay.editor.current_palette = palette_manager.get_palette(
+                    parameters[0])
         return matrix
 
     @staticmethod
@@ -111,7 +115,7 @@ class Loader(GameStrategy):
         """
         levels_arr: List[str] = []
         for entry in glob.glob("levels/*.omegapog_map_file_type_MLG_1337_228_100500_69_420"):
-            levels_arr.append(entry.split('.')[0].split('\\')[1])
+            levels_arr.append(re.split(r'[/\\]', entry.split('.')[0])[1])
         return levels_arr
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
@@ -129,13 +133,13 @@ class Loader(GameStrategy):
             self.screen.fill("black")
             for event in events:
                 if event.type == pygame.QUIT:
-                    self._state = State(GameState.back)
+                    self._state = State(GameState.BACK)
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
-                        self._state = State(GameState.back)
+                        self._state = State(GameState.BACK)
             for button in self.buttons:
                 button.draw(self.screen)
                 button.update(events)
             if self._state is None:
-                self._state = State(GameState.flip, None)
+                self._state = State(GameState.FLIP, None)
         return self._state
