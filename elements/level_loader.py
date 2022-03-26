@@ -11,7 +11,7 @@ from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
 from elements.play_level import PlayLevel
-from elements.global_classes import GuiSettings
+from elements.global_classes import GuiSettings, palette_manager
 from global_types import SURFACE
 from settings import RESOLUTION
 
@@ -78,8 +78,7 @@ class Loader(GameStrategy):
         self.overlay.editor.level_name = level_name
         self._state = State(GameState.BACK)
 
-    @staticmethod
-    def parse_file(level_name: str) -> List[List[List[Object]]]:
+    def parse_file(self, level_name: str) -> List[List[List[Object]]]:
         """
         Преобразует записанную в файле уровня информацию в матрицу
 
@@ -91,8 +90,9 @@ class Loader(GameStrategy):
         leve_file = open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
                          'r', 'utf-8')
         lines = leve_file.read().split('\n')
-        for line in lines:
-            parameters = line.split(' ')
+        for line_index, line in enumerate(lines):
+            # TODO by quswadress: Very similar to the method parse_file of Draw class.
+            parameters = line.strip().split(' ')
             if len(parameters) > 1:
                 matrix[int(parameters[1])][int(parameters[0])].append(Object(
                     int(parameters[0]),
@@ -101,6 +101,9 @@ class Loader(GameStrategy):
                     parameters[3],
                     False if parameters[4] == 'False' else True
                 ))
+            elif line_index == 0:
+                self.overlay.editor.current_palette = palette_manager.get_palette(
+                    parameters[0])
         return matrix
 
     @staticmethod

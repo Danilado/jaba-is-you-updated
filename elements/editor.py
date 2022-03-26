@@ -11,7 +11,7 @@ from classes.game_strategy import GameStrategy
 from classes.object_button import ObjectButton
 from classes.objects import Object
 from classes.state import State
-from elements.global_classes import EuiSettings, IuiSettings, sound_manager
+from elements.global_classes import EuiSettings, IuiSettings, sound_manager, palette_manager
 from elements.overlay import EditorOverlay
 from settings import SHOW_GRID, RESOLUTION, OBJECTS, STICKY
 from utils import my_deepcopy
@@ -96,22 +96,24 @@ class Editor(GameStrategy):
         self.screen = pygame.display.set_mode((1800, 900))
         self.page_turn(0)
         self.empty_object = Object(-1, -1, 0, 'empty', False)
+        # quswadress' palette logic
+        self.current_palette = palette_manager.get_palette("default")
 
-    @staticmethod
-    def save(state, name=None):
+    def save(self, state, name=None):
         """Сохранение трёхмерного массива в память
 
         :param state: Трёхмерный массив состояния сетки
         :type state: list
         """
-        string, counter = unparse_all(state)
-        if counter > 0:
-            print(name)
-            if name is None:
-                name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-            with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
-                      encoding='utf-8') as file:
-                file.write(string)
+        string = f"{self.current_palette.name}\n"
+        string_state, counter = unparse_all(state)
+        string += string_state
+        print(name)
+        if name is None:
+            name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+        with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
+                  encoding='utf-8') as file:
+            file.write(string)
 
     def page_turn(self, number: int):
         """Меняет страницу списка объектов
