@@ -379,7 +379,8 @@ class PlayLevel(GameStrategy):
                     rules.processor.process(rule.text_rule)
 
             for rule in self.level_rules:
-                if f'{rule_object.name} is win' in rule.text_rule:
+                if f'{rule_object.name} is win' in rule.text_rule\
+                        and not rule_object.is_text:
                     for object in matrix[i][j]:
                         for second_rule in self.level_rules:
                             if f'{object.name} is you' in second_rule.text_rule:

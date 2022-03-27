@@ -595,7 +595,8 @@ class Object:
         :rtype: bool
         """
         for rule in level_rules:
-            if f'{rule_object.name} is win' in rule.text_rule:
+            if f'{rule_object.name} is win' in rule.text_rule\
+                        and not rule_object.is_text:
                 for sec_rule in level_rules:
 
                     if f'{self.name} is you' in sec_rule.text_rule:

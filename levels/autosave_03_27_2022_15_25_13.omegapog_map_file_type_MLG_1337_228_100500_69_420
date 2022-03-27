@@ -1,0 +1,12 @@
+0 0 1 ufo True
+1 0 1 is True
+2 0 1 you True
+0 1 1 turtle True
+1 1 1 is True
+2 1 1 you2 True
+10 1 1 ufo False
+26 2 1 bug False
+15 3 1 turtle False
+25 5 1 bug True
+26 5 1 is False
+27 5 1 win False
