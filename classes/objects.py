@@ -462,7 +462,8 @@ class Object:
         """
         if not self.is_safe:
             for rule in level_rules:
-                if f'{rule_object.name} is stop' in rule.text_rule and self.is_weak:
+                if f'{rule_object.name} is stop' in rule.text_rule and self.is_weak\
+                        and not rule_object.is_text:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
                     return False
         for rule in level_rules:
@@ -595,8 +596,8 @@ class Object:
         :rtype: bool
         """
         for rule in level_rules:
-            if f'{rule_object.name} is win' in rule.text_rule\
-                        and not rule_object.is_text:
+            if f'{rule_object.name} is win' in rule.text_rule \
+                    and not rule_object.is_text:
                 for sec_rule in level_rules:
 
                     if f'{self.name} is you' in sec_rule.text_rule:
@@ -657,11 +658,12 @@ class Object:
         """
         status = False
         for rule in level_rules:
-            if f'{rule_object.name} is stop' in rule.text_rule or f'{rule_object.name} is pull' in rule.text_rule \
-                    and self.can_interact(rule_object, level_rules):
+            if (f'{rule_object.name} is stop' in rule.text_rule or f'{rule_object.name} is pull' in rule.text_rule) \
+                    and self.can_interact(rule_object, level_rules) \
+                    and not rule_object.is_text:
                 status = True
             if with_push:
-                if f'{rule_object.name} is push' in rule.text_rule \
+                if f'{rule_object.name} is push' in rule.text_rule and not rule_object.is_text \
                         or rule_object.name in OPERATORS or rule_object.name in PROPERTIES \
                         or (rule_object.name in NOUNS and rule_object.is_text):
                     status = True
@@ -690,9 +692,9 @@ class Object:
         ]
         for rule in level_rules:
             if rule.text_rule in moveable_rules_list or \
-               self.name in OPERATORS or self.name in PROPERTIES or (
-                   self.name in NOUNS and self.is_text) and \
-               self.check_valid_range(0, 0):
+                    self.name in OPERATORS or self.name in PROPERTIES or (
+                    self.name in NOUNS and self.is_text) and \
+                    self.check_valid_range(0, 0):
                 status = True
         return status
 
@@ -708,7 +710,7 @@ class Object:
         :rtype: bool
         """
         return RESOLUTION[0] // 50 - 1 >= self.x + delta_x >= 0 \
-            and RESOLUTION[1] // 50 - 1 >= self.y + delta_y >= 0
+               and RESOLUTION[1] // 50 - 1 >= self.y + delta_y >= 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules) -> None:
         """Тянет объекты с правилом pull
@@ -729,7 +731,6 @@ class Object:
                         if f'{rule_object.name} is pull' in rule.text_rule:
                             rule_object.motion(
                                 delta_x, delta_y, matrix, level_rules, 'pull')
-
 
     def check_locked(self, delta_x, delta_y) -> bool:
         """Блокирует стороны для движения в случае
@@ -818,7 +819,7 @@ class Object:
             status_motion = 'no collision'
             if self.status == 'alive':
                 for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
-                    if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True)\
+                    if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True) \
                         or not self.can_interact(rule_object, level_rules)) and status_motion != False:
                         if self.object_can_move(level_rules) and not self.is_still:
                             status_motion = True
@@ -826,8 +827,8 @@ class Object:
                     elif self.is_fall:
                         status_motion = False
 
-                    elif self.object_can_move(level_rules)\
-                            and not self.is_still\
+                    elif self.object_can_move(level_rules) \
+                            and not self.is_still \
                             and status_motion != False:
                         if rule_object.motion(delta_x, delta_y, matrix, level_rules, 'push'):
                             status_motion = True
