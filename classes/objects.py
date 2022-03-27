@@ -684,6 +684,7 @@ class Object:
             f'{self.name} is nudge',
             f'{self.name} is chill',
             f'{self.name} is you',
+            f'{self.name} is you2',
             f'{self.name} is fall',
             f'{self.name} is 3d',
         ]
