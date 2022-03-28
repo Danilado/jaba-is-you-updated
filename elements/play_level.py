@@ -152,16 +152,47 @@ class PlayLevel(GameStrategy):
 
         return 0
 
-    def check_noun(self, i, j, delta_i, delta_j):
+    def check_noun(self, i, j, delta_i, delta_j, status=None):
+        noun_objects = []
         for first_object in self.matrix[i][j]:
             if first_object.is_noun:
-                return first_object
+                noun_objects.append(first_object)
+                if first_object.check_valid_range(delta_j * 2, delta_i * 2) and status == 'second':
+                    for second_objects in self.matrix[i + delta_i][j + delta_j]:
+                        if second_objects.name == 'and':
+                            if not self.check_noun(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j, 'second'):
+                                pass
+                            else:
+                                nouns = self.check_noun(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j, 'second')
+                                for noun in nouns:
+                                    noun_objects.append(noun)
+                elif first_object.check_valid_range(delta_j * -2, delta_i * -2) and status == 'first':
+                    for second_objects in self.matrix[i - delta_i][j - delta_j]:
+                        if second_objects.name == 'and':
+                            if not self.check_noun(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j, 'first'):
+                                pass
+                            else:
+                                nouns = self.check_noun(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j, 'first')
+                                for noun in nouns:
+                                    noun_objects.append(noun)
+                return noun_objects
         return False
 
     def check_property(self, i, j, delta_i, delta_j):
+        property_objects = []
         for first_object in self.matrix[i][j]:
             if first_object.name in PROPERTIES:
-                return first_object
+                property_objects.append(first_object)
+                if first_object.check_valid_range(delta_j * 2, delta_i * 2):
+                    for second_objects in self.matrix[i + delta_i][j + delta_j]:
+                        if second_objects.name == 'and':
+                            if not self.check_property(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j):
+                                pass
+                            else:
+                                properties = self.check_property(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
+                                for property in properties:
+                                    property_objects.append(property)
+                return property_objects
         return False
 
     def check_verb(self, i, j, delta_i, delta_j):
@@ -173,18 +204,18 @@ class PlayLevel(GameStrategy):
                 if not self.check_noun(i, j, delta_i, delta_j):
                     return False
                 else:
-                    return [first_object, self.check_noun(i, j, delta_i, delta_j)]
+                    return [first_object, self.check_noun(i, j, delta_i, delta_j, 'second')]
             if first_object.name == 'is' \
                     and first_object.check_valid_range(delta_j, delta_i):
                 i += delta_i
                 j += delta_j
-                if not self.check_noun(i, j, delta_i, delta_j):
+                if not self.check_noun(i, j, delta_i, delta_j, 'second'):
                     if not self.check_property(i, j, delta_i, delta_j):
                         return False
                     else:
-                        return [first_object, self.check_property(i, j, delta_i, delta_j)]
+                        return [[first_object], self.check_property(i, j, delta_i, delta_j)]
                 else:
-                    return [first_object, self.check_noun(i, j, delta_i, delta_j)]
+                    return [[first_object], self.check_noun(i, j, delta_i, delta_j, 'second')]
         return False
 
     def check_infix(self, i, j, delta_i, delta_j):
@@ -196,7 +227,7 @@ class PlayLevel(GameStrategy):
                 if not self.check_noun(i, j, delta_i, delta_j):
                     return False
                 else:
-                    return [self.check_noun(i, j, delta_i, delta_j), first_object]
+                    return [first_object, self.check_noun(i, j, delta_i, delta_j)[0]]
         return False
 
     def check_prefix(self, i, j):
@@ -207,20 +238,22 @@ class PlayLevel(GameStrategy):
 
     def scan_rules(self, i, j, delta_i, delta_j):
         status = True
-        text_rule = ''
-        objects_in_rule = []
-        for first_object in self.matrix[i][j]:
-            if first_object.is_noun \
-                    and first_object.check_valid_range(delta_j, delta_i):
-                text_rule = first_object.name
-                objects_in_rule.append(objects_in_rule)
+        nouns = []
+        verbs = []
+        properties = []
+        prefix = []
+        infix = []
+        rules = []
+        if not self.check_noun(i, j, delta_i, delta_j, 'first'):
+            return False
+        else:
+            nouns = self.check_noun(i, j, delta_i, delta_j, 'first')
+            if nouns[0].check_valid_range(delta_j, delta_i):
                 if not self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j):
                     status = False
                 else:
-                    objects = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)
-                    for object in objects:
-                        objects_in_rule.append(object)
-                        text_rule = text_rule + ' ' + object.name
+                    verbs = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)[0]
+                    properties = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)[1]
                 if status:
                     delta_i *= -1
                     delta_j *= -1
@@ -228,18 +261,39 @@ class PlayLevel(GameStrategy):
                         pass
                     else:
                         prefix = self.check_prefix(i + delta_i, j + delta_j)
-                        objects_in_rule.insert(0, prefix)
-                        text_rule = prefix.name + '' + text_rule
                     if not self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j):
                         pass
                     else:
                         infix = self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j)
-                        for object in infix:
-                            print(object.name)
-                            objects_in_rule.insert(0, object)
-                            text_rule = object.name + '' + text_rule
         if status:
-            self.level_rules.append(TextRule(text_rule, objects_in_rule))
+            print(len(nouns), len(verbs), len(properties))
+            if len(infix) == 0 and prefix == False:
+                for noun in nouns:
+                    for verb in verbs:
+                        for property in properties:
+                            text = f'{noun.name} {verb.name} {property.name}'
+                            objects = [noun, verb, property]
+                            rules.append(TextRule(text, objects))
+
+            elif len(infix) != 0 and prefix == False:
+                for noun in nouns:
+                    for verb in verbs:
+                        for property in properties:
+                            text = f'{infix[1].name} {infix[0].name} {noun.name} {verb.name} {property.name}'
+                            objects = [infix[1].name, infix[0].name, noun, verb, property]
+                            rules.append(TextRule(text, objects))
+
+            elif len(infix) == 0 and prefix != False:
+                for noun in nouns:
+                    for verb in verbs:
+                        for property in properties:
+                            text = f'{prefix.name} {noun.name} {verb.name} {property.name}'
+                            objects = [prefix, noun, verb, property]
+                            rules.append(TextRule(text, objects))
+
+            for rule in rules:
+                self.level_rules.append(rule)
+
 
 
     def check_vertically(self, i, j):
@@ -567,15 +621,14 @@ class PlayLevel(GameStrategy):
             self.find_rules()
             self.first_iteration = False
 
-        if self.circle_radius:
-            self.level_start_animation()
+        # if self.circle_radius:
+        #    self.level_start_animation()
 
         if self.moved:
+            print('-----')
+            for rule in self.level_rules:
+                print(rule.text_rule)
             self.moved = False
-
-        print('-----')
-        for rule in self.level_rules:
-            print(rule.text_rule)
 
         if self.state is None:
             self.state = State(GameState.FLIP, None)
