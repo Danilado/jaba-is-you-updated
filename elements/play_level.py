@@ -230,10 +230,21 @@ class PlayLevel(GameStrategy):
                     return [first_object, self.check_noun(i, j, delta_i, delta_j)[0]]
         return False
 
-    def check_prefix(self, i, j):
+    def check_prefix(self, i, j, delta_i, delta_j):
+        prefix_objects = []
         for first_object in self.matrix[i][j]:
             if first_object.name in PREFIX:
-                return first_object
+                prefix_objects.append(first_object)
+                if first_object.check_valid_range(delta_j * -2, delta_i * -2):
+                    for second_objects in self.matrix[i - delta_i][j - delta_j]:
+                        if second_objects.name == 'and':
+                            if not self.check_prefix(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j):
+                                pass
+                            else:
+                                prefix = self.check_prefix(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j)
+                                for pfix in prefix:
+                                    prefix_objects.append(pfix)
+            return prefix_objects
         return False
 
     def scan_rules(self, i, j, delta_i, delta_j):
@@ -255,19 +266,17 @@ class PlayLevel(GameStrategy):
                     verbs = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)[0]
                     properties = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)[1]
                 if status:
-                    delta_i *= -1
-                    delta_j *= -1
-                    if not self.check_prefix(i + delta_i, j + delta_j):
+                    if not self.check_prefix(i - delta_i, j - delta_j, delta_i, delta_j):
                         pass
                     else:
-                        prefix = self.check_prefix(i + delta_i, j + delta_j)
-                    if not self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j):
+                        prefix = self.check_prefix(i - delta_i, j - delta_j, delta_i, delta_j)
+                    if not self.check_infix(i - delta_i, j - delta_j, -delta_i, -delta_j):
                         pass
                     else:
-                        infix = self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j)
+                        infix = self.check_infix(i - delta_i, j - delta_j, -delta_i, -delta_j)
         if status:
-            print(len(nouns), len(verbs), len(properties))
-            if len(infix) == 0 and prefix == False:
+            #print(len(nouns), len(verbs), len(properties), len(infix), prefix)
+            if len(infix) == 0 and len(prefix) == 0:
                 for noun in nouns:
                     for verb in verbs:
                         for property in properties:
@@ -275,7 +284,7 @@ class PlayLevel(GameStrategy):
                             objects = [noun, verb, property]
                             rules.append(TextRule(text, objects))
 
-            elif len(infix) != 0 and prefix == False:
+            elif len(infix) != 0 and len(prefix) == 0:
                 for noun in nouns:
                     for verb in verbs:
                         for property in properties:
@@ -283,13 +292,14 @@ class PlayLevel(GameStrategy):
                             objects = [infix[1].name, infix[0].name, noun, verb, property]
                             rules.append(TextRule(text, objects))
 
-            elif len(infix) == 0 and prefix != False:
-                for noun in nouns:
-                    for verb in verbs:
-                        for property in properties:
-                            text = f'{prefix.name} {noun.name} {verb.name} {property.name}'
-                            objects = [prefix, noun, verb, property]
-                            rules.append(TextRule(text, objects))
+            elif len(infix) == 0 and len(prefix) != 0:
+                for pfix in prefix:
+                    for noun in nouns:
+                        for verb in verbs:
+                            for property in properties:
+                                text = f'{pfix.name} {noun.name} {verb.name} {property.name}'
+                                objects = [prefix, noun, verb, property]
+                                rules.append(TextRule(text, objects))
 
             for rule in rules:
                 self.level_rules.append(rule)
