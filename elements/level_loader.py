@@ -99,7 +99,7 @@ class Loader(GameStrategy):
                     int(parameters[1]),
                     int(parameters[2]),
                     parameters[3],
-                    False if parameters[4] == 'False' else True
+                    False if parameters[4] == 'False' else True,
                 ))
             elif line_index == 0:
                 self.overlay.editor.current_palette = palette_manager.get_palette(

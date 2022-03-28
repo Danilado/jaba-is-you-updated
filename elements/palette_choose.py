@@ -53,11 +53,9 @@ class PaletteChoose(GameStrategy):
                     return palette
             self.screen.blit(palette_surface, (x_pixel_offset, y_pixel_offset))
 
-            x_pixel_offset += length_of_palette_pixels_abscissa * \
-                pixel_size + distance_between_palettes
+            x_pixel_offset += length_of_palette_pixels_abscissa * pixel_size + distance_between_palettes
             if x_pixel_offset + length_of_palette_pixels_abscissa * pixel_size > self.screen.get_width():
-                y_pixel_offset += pixel_size * \
-                    length_of_palette_pixels_ordinate + distance_between_palettes
+                y_pixel_offset += pixel_size * length_of_palette_pixels_ordinate + distance_between_palettes
                 x_pixel_offset = 0
         return None
 
@@ -70,10 +68,11 @@ class PaletteChoose(GameStrategy):
                     state = State(GameState.BACK)
 
             self.screen.blit(self._choose_palette_text, (0, 0))
-            palette = self._process_palette(
-                0, self._choose_palette_text.get_height())
+            palette = self._process_palette(0, self._choose_palette_text.get_height())
             if palette is not None:
                 self.editor.current_palette = palette
+                state = State(GameState.BACK)
+                print(f"choose: {self.editor.current_palette.name}")
 
             if state is None:
                 state = State(GameState.FLIP)

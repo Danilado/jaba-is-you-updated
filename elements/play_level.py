@@ -4,10 +4,12 @@ import math
 from copy import copy
 from typing import List, Optional
 import pygame
+
+from classes.palette import Palette
 from utils import my_deepcopy
-from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, TEXT_ONLY
+from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, TEXT_ONLY, DEBUG
 from global_types import SURFACE
-from elements.global_classes import sound_manager
+from elements.global_classes import sound_manager, palette_manager
 from classes.state import State
 from classes.ray_casting import raycasting
 from classes.text_rule import TextRule
@@ -31,7 +33,7 @@ class PlayLevel(GameStrategy):
         self.parse_file(level_name)
         self.level_rules = []
 
-        self.empty_object = Object(-1, -1, 0, 'empty', False)
+        self.empty_object = Object(-1, -1, 0, 'empty', False, self.current_palette)
         self.moved = False
 
         self.status_cancel = False
@@ -46,7 +48,8 @@ class PlayLevel(GameStrategy):
         self.circle_radius = 650
 
         self.delay = pygame.time.get_ticks()
-        self.delay = pygame.time.get_ticks()
+
+        self.current_palette: Palette = palette_manager.get_palette("default")
 
     def parse_file(self, level_name: str):
         """
@@ -61,20 +64,30 @@ class PlayLevel(GameStrategy):
         path_to_file = f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
 
         with open(path_to_file, mode='r', encoding='utf-8') as level_file:
-            for line in level_file.readlines():
+            for line_index, line in enumerate(level_file.readlines()):
                 parameters = line.strip().split(' ')
 
-                if len(parameters) > 1:
+                if len(parameters) > 1 and line_index > 0:
                     x, y, direction, name = parameters[:-1]
                     self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
                         int(x),
                         int(y),
                         int(direction),
                         name,
-                        parameters[4].lower() == 'true'
+                        parameters[4].lower() == 'true',
+                        self.current_palette
                     ))
+                else:
+                    self.current_palette = palette_manager.get_palette(parameters[0])
 
             self.start_matrix = self.matrix
+        if DEBUG:
+            print("\n".join((
+                "-"*100,
+                f"Level {level_name} successfully parsed!",
+                f"palette: {self.current_palette.name}",
+                f"palette size: {len(self.current_palette.pixels[0])}x{len(self.current_palette.pixels)}"
+            )))
 
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -211,8 +224,7 @@ class PlayLevel(GameStrategy):
         # Issue created.
         sound_manager.load_music("sounds/Music/ruin")
 
-    @staticmethod
-    def text_to_png(level_name):
+    def text_to_png(self, level_name):
         level_text = 'level ' + level_name
         if len(level_text) >= 32:
             x_offset = 0
@@ -222,7 +234,7 @@ class PlayLevel(GameStrategy):
 
         for letter in level_text:
             if letter in TEXT_ONLY:
-                img_letter = Object(x_offset, 6, 1, letter, True)
+                img_letter = Object(x_offset, 6, 1, letter, True, self.current_palette)
                 text_in_objects.append(img_letter)
             x_offset += 1
 
@@ -286,7 +298,7 @@ class PlayLevel(GameStrategy):
                             for rule_object in self.matrix[i][j]:
                                 self.apply_rules(matrix, rule_object, i, j)
 
-    def apply_rules(self, matrix, rule_object, i, j):
+    def apply_rules(self, matrix, rule_object, i, j):   # TODO: Performance issue
         if not rule_object.special_text:
             is_hot = False
             is_hide = False
@@ -401,6 +413,7 @@ class PlayLevel(GameStrategy):
         game_object.neighbours = self.get_neighbours(
             game_object.x, game_object.y)
         game_object.recursively_used = True
+        neighbour_list: List[Object]
         for neighbour_list in game_object.neighbours:
             for neighbour in neighbour_list:
                 if not neighbour.recursively_used:
@@ -410,7 +423,7 @@ class PlayLevel(GameStrategy):
         game_object.moved = False
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
-        self.screen.fill("black")
+        self.screen.fill(self.current_palette.pixels[3][6])
         self.state = None
         level_3d = False
         count_3d_obj = 0
