@@ -41,8 +41,6 @@ class EditorOverlay(GameStrategy):
         self.buttons = [
             Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
                    EuiSettings(), f"Вы изменяете {self.label}"),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 230, 400, 50, (0, 0, 0),
-                   EuiSettings(), f"Текущая палитра: {self.editor.current_palette.name}"),
             Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
                    GuiSettings(), "Назад", self.cancel),
             Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 60, 400, 50, (0, 0, 0),
@@ -55,6 +53,8 @@ class EditorOverlay(GameStrategy):
                    GuiSettings(), "Сохранить и выйти в главное меню", self.force_exit),
             Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 + 180, 400, 50, (0, 0, 0),
                    GuiSettings(), "Выйти без сохранения", self.hard_force_exit),
+            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 230, 400, 50, (0, 0, 0),
+                   EuiSettings()),
             Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 180, 400, 50, (0, 0, 0),
                    GuiSettings(), f"Поменять палитру", self.switch_to_palette_choose),
         ]
@@ -104,6 +104,7 @@ class EditorOverlay(GameStrategy):
         """
         self.state = State(GameState.BACK) if self.loaded_flag else None
         self.editor.new_loaded = bool(self.loaded_flag)
+        self.buttons[7].text = f"Текущая палитра: {self.editor.current_palette.name}"
         self.screen.fill('black')
 
         for event in events:
@@ -111,14 +112,13 @@ class EditorOverlay(GameStrategy):
                 self.state = State(GameState.BACK)
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
-                    self.editor.level_name = str(self.buttons[4])
+                    self.editor.level_name = str(self.buttons[3])
                     self.state = State(GameState.BACK)
             if event.type == pygame.KEYUP:
-                if str(self.buttons[4]):
-                    self.label = str(self.buttons[4])
+                if str(self.buttons[3]):
+                    self.label = str(self.buttons[3])
                 self.buttons[0] = Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
                                          EuiSettings(), f"Вы изменяете {self.label}")
-                self.buttons[1].text = f"Текущая палитра: {self.editor.current_palette.name}"
 
         for button in self.buttons:
             button.update(events)
@@ -126,7 +126,7 @@ class EditorOverlay(GameStrategy):
 
         if self.state is not None:
             if str(self.buttons[3]) != '':
-                self.editor.level_name = str(self.buttons[4])
+                self.editor.level_name = str(self.buttons[3])
                 if self.editor.level_name == '':
                     self.editor.level_name = None
             self.screen = pygame.display.set_mode((1800, 900))
