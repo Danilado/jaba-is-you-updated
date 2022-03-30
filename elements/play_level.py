@@ -48,6 +48,9 @@ class PlayLevel(GameStrategy):
         self.delay = pygame.time.get_ticks()
         self.delay = pygame.time.get_ticks()
 
+        self.last_i = 0
+        self.last_j = 0
+
     def parse_file(self, level_name: str):
         """
         Парсинг уровней. Добавляет объекты в :attr:`~.Draw.matrix`.
@@ -156,26 +159,52 @@ class PlayLevel(GameStrategy):
         noun_objects = []
         for first_object in self.matrix[i][j]:
             if first_object.is_noun:
-                noun_objects.append(first_object)
-                if first_object.check_valid_range(delta_j * 2, delta_i * 2) and status == 'second':
-                    for second_objects in self.matrix[i + delta_i][j + delta_j]:
-                        if second_objects.name == 'and':
-                            if not self.check_noun(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j, 'second'):
+                cant_be_main = True
+                for second_object in self.matrix[i - delta_i][j - delta_j]:
+                    if second_object.name in INFIX and status == 'main':
+                        cant_be_main = False
+                if cant_be_main:
+                    noun_objects.append([None, first_object])
+                    if first_object.check_valid_range(delta_j * 2, delta_i * 2) and status == 'property':
+                        for second_objects in self.matrix[i + delta_i][j + delta_j]:
+                            if second_objects.name == 'and':
+                                if not self.check_noun(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j, 'property'):
+                                    pass
+                                else:
+                                    nouns = self.check_noun(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j, 'property')
+                                    for noun in nouns:
+                                        noun_objects.append(noun)
+                    elif first_object.check_valid_range(delta_j * -2, delta_i * -2) and status == 'main':
+                        status = None
+                        for second_objects in self.matrix[i - delta_i][j - delta_j]:
+                            if second_objects.name == 'and':
+                                status = 'and'
+                                if not self.check_noun(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j, 'main'):
+                                    pass
+                                else:
+                                    nouns = self.check_noun(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j, 'main')
+                                    for noun in nouns:
+                                        noun_objects.append(noun)
+                        if status is None:
+                            if not self.check_prefix(i - delta_i, j - delta_j, -delta_i, -delta_j):
                                 pass
                             else:
-                                nouns = self.check_noun(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j, 'second')
-                                for noun in nouns:
-                                    noun_objects.append(noun)
-                elif first_object.check_valid_range(delta_j * -2, delta_i * -2) and status == 'first':
-                    for second_objects in self.matrix[i - delta_i][j - delta_j]:
-                        if second_objects.name == 'and':
-                            if not self.check_noun(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j, 'first'):
-                                pass
-                            else:
-                                nouns = self.check_noun(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j, 'first')
-                                for noun in nouns:
-                                    noun_objects.append(noun)
-                return noun_objects
+                                prefix = self.check_prefix(i - delta_i, j - delta_j, -delta_i, -delta_j)
+                                noun_objects = []
+                                for pfix in prefix:
+                                    noun_objects.append([pfix, first_object])
+                                self.last_i = prefix[-1].y
+                                self.last_j = prefix[-1].x
+                                for second_objects in self.matrix[self.last_i - delta_i][self.last_j - delta_j]:
+                                    if second_objects.name == 'and':
+                                        result = self.check_noun(self.last_i - delta_i * 2, self.last_j - delta_j * 2, delta_i, delta_j, 'main')
+                                        if result == False:
+                                            pass
+                                        else:
+                                            nouns = result
+                                            for noun in nouns:
+                                                noun_objects.append(noun)
+                    return noun_objects
         return False
 
     def check_property(self, i, j, delta_i, delta_j):
@@ -204,18 +233,18 @@ class PlayLevel(GameStrategy):
                 if not self.check_noun(i, j, delta_i, delta_j):
                     return False
                 else:
-                    return [first_object, self.check_noun(i, j, delta_i, delta_j, 'second')]
+                    return [first_object, self.check_noun(i, j, delta_i, delta_j, 'property')]
             if first_object.name == 'is' \
                     and first_object.check_valid_range(delta_j, delta_i):
                 i += delta_i
                 j += delta_j
-                if not self.check_noun(i, j, delta_i, delta_j, 'second'):
+                if not self.check_noun(i, j, delta_i, delta_j, 'property'):
                     if not self.check_property(i, j, delta_i, delta_j):
                         return False
                     else:
                         return [[first_object], self.check_property(i, j, delta_i, delta_j)]
                 else:
-                    return [[first_object], self.check_noun(i, j, delta_i, delta_j, 'second')]
+                    return [[first_object], self.check_noun(i, j, delta_i, delta_j, 'property')]
         return False
 
     def check_infix(self, i, j, delta_i, delta_j):
@@ -227,7 +256,7 @@ class PlayLevel(GameStrategy):
                 if not self.check_noun(i, j, delta_i, delta_j):
                     return False
                 else:
-                    return [first_object, self.check_noun(i, j, delta_i, delta_j)[0]]
+                    return [first_object, self.check_noun(i, j, delta_i, delta_j)[0][1]]
         return False
 
     def check_prefix(self, i, j, delta_i, delta_j):
@@ -236,12 +265,12 @@ class PlayLevel(GameStrategy):
             if first_object.name in PREFIX:
                 prefix_objects.append(first_object)
                 if first_object.check_valid_range(delta_j * -2, delta_i * -2):
-                    for second_objects in self.matrix[i - delta_i][j - delta_j]:
+                    for second_objects in self.matrix[i + delta_i][j + delta_j]:
                         if second_objects.name == 'and':
-                            if not self.check_prefix(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j):
+                            if not self.check_prefix(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j):
                                 pass
                             else:
-                                prefix = self.check_prefix(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j)
+                                prefix = self.check_prefix(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
                                 for pfix in prefix:
                                     prefix_objects.append(pfix)
             return prefix_objects
@@ -255,42 +284,68 @@ class PlayLevel(GameStrategy):
         prefix = []
         infix = []
         rules = []
-        if not self.check_noun(i, j, delta_i, delta_j, 'first'):
+        if not self.check_noun(i, j, delta_i, delta_j, 'main'):
             return False
         else:
-            nouns = self.check_noun(i, j, delta_i, delta_j, 'first')
-            if nouns[0].check_valid_range(delta_j, delta_i):
-                if not self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j):
-                    status = False
+            nouns = self.check_noun(i, j, delta_i, delta_j, 'main')
+            if nouns[0][1].check_valid_range(delta_j * 2, delta_i * 2):
+                if not self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j):
+                    if not self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j):
+                        status = False
+                    else:
+                        verbs = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)[0]
+                        properties = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)[1]
                 else:
-                    verbs = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)[0]
-                    properties = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)[1]
-                if status:
-                    if not self.check_prefix(i - delta_i, j - delta_j, delta_i, delta_j):
-                        pass
+                    infix = self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j)
+                    if not self.check_verb(i + delta_i * 3, j + delta_j * 3, delta_i, delta_j):
+                        status = False
                     else:
-                        prefix = self.check_prefix(i - delta_i, j - delta_j, delta_i, delta_j)
-                    if not self.check_infix(i - delta_i, j - delta_j, -delta_i, -delta_j):
-                        pass
-                    else:
-                        infix = self.check_infix(i - delta_i, j - delta_j, -delta_i, -delta_j)
+                        verbs = self.check_verb(i + delta_i * 3, j + delta_j * 3, delta_i, delta_j)
+
+
         if status:
-            #print(len(nouns), len(verbs), len(properties), len(infix), prefix)
-            if len(infix) == 0 and len(prefix) == 0:
+            '''
+            print(len(nouns), len(verbs), len(properties), len(infix))
+            print(verbs)
+            print('n')
+            for noun in nouns:
+                if noun[0] is None:
+                    print(None, noun[1].name)
+                else:
+                    print(noun[0].name, noun[1].name)
+            print('v')
+            for verb in verbs[0]:
+                print(verb.name)
+            print('p')
+            for verb in verbs[1]:
+                print(verb.name)
+            print('i')
+            '''
+            if len(infix) == 0:
                 for noun in nouns:
                     for verb in verbs:
                         for property in properties:
-                            text = f'{noun.name} {verb.name} {property.name}'
-                            objects = [noun, verb, property]
-                            rules.append(TextRule(text, objects))
+                            if noun[0] is None:
+                                text = f'{noun[1].name} {verb.name} {property.name}'
+                                objects = [noun[1], verb, property]
+                                rules.append(TextRule(text, objects))
+                            else:
+                                text = f'{noun[0].name} {noun[1].name} {verb.name} {property.name}'
+                                objects = [noun[0], noun[1], verb, property]
+                                rules.append(TextRule(text, objects))
 
             elif len(infix) != 0 and len(prefix) == 0:
                 for noun in nouns:
-                    for verb in verbs:
-                        for property in properties:
-                            text = f'{infix[1].name} {infix[0].name} {noun.name} {verb.name} {property.name}'
-                            objects = [infix[1].name, infix[0].name, noun, verb, property]
-                            rules.append(TextRule(text, objects))
+                    for verb in verbs[0]:
+                        for property in verbs[1]:
+                            if noun[0] is None:
+                                text = f'{noun[1].name} {infix[0].name} {infix[1].name} {verb.name} {property.name}'
+                                objects = [noun[1], infix[1], infix[0], verb, property]
+                                rules.append(TextRule(text, objects))
+                            else:
+                                text = f'{noun[0].name} {noun[1].name} {infix[0].name} {infix[1].name} {verb.name} {property.name}'
+                                objects = [noun[0], noun[1], infix[1], infix[0], verb, property]
+                                rules.append(TextRule(text, objects))
 
             elif len(infix) == 0 and len(prefix) != 0:
                 for pfix in prefix:
