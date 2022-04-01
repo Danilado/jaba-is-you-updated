@@ -2,10 +2,12 @@
 import math
 
 from copy import copy
+from random import randint
 from typing import List, Optional
 import pygame
 
 from classes.palette import Palette
+from classes.particle import Particle, ParticleStrategy
 from utils import my_deepcopy
 from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, TEXT_ONLY, DEBUG
 from global_types import SURFACE
@@ -33,7 +35,8 @@ class PlayLevel(GameStrategy):
         self.parse_file(level_name)
         self.level_rules = []
 
-        self.empty_object = Object(-1, -1, 0, 'empty', False, self.current_palette)
+        self.empty_object = Object(-1, -1, 0, 'empty',
+                                   False, self.current_palette)
         self.moved = False
 
         self.status_cancel = False
@@ -58,7 +61,11 @@ class PlayLevel(GameStrategy):
 
         self.delay = pygame.time.get_ticks()
 
-        self.current_palette: Palette = palette_manager.get_palette("default")
+        self.particles = [Particle(self.screen, 'dot', ParticleStrategy(
+            (randint(0, 1600), randint(-50, 1650)), (950, - 50),
+            0, (randint(0, 360), randint(0, 360)), 40, 50 + randint(-10, 10), True, True),
+            self.current_palette.pixels[3][6]) for _ in range(20)
+        ]
 
     def parse_file(self, level_name: str):
         """
@@ -87,7 +94,8 @@ class PlayLevel(GameStrategy):
                         self.current_palette
                     ))
                 else:
-                    self.current_palette = palette_manager.get_palette(parameters[0])
+                    self.current_palette = palette_manager.get_palette(
+                        parameters[0])
 
             self.start_matrix = self.matrix
         if DEBUG:
@@ -242,7 +250,8 @@ class PlayLevel(GameStrategy):
 
         for letter in text:
             if letter in TEXT_ONLY:
-                img_letter = Object(x_offset, 6, 1, letter, True, self.current_palette)
+                img_letter = Object(x_offset, 6, 1, letter,
+                                    True, self.current_palette)
                 text_in_objects.append(img_letter)
             x_offset += 1
 
@@ -482,10 +491,13 @@ class PlayLevel(GameStrategy):
         game_object.moved = False
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
-        self.screen.fill(self.current_palette.pixels[3][6])
+        self.screen.fill(self.current_palette.pixels[4][6])
         self.state = None
         level_3d = False
         count_3d_obj = 0
+
+        for particle in self.particles:
+            particle.draw(self.screen)
 
         self.functional_event_check(events)
 

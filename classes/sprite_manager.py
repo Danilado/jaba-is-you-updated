@@ -1,12 +1,12 @@
 from pathlib import Path
-from typing import Dict, Sequence
+from typing import Dict, Sequence, Tuple
 
 import pygame
 
 from classes.base_download_manager import BaseDownloadManager
 from classes.palette import Palette
 from classes.sprite_info import SpriteInfo
-from global_types import SURFACE
+from global_types import COLOR, SURFACE
 
 
 class SpriteManager(BaseDownloadManager):
@@ -114,6 +114,7 @@ class SpriteManager(BaseDownloadManager):
 
         default: bool = get_from_kwargs("default", (bool,))
         palette: Palette = get_from_kwargs("palette", (Palette,))
+        color: COLOR = get_from_kwargs("color", (Tuple, str))
         sprite_info = get_from_kwargs("sprite_info", (SpriteInfo,))
         if sprite_info is None:
             sprite_info = args[0]
@@ -124,11 +125,17 @@ class SpriteManager(BaseDownloadManager):
             sprite_info.path = Path(sprite_info.path)
 
         sprite_info.path = sprite_info.path.with_suffix(".png")
+
+        if color is not None:
+            sprite_info.color = color
+            return sprite_info
+
         if default:
             sprite_path = "/".join(sprite_info.path.parts[1:-1])
             if sprite_path in SpriteManager.default_colors.keys():
                 palette_pixel_position = SpriteManager.default_colors[sprite_path]
-                sprite_info.color = palette.pixels[palette_pixel_position[1]][palette_pixel_position[0]]
+                sprite_info.color = palette.pixels[palette_pixel_position[1]
+                                                   ][palette_pixel_position[0]]
         return sprite_info
 
     def get(self, *args, **kwargs) -> SURFACE:
@@ -144,7 +151,8 @@ class SpriteManager(BaseDownloadManager):
         :return: Загруженный спрайт через pygame.image.load
         """
         while self.thread.is_alive() and not self.thread_done:
-            pygame.time.wait(100)  # Ждём пока скачаются и разархивируются спрайты
+            # Ждём пока скачаются и разархивируются спрайты
+            pygame.time.wait(100)
 
         sprite_info = self._get_sprite_info(*args, **kwargs)
 
@@ -154,7 +162,8 @@ class SpriteManager(BaseDownloadManager):
                 sprite = sprite.convert_alpha()  # Конвертируем с альфа каналом
             else:  # Иначе
                 sprite = sprite.convert()  # Просто конвертируем
-            color_mask = pygame.Surface(sprite.get_size())  # Затем создаём цветную маску
+            # Затем создаём цветную маску
+            color_mask = pygame.Surface(sprite.get_size())
             color_mask.fill(sprite_info.color)  # И закрашиваем её цветом
             sprite.blit(color_mask, (0, 0),
                         special_flags=pygame.BLEND_MULT)  # Затем цветную маску накладываем на спрайт
