@@ -81,7 +81,7 @@ NOUNS = [
 ]
 
 OPERATORS = [
-    'on', 'never', 'facing', 'without', 'above', 'below', 'seeing', 'nextto', 'feeling', 'near',
+    'on', 'never', 'facing', 'without', 'above', 'below', 'seeing', 'nextto', 'feeling', 'near', 'and', 'not',
     'has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play', 'lonely', 'idle', 'powered', 'is'
 ]
 
