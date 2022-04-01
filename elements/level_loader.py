@@ -14,6 +14,7 @@ from elements.play_level import PlayLevel
 from elements.global_classes import GuiSettings, palette_manager
 from global_types import SURFACE
 from settings import RESOLUTION
+from utils import language_words
 
 
 class Loader(GameStrategy):
@@ -40,9 +41,10 @@ class Loader(GameStrategy):
         super().__init__(screen)
         self.overlay = from_editor_overlay
         self._state: Optional[State] = None
+        self.lang_words = language_words()
         self.buttons = [
             Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 400, 1200, 50, (0, 0, 0),
-                   GuiSettings(), "Назад", self.go_back),
+                   GuiSettings(), f"{self.lang_words[10]}", self.go_back),
         ]
         for index, level in enumerate(self.find_levels()):
             self.buttons.append(

@@ -6,6 +6,7 @@ import pygame
 from settings import RESOLUTION, FRAMES_PER_SECOND, DEBUG
 from classes.game_state import GameState
 from global_types import SURFACE
+from utils import settings_saves
 
 if TYPE_CHECKING:
     from classes.game_strategy import GameStrategy
@@ -86,6 +87,7 @@ class GameContext:
     def run(self):
         """Функция запуска игры"""
         clock = pygame.time.Clock()
+        pygame.mixer.music.set_volume(settings_saves()[2])
         while self.running:
             try:
                 delta_time = clock.tick(FRAMES_PER_SECOND)

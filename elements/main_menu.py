@@ -7,11 +7,13 @@ from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.state import State
+from elements.settings_menu import SettingsMenu
 from elements.editor import Editor
 from elements.level_loader import Loader
 from elements.global_classes import GuiSettings, sound_manager
 from elements.map_menu import MapMenu
 from global_types import SURFACE
+from utils import language_words
 
 
 class MainMenu(GameStrategy):
@@ -36,18 +38,23 @@ class MainMenu(GameStrategy):
     def _go_to_loader(self):
         self._state = State(GameState.SWITCH, Loader)
 
+    def _go_to_options(self):
+        self._state = State(GameState.SWITCH, SettingsMenu)
+
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int):
         buttons = [
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Начать играть", self._start_the_game),
+                   GuiSettings(), f"{language_words()[0]}", self._start_the_game),
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 - 60, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Мультиплеер"),
+                   GuiSettings(), f"{language_words()[1]}"),
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Редактор уровней", self._go_to_editor),
+                   GuiSettings(), f"{language_words()[2]}", self._go_to_editor),
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 60, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Уровни", self._go_to_loader),
+                   GuiSettings(), f"{language_words()[3]}", self._go_to_loader),
             Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 120, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Выйти", self._exit_the_game),
+                   GuiSettings(), f"{language_words()[4]}", self._go_to_options),
+            Button(settings.RESOLUTION[0] // 2 - 200, settings.RESOLUTION[1] // 2 + 180, 400, 50, (0, 0, 0),
+                   GuiSettings(), f"{language_words()[5]}", self._exit_the_game),
         ]
         self._state = None
         if events:

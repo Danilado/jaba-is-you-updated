@@ -6,7 +6,7 @@ from typing import List, Optional
 import pygame
 
 from classes.palette import Palette
-from utils import my_deepcopy
+from utils import my_deepcopy, settings_saves
 from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, TEXT_ONLY, DEBUG
 from global_types import SURFACE
 from elements.global_classes import sound_manager, palette_manager
@@ -545,7 +545,7 @@ class PlayLevel(GameStrategy):
                                 self.update_sticky_neighbours(game_object)
                         game_object.draw(self.screen)
 
-            if SHOW_GRID:
+            if settings_saves()[0]:
                 for x in range(0, RESOLUTION[0], 50):
                     for y in range(0, RESOLUTION[1], 50):
                         pygame.draw.rect(

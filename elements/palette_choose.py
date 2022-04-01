@@ -8,6 +8,7 @@ from classes.palette import Palette
 from classes.state import State
 from elements.global_classes import palette_manager
 from global_types import SURFACE
+from utils import language_words
 
 if TYPE_CHECKING:
     from elements.editor import Editor
@@ -16,9 +17,10 @@ if TYPE_CHECKING:
 class PaletteChoose(GameStrategy):
     def __init__(self, editor: "Editor", screen: SURFACE):
         self.editor: "Editor" = editor
+        self.lang_words = language_words()
         font = pygame.font.SysFont("Arial", int(72 * 2.5))
         self._choose_palette_text = font.render(
-            "Выберите палитру:", True, (255, 255, 255))
+            f"{self.lang_words[19]}:", True, (255, 255, 255))
         super().__init__(screen)
 
     def _process_palette(self, x_pixel_offset=0, y_pixel_offset=0) -> Optional[Palette]:
