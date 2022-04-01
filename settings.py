@@ -81,10 +81,15 @@ NOUNS = [
 ]
 
 OPERATORS = [
-    'and', 'eat', 'facing', 'fear', 'follow', 'has', 'idle', 'is', 'lonely',
-    'make', 'mimic', 'near', 'never', 'not', 'on', 'operator', 'play',
-    'powered', 'seldom', 'sharp', 'without', 'write'
+    'on', 'never', 'facing', 'without', 'above', 'below', 'seeing', 'nextto', 'feeling', 'near', 'and', 'not',
+    'has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play', 'lonely', 'idle', 'powered', 'is'
 ]
+
+VERBS = ['has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play']
+
+PREFIX = ['lonely', 'idle', 'powered']
+
+INFIX = ['on', 'never', 'facing', 'without', 'above', 'below', 'seeing', 'nextto', 'feeling', 'near']
 
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
