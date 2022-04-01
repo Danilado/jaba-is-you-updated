@@ -566,6 +566,7 @@ class PlayLevel(GameStrategy):
                             matrix[i][j].pop(rule_object.get_index(matrix))
                             rule_object.name = noun
                             rule_object.status_switch_name = 1
+                            rule_object.animation = rule_object.animation_init()
                             matrix[i][j].append(copy(rule_object))
                         elif rule_object.status_switch_name == 1:
                             rule_object.status_switch_name = 2
