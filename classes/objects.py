@@ -113,6 +113,7 @@ class Object:
         self.is_3d = is_3d
         self.level_processor = None
         self.is_fall = False
+        self.status_switch_name = 0
 
         self.moved = moved
         self.recursively_used = False

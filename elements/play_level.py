@@ -48,9 +48,6 @@ class PlayLevel(GameStrategy):
         self.delay = pygame.time.get_ticks()
         self.delay = pygame.time.get_ticks()
 
-        self.last_i = 0
-        self.last_j = 0
-
     def parse_file(self, level_name: str):
         """
         Парсинг уровней. Добавляет объекты в :attr:`~.Draw.matrix`.
@@ -184,12 +181,12 @@ class PlayLevel(GameStrategy):
                                     noun_objects = []
                                     for pfix in prefix:
                                         noun_objects.append([pfix, first_object])
-                                    self.last_i = prefix[-1].y
-                                    self.last_j = prefix[-1].x
-                                    for second_objects in self.matrix[self.last_i - delta_i][self.last_j - delta_j]:
+                                    last_i = prefix[-1].y
+                                    last_j = prefix[-1].x
+                                    for second_objects in self.matrix[last_i - delta_i][last_j - delta_j]:
                                         if second_objects.name == 'and':
-                                            result = self.check_noun(self.last_i - delta_i * 2,
-                                                                     self.last_j - delta_j * 2,
+                                            result = self.check_noun(last_i - delta_i * 2,
+                                                                     last_j - delta_j * 2,
                                                                      delta_i, delta_j, 'main')
                                             if not result:
                                                 pass
@@ -492,13 +489,21 @@ class PlayLevel(GameStrategy):
             is_float = False
             is_3d = False
             is_fall = False
-
             for rule in self.level_rules:
                 for noun in NOUNS:
                     if f'{rule_object.name} is {noun}' in rule.text_rule and not rule_object.is_text:
-                        matrix[i][j].pop(rule_object.get_index(matrix))
-                        rule_object.name = noun
-                        matrix[i][j].append(copy(rule_object))
+                        if rule_object.status_switch_name == 0:
+                            matrix[i][j].pop(rule_object.get_index(matrix))
+                            rule_object.name = noun
+                            rule_object.status_switch_name = 1
+                            matrix[i][j].append(copy(rule_object))
+                        elif rule_object.status_switch_name == 1:
+                            rule_object.status_switch_name = 2
+                        elif rule_object.status_switch_name == 2:
+                            rule_object.status_switch_name = 0
+
+
+
 
                 if f'{rule_object.name} is 3d' in rule.text_rule:
                     is_3d = True
@@ -678,8 +683,6 @@ class PlayLevel(GameStrategy):
             self.level_start_animation()
 
         if self.moved:
-            for rule in self.level_rules:
-                print(rule.text_rule)
             self.moved = False
 
         if self.state is None:
