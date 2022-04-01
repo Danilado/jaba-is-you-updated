@@ -205,7 +205,7 @@ class PlayLevel(GameStrategy):
         if self.check_valid_range(j, i, 0, 0):
             for first_object in self.matrix[i][j]:
                 if first_object.name in PROPERTIES:
-                    property_objects.append(first_object)
+                    property_objects.append(['', first_object])
                     if self.check_valid_range(j, i, delta_j * 2, delta_i * 2):
                         for second_objects in self.matrix[i + delta_i][j + delta_j]:
                             if second_objects.name == 'and':
@@ -214,7 +214,7 @@ class PlayLevel(GameStrategy):
                                     pass
                                 else:
                                     for property in properties:
-                                        property_objects.append(property)
+                                        property_objects.append(['', property])
                     return property_objects
         return False
 
@@ -339,21 +339,21 @@ class PlayLevel(GameStrategy):
                         for property in properties:
                             if noun[0] is None:
                                 if object_not is None:
-                                    text = f'{noun[1].name} {verb.name} {property.name}'
+                                    text = f'{noun[1].name} {verb.name} {property[1].name}'
                                     objects = [noun[1], verb, property]
                                     rules.append(TextRule(text, objects))
                                 else:
-                                    text = f'{noun[1].name} {verb.name} {object_not.name} {property.name}'
+                                    text = f'{noun[1].name} {verb.name} {object_not.name} {property[1].name}'
                                     objects = [noun[1], verb, object_not, property]
                                     rules.append(TextRule(text, objects))
                             else:
                                 if object_not is None:
-                                    text = f'{noun[0].name} {noun[1].name} {verb.name} {property.name}'
+                                    text = f'{noun[0].name} {noun[1].name} {verb.name} {property[1].name}'
                                     objects = [noun[0], noun[1], verb, property]
                                     rules.append(TextRule(text, objects))
                                 else:
                                     text = f'{noun[0].name} {noun[1].name} {verb.name} ' \
-                                           f'{object_not.name} {property.name}'
+                                           f'{object_not.name} {property[1].name}'
                                     objects = [noun[0], noun[1], verb, object_not, property]
                                     rules.append(TextRule(text, objects))
 
@@ -678,6 +678,8 @@ class PlayLevel(GameStrategy):
             self.level_start_animation()
 
         if self.moved:
+            for rule in self.level_rules:
+                print(rule.text_rule)
             self.moved = False
 
         if self.state is None:
