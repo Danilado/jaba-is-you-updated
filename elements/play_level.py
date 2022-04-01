@@ -1,20 +1,24 @@
 """draw_matrix.py hopefully refactored by Gospodin"""
 import math
 
+from copy import copy
+from random import randint
+from typing import List, Optional
+import pygame
+
+from classes.palette import Palette
+from classes.particle import Particle, ParticleStrategy
 from utils import my_deepcopy
 from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
 from global_types import SURFACE
-from elements.global_classes import sound_manager
+from elements.global_classes import sound_manager, palette_manager
 from classes.state import State
 from classes.ray_casting import raycasting
 from classes.text_rule import TextRule
 from classes.objects import Object
 from classes.game_strategy import GameStrategy
 from classes.game_state import GameState
-import classes.rules as rules
-import pygame
-from typing import List, Optional
-from copy import copy
+from classes import rules
 
 
 class PlayLevel(GameStrategy):
@@ -31,22 +35,39 @@ class PlayLevel(GameStrategy):
         self.parse_file(level_name)
         self.level_rules = []
 
-        self.empty_object = Object(-1, -1, 0, 'empty', False)
+        self.empty_object = Object(-1, -1, 0, 'empty',
+                                   False, self.current_palette)
         self.moved = False
 
         self.status_cancel = False
         self.first_iteration = True
         self.objects_for_tp = []
 
+        self.win_offsets = [[(775, 325), 0], [(825, 325), 0], [(725, 325), 0], [(875, 325), 0], [(675, 325), 0],
+                            [(925, 325), 0], [(625, 325), 0], [
+            (975, 325), 0], [(575, 325), 0], [(1025, 325), 0],
+            [(525, 325), 0], [(1075, 325), 0], [
+            (475, 325), 0], [(1100, 325), 0], [(450, 325), 0],
+            [(1125, 325), 0], [(425, 325), 0]]
+        self.flag_to_win_animation = False
+        self.flag_to_delay = False
+        self.win_text = self.text_to_png('congratulations')
+
         self.num_obj_3d = 0
         self.count_3d_obj = 0
         self.flag = True
 
-        self.level_name_object_text = self.text_to_png(level_name)
+        self.level_name_object_text = self.text_to_png('level ' + level_name)
+        self.flag_to_level_start_animation = True
         self.circle_radius = 650
 
         self.delay = pygame.time.get_ticks()
-        self.delay = pygame.time.get_ticks()
+
+        self.particles = [Particle(self.screen, 'dot', ParticleStrategy(
+            (randint(0, 1600), randint(-50, 1650)), (950, - 50),
+            0, (randint(0, 360), randint(0, 360)), 40, 50 + randint(-10, 10), True, True),
+            self.current_palette.pixels[3][6]) for _ in range(20)
+        ]
 
     def parse_file(self, level_name: str):
         """
@@ -61,20 +82,31 @@ class PlayLevel(GameStrategy):
         path_to_file = f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
 
         with open(path_to_file, mode='r', encoding='utf-8') as level_file:
-            for line in level_file.readlines():
+            for line_index, line in enumerate(level_file.readlines()):
                 parameters = line.strip().split(' ')
 
-                if len(parameters) > 1:
+                if len(parameters) > 1 and line_index > 0:
                     x, y, direction, name = parameters[:-1]
                     self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
                         int(x),
                         int(y),
                         int(direction),
                         name,
-                        parameters[4].lower() == 'true'
+                        parameters[4].lower() == 'true',
+                        self.current_palette
                     ))
+                else:
+                    self.current_palette = palette_manager.get_palette(
+                        parameters[0])
 
             self.start_matrix = self.matrix
+        if DEBUG:
+            print("\n".join((
+                "-"*100,
+                f"Level {level_name} successfully parsed!",
+                f"palette: {self.current_palette.name}",
+                f"palette size: {len(self.current_palette.pixels[0])}x{len(self.current_palette.pixels)}"
+            )))
 
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -388,9 +420,9 @@ class PlayLevel(GameStrategy):
         copy_matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
 
-        for i in range(len(matrix)):
-            for j in range(len(matrix[i])):
-                for obj in matrix[i][j]:
+        for i, line in enumerate(matrix):
+            for j, cell in enumerate(line):
+                for obj in cell:
                     copy_object = copy(obj)
                     copy_matrix[i][j].append(copy_object)
 
@@ -401,15 +433,17 @@ class PlayLevel(GameStrategy):
         # Issue created.
         sound_manager.load_music("sounds/Music/ruin")
 
-    @staticmethod
-    def text_to_png(level_name):
-        x_offset = 12
-        level_text = 'level ' + level_name
+    def text_to_png(self, text):
+        if len(text) >= 32:
+            x_offset = 0
+        else:
+            x_offset = (32 - len(text)) // 2
         text_in_objects = []
 
-        for letter in level_text:
-            if letter not in [' ', '_', '-']:
-                img_letter = Object(x_offset, 6, 1, letter, True)
+        for letter in text:
+            if letter in TEXT_ONLY:
+                img_letter = Object(x_offset, 6, 1, letter,
+                                    True, self.current_palette)
                 text_in_objects.append(img_letter)
             x_offset += 1
 
@@ -419,15 +453,51 @@ class PlayLevel(GameStrategy):
         offsets = [(0, 0), (600, 0), (1000, 0), (1600, 0), (0, 900),
                    (300, 900), (800, 900), (1200, 900), (0, 300),
                    (0, 600), (1600, 100), (1600, 500), (1600, 900)]
-        if self.circle_radius > 0:
-            for offset in offsets:
-                pygame.draw.circle(self.screen, (0, 50, 30),
-                                   offset, self.circle_radius)
-            if pygame.time.get_ticks() - self.delay <= 3000:
-                for character_object in self.level_name_object_text:
+        for offset in offsets:
+            pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+                               offset, self.circle_radius)
+        if pygame.time.get_ticks() - self.delay <= 3000:
+            for character_object in self.level_name_object_text:
+                character_object.draw(self.screen)
+        if pygame.time.get_ticks() - self.delay > 3000:
+            self.circle_radius -= 8
+        if self.circle_radius <= 0:
+            self.circle_radius = 0
+            self.flag_to_level_start_animation = False
+
+    def win_animation(self):
+        boarder_offsets = [(0, 0), (600, 0), (1000, 0), (1600, 0), (0, 900),
+                           (300, 900), (800, 900), (1200, 900), (0, 300),
+                           (0, 600), (1600, 100), (1600, 500), (1600, 900)]
+        max_radius = 100
+        if not self.flag_to_level_start_animation and self.flag_to_win_animation:
+            for offset, radius in self.win_offsets:
+                pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+                                   offset, radius)
+            if self.win_offsets[0][1] < max_radius:
+                self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
+                for index in range(1, len(self.win_offsets), 2):
+                    self.win_offsets[index][1] += 0.1 * \
+                        (len(self.win_offsets) - index)
+                    self.win_offsets[index + 1][1] += 0.1 * \
+                        (len(self.win_offsets) - index)
+
+            if self.win_offsets[0][1] >= max_radius and not self.flag_to_delay:
+                self.flag_to_delay = True
+                self.delay = pygame.time.get_ticks()
+
+            if self.win_offsets[0][1] >= max_radius:
+                for character_object in self.win_text:
                     character_object.draw(self.screen)
-            if pygame.time.get_ticks() - self.delay > 3000:
-                self.circle_radius -= 8
+
+            if self.win_offsets[0][1] >= max_radius and pygame.time.get_ticks() - self.delay >= 1000:
+                for offset1 in boarder_offsets:
+                    pygame.draw.circle(
+                        self.screen, self.current_palette.pixels[3][6], offset1, self.circle_radius)
+                self.circle_radius += 8
+
+            if self.circle_radius >= 650:
+                self.state = State(GameState.BACK)
 
     def functional_event_check(self, events: List[pygame.event.Event]):
         for event in events:
@@ -460,9 +530,9 @@ class PlayLevel(GameStrategy):
                     rules.processor.update_lists(level_processor=self,
                                                  matrix=matrix,
                                                  events=[event])
-                    for i in range(len(self.matrix)):
-                        for j in range(len(self.matrix[i])):
-                            for rule_object in self.matrix[i][j]:
+                    for i, line in enumerate(self.matrix):
+                        for j, cell in enumerate(line):
+                            for rule_object in cell:
                                 self.apply_rules(matrix, rule_object, i, j)
                 elif event.key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]:
                     rules.processor.update_lists(level_processor=self,
@@ -473,7 +543,7 @@ class PlayLevel(GameStrategy):
                             for rule_object in self.matrix[i][j]:
                                 self.apply_rules(matrix, rule_object, i, j)
 
-    def apply_rules(self, matrix, rule_object, i, j):
+    def apply_rules(self, matrix, rule_object, i, j):   # TODO: Performance issue
         if not rule_object.special_text:
             is_hot = False
             is_hide = False
@@ -579,10 +649,12 @@ class PlayLevel(GameStrategy):
             for rule in self.level_rules:
                 if f'{rule_object.name} is win' in rule.text_rule \
                         and not rule_object.is_text:
-                    for object in matrix[i][j]:
+                    for level_object in matrix[i][j]:
                         for second_rule in self.level_rules:
-                            if f'{object.name} is you' in second_rule.text_rule:
-                                self.state = State(GameState.BACK)
+                            if f'{level_object.name} is you' in second_rule.text_rule \
+                                    or f'{level_object.name} is 3d' in second_rule.text_rule:
+                                if not self.flag_to_win_animation and not self.flag_to_level_start_animation:
+                                    self.flag_to_win_animation = True
 
     def find_rules(self):
         self.level_rules = []
@@ -597,6 +669,7 @@ class PlayLevel(GameStrategy):
         game_object.neighbours = self.get_neighbours(
             game_object.x, game_object.y)
         game_object.recursively_used = True
+        neighbour_list: List[Object]
         for neighbour_list in game_object.neighbours:
             for neighbour in neighbour_list:
                 if not neighbour.recursively_used:
@@ -606,10 +679,13 @@ class PlayLevel(GameStrategy):
         game_object.moved = False
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
-        self.screen.fill("black")
+        self.screen.fill(self.current_palette.pixels[4][6])
         self.state = None
         level_3d = False
         count_3d_obj = 0
+
+        for particle in self.particles:
+            particle.draw(self.screen)
 
         self.functional_event_check(events)
 
@@ -679,8 +755,11 @@ class PlayLevel(GameStrategy):
             self.find_rules()
             self.first_iteration = False
 
-        if self.circle_radius:
+        if self.flag_to_level_start_animation:
             self.level_start_animation()
+
+        if self.flag_to_win_animation:
+            self.win_animation()
 
         if self.moved:
             self.moved = False

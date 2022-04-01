@@ -67,7 +67,8 @@ class MapMenu(GameStrategy):
         :param level_name: Название уровня в папке levels
         :raises OSError: Если какая либо проблема с открытием файла.
         """
-        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420', 'r') as level_file:
+        with open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
+                  'r', encoding='utf-8') as level_file:
             for line in level_file.readlines():
                 parameters = line.strip().split(' ')
                 if len(parameters) > 1:
@@ -113,11 +114,11 @@ class MapMenu(GameStrategy):
         return neighbours
 
     def go_to_game(self):
-        for i in range(len(self.matrix)):
-            for j in range(len(self.matrix[i])):
-                for k in range(len(self.matrix[i][j])):
-                    if k < len(self.matrix[i][j]) and j < 31:
-                        if self.matrix[i][j][k].name == 'cursor' and not self.matrix[i][j][k].is_text:
+        for i, line in enumerate(self.matrix):
+            for j, cell in enumerate(line):
+                for k, rule_object in enumerate(cell):
+                    if k < len(cell) and j < 31:
+                        if rule_object.name == 'cursor' and not rule_object.is_text:
                             if self.matrix[i][j][0].name in self.cursor.levels:
                                 self._state = State(GameState.SWITCH, partial(PlayLevel,
                                                                               self.matrix[i][j][0].name.split("/")[0]))

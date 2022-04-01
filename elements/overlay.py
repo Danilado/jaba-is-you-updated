@@ -10,6 +10,7 @@ from classes.input import Input
 from classes.state import State
 from elements.global_classes import GuiSettings, EuiSettings
 from elements.level_loader import Loader
+from elements.palette_choose import PaletteChoose
 from settings import RESOLUTION
 
 if TYPE_CHECKING:
@@ -35,12 +36,10 @@ class EditorOverlay(GameStrategy):
         self.editor: "Editor" = editor
         self.loaded_flag = False
         self.label = self.editor.level_name
-        print(self.editor.level_name, self.label)
         if self.label is None:
             self.label = "Новый уровень"
-        print(self.editor.level_name, self.label)
         self.buttons = [
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 180, 400, 50, (0, 0, 0),
+            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
                    EuiSettings(), f"Вы изменяете {self.label}"),
             Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
                    GuiSettings(), "Назад", self.cancel),
@@ -54,6 +53,10 @@ class EditorOverlay(GameStrategy):
                    GuiSettings(), "Сохранить и выйти в главное меню", self.force_exit),
             Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 + 180, 400, 50, (0, 0, 0),
                    GuiSettings(), "Выйти без сохранения", self.hard_force_exit),
+            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 230, 400, 50, (0, 0, 0),
+                   EuiSettings()),
+            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 180, 400, 50, (0, 0, 0),
+                   GuiSettings(), f"Поменять палитру", self.switch_to_palette_choose),
         ]
 
     def save(self):
@@ -86,6 +89,10 @@ class EditorOverlay(GameStrategy):
         self.editor.exit_flag = True
         self.editor.discard = True
 
+    def switch_to_palette_choose(self):
+        self.state = State(GameState.SWITCH, partial(
+            PaletteChoose, self.editor))
+
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает оверлей управления редактором и обрабатывает события
 
@@ -97,6 +104,7 @@ class EditorOverlay(GameStrategy):
         """
         self.state = State(GameState.BACK) if self.loaded_flag else None
         self.editor.new_loaded = bool(self.loaded_flag)
+        self.buttons[7].text = f"Текущая палитра: {self.editor.current_palette.name}"
         self.screen.fill('black')
 
         for event in events:
@@ -109,7 +117,7 @@ class EditorOverlay(GameStrategy):
             if event.type == pygame.KEYUP:
                 if str(self.buttons[3]):
                     self.label = str(self.buttons[3])
-                self.buttons[0] = Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 180, 400, 50, (0, 0, 0),
+                self.buttons[0] = Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
                                          EuiSettings(), f"Вы изменяете {self.label}")
 
         for button in self.buttons:

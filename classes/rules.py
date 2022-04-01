@@ -1,12 +1,12 @@
-import pygame
+from copy import copy
 import random
 
-from copy import copy
+import pygame
 
 
 class Broken:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(rule_object, level_rules, *_, **__):
         object_name = rule_object.name
         for sec_rule in level_rules:
             if f'{object_name}' in sec_rule.text_rule and \
@@ -63,13 +63,15 @@ class You:
         rule_object.check_events(events, 1)
         rule_object.move(matrix, level_rules, level_processor)
 
+
 class You2:
     @staticmethod
     def apply(matrix, rule_object, events, level_rules, level_processor, *_, **__):
         rule_object.check_events(events, 2)
         rule_object.move(matrix, level_rules, level_processor)
 
-class Is_3d:
+
+class Is3d:
     @staticmethod
     def apply(matrix, rule_object, events, level_rules, level_processor, num_obj_3d, *_, **__):
         if rule_object.num_3d == num_obj_3d:
@@ -206,29 +208,29 @@ class More:
 class Shift:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
-        for object in matrix[rule_object.y][rule_object.x]:
-            if object.name != rule_object.name:
+        for level_object in matrix[rule_object.y][rule_object.x]:
+            if level_object.name != rule_object.name:
                 if rule_object.direction == 0:
-                    object.motion(0, -1, matrix, level_rules, 'push')
+                    level_object.motion(0, -1, matrix, level_rules, 'push')
                 elif rule_object.direction == 1:
-                    object.motion(1, 0, matrix, level_rules, 'push')
+                    level_object.motion(1, 0, matrix, level_rules, 'push')
                 elif rule_object.direction == 2:
-                    object.motion(0, 1, matrix, level_rules, 'push')
+                    level_object.motion(0, 1, matrix, level_rules, 'push')
                 elif rule_object.direction == 3:
-                    object.motion(-1, 0, matrix, level_rules, 'push')
+                    level_object.motion(-1, 0, matrix, level_rules, 'push')
+
 
 class Tele:
     @staticmethod
-    def apply(matrix, rule_object, objects_for_tp, *_, **__):
-        matrix = matrix
+    def apply(matrix, rule_object, *_, **__):
         first_tp = rule_object
         status = False
         teleports = []
         x1 = first_tp.x
         y1 = first_tp.y
-        for i in range(len(matrix)):
-            for j in range(len(matrix[i])):
-                for second_object_tp in matrix[i][j]:
+        for i, line in enumerate(matrix):
+            for j, cell in enumerate(line):
+                for second_object_tp in cell:
                     if not second_object_tp.is_text:
                         if second_object_tp.name == first_tp.name \
                                 and (second_object_tp.x != first_tp.x or second_object_tp.y != first_tp.y)\
@@ -250,9 +252,6 @@ class Tele:
                 objects.update_parameters(-(x2 - x1), -(y2 - y1), matrix)
 
 
-
-
-
 class RuleProcessor:
     def __init__(self):
         self.matrix = None
@@ -260,11 +259,13 @@ class RuleProcessor:
         self.events = None
         self.rules = None
         self.level_processor = None
+        self.objects_for_tp = None
+        self.num_obj_3d = None
 
         self.dictionary = {
             'broken': Broken(),
             'you': You(),
-            '3d': Is_3d(),
+            '3d': Is3d(),
             'chill': Chill(),
             'boom': Boom(),
             'auto': Auto(),

@@ -6,7 +6,8 @@ from typing import List, Literal
 
 import pygame
 
-from elements.global_classes import sprite_manager
+from classes.palette import Palette
+from elements.global_classes import sprite_manager, palette_manager
 from global_types import SURFACE
 from settings import TEXT_ONLY, SPRITE_ONLY, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
 from classes.animation import Animation
@@ -58,7 +59,8 @@ class Object:
     """
 
     def __init__(self, x: int, y: int, direction: int = 0, name: str = "empty",
-                 is_text: bool = True, movement_state: int = 0, neighbours=None,
+                 is_text: bool = True, palette: Palette = palette_manager.get_palette("default"),
+                 movement_state: int = 0, neighbours=None,
                  turning_side: Literal[0, 1, 2, 3, -1] = -1, animation=None,
                  safe=False, angle_3d: int = 90, is_3d=False, moved=False,
                  num_3d: int = 0):
@@ -97,6 +99,7 @@ class Object:
         self.animation: Animation
         self.movement_state = movement_state
         self.animation = animation
+        self.palette: Palette = palette
 
         self.is_hide = False
         self.is_hot = False
@@ -148,8 +151,9 @@ class Object:
         char_dict = ['u', 'r', 'b', 'l']
         key = ''
         for index, array in enumerate(self.neighbours):
-            for object in array:
-                if not object.is_text and object.name == self.name and char_dict[index] not in key:
+            for level_object in array:
+                if not level_object.is_text and level_object.name == self.name and \
+                        char_dict[index] not in key:
                     key += char_dict[index]
         return key_dict[key]
 
@@ -161,7 +165,7 @@ class Object:
         if (self.is_text or self.name in TEXT_ONLY) and self.name not in SPRITE_ONLY:
             path = os.path.join('./', 'sprites', 'text')
             animation.sprites = [pygame.transform.scale(sprite_manager.get(
-                os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}")),
+                os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}"), default=True, palette=self.palette),
                 (50, 50)) for index in range(0, 3)]
         else:
             path = os.path.join('./', 'sprites', self.name)
@@ -183,30 +187,32 @@ class Object:
                 if state_max == 0:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_0_{index}')),
+                                     f'{self.name}_0_{index}'), default=True, palette=self.palette),
                         (50, 50)) for index in range(1, 4)]
                 elif state_max == 15:
                     frame = self.investigate_neighbours()
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_{frame}_{index}')),
+                                     f'{self.name}_{frame}_{index}'), default=True, palette=self.palette),
                         (50, 50)) for index in range(1, 4)]
                 elif state_max == 3:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_{self.movement_state % 4}_{index}')),
+                                     f'{self.name}_{self.movement_state % 4}_{index}'), default=True,
+                        palette=self.palette),
                         (50, 50)) for index in range(1, 4)]
                 elif state_max == 24:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
-                                     f'{self.name}_{self.direction_key_map[self.direction] * 8}_{index}')),
+                                     f'{self.name}_{self.direction_key_map[self.direction] * 8}_{index}'), default=True,
+                        palette=self.palette),
                         (50, 50)) for index in range(1, 4)]
                 elif state_max == 27:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_'
                                      f'{self.movement_state % 4 + self.direction_key_map[self.direction] * 8}_'
-                                     f'{index}')),
+                                     f'{index}'), default=True, palette=self.palette),
                         (50, 50)) for index in range(1, 4)]
                 elif state_max == 31:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
@@ -214,7 +220,7 @@ class Object:
                             path,
                             f'{self.name}_'
                             f'{self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0)}_'
-                            f'{index}')),
+                            f'{index}'), default=True, palette=self.palette),
                         (50, 50)) for index in range(1, 4)]
                 else:
                     print(f'{self.name} somehow fucked up while setting animation')
@@ -463,7 +469,7 @@ class Object:
         """
         if not self.is_safe:
             for rule in level_rules:
-                if f'{rule_object.name} is stop' in rule.text_rule and self.is_weak\
+                if f'{rule_object.name} is stop' in rule.text_rule and self.is_weak \
                         and not rule_object.is_text:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
                     return False
@@ -601,13 +607,10 @@ class Object:
                     and not rule_object.is_text:
                 for sec_rule in level_rules:
 
-                    if f'{self.name} is you' in sec_rule.text_rule:
-                        self.level_processor.state = State(GameState.BACK)
-                        return True
-
-                    if f'{self.name} is 3d' in sec_rule.text_rule:
-                        self.level_processor.state = State(GameState.BACK)
-                        return True
+                    if f'{self.name} is you' in sec_rule.text_rule or f'{self.name} is 3d' in sec_rule.text_rule:
+                        if not self.level_processor.flag_to_win_animation \
+                                and not self.level_processor.flag_to_level_start_animation:
+                            self.level_processor.flag_to_win_animation = True
         return False
 
     def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object) -> True:
@@ -820,8 +823,8 @@ class Object:
             status_motion = 'no collision'
             if self.status == 'alive':
                 for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
-                    if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True) \
-                        or not self.can_interact(rule_object, level_rules)) and status_motion != False:
+                    if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True)
+                            or not self.can_interact(rule_object, level_rules)) and status_motion != False:
                         if self.object_can_move(level_rules) and not self.is_still:
                             status_motion = True
 
@@ -964,6 +967,7 @@ class Object:
             direction=self.direction,
             name=self.name,
             is_text=self.is_text,
+            palette=Palette(self.palette.name, self.palette.pixels.copy()),
             movement_state=self.movement_state,
             neighbours=None,
             turning_side=self.turning_side,
@@ -973,6 +977,5 @@ class Object:
             is_3d=self.is_3d,
             moved=self.moved,
             num_3d=self.num_3d
-
         )
         return copied_object

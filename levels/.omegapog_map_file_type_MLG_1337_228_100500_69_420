@@ -1,5 +1,5 @@
-21 3 1 blob True
-22 3 1 on False
-23 3 1 belt True
-24 3 1 is False
-25 3 1 win False
+default
+27 2 1 fire True
+28 2 1 is False
+29 2 1 fall False
+26 7 1 fire False

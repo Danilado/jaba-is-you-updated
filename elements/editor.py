@@ -10,8 +10,9 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.object_button import ObjectButton
 from classes.objects import Object
+from classes.palette import Palette
 from classes.state import State
-from elements.global_classes import EuiSettings, IuiSettings, sound_manager
+from elements.global_classes import EuiSettings, IuiSettings, sound_manager, palette_manager
 from elements.overlay import EditorOverlay
 from settings import SHOW_GRID, RESOLUTION, OBJECTS, STICKY
 from utils import my_deepcopy
@@ -92,26 +93,28 @@ class Editor(GameStrategy):
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
                    ">", partial(self.page_turn, 1)),
         ]
+        # quswadress' palette logic
+        self._current_palette: Palette = palette_manager.get_palette("default")
         # features
         self.screen = pygame.display.set_mode((1800, 900))
         self.page_turn(0)
-        self.empty_object = Object(-1, -1, 0, 'empty', False)
+        self.empty_object = Object(-1, -1, 0, 'empty', is_text=False, palette=self.current_palette)
 
-    @staticmethod
-    def save(state, name=None):
+    def save(self, state, name=None):
         """Сохранение трёхмерного массива в память
 
         :param state: Трёхмерный массив состояния сетки
         :type state: list
         """
-        string, counter = unparse_all(state)
-        if counter > 0:
-            print(name)
-            if name is None:
-                name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-            with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
-                      encoding='utf-8') as file:
-                file.write(string)
+        string = f"{self.current_palette.name}\n"
+        string_state, counter = unparse_all(state)
+        string += string_state
+        print(name)
+        if name is None:
+            name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+        with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
+                  encoding='utf-8') as file:
+            file.write(string)
 
     def page_turn(self, number: int):
         """Меняет страницу списка объектов
@@ -137,7 +140,8 @@ class Editor(GameStrategy):
                 ObjectButton(x=RESOLUTION[0] + 28 + 84 * (index % 2),
                              y=25 + 55 * (index - index % 2), width=50, height=50, outline=(0, 0, 0),
                              settings=EuiSettings(), text=text, action=partial(self.set_name, text),
-                             is_text=self.is_text, direction=self.direction, movement_state=0))
+                             is_text=self.is_text, direction=self.direction, movement_state=0,
+                             palette=self.current_palette))
         return button_array
 
     def unresize(self):
@@ -252,7 +256,7 @@ class Editor(GameStrategy):
                 self.changes.append(my_deepcopy(self.current_state))
                 self.current_state[self.focus[1]][self.focus[0]].append(
                     Object(x=self.focus[0], y=self.focus[1], direction=self.direction, name=self.name,
-                           is_text=self.is_text, movement_state=0, neighbours=neighbours))
+                           is_text=self.is_text, movement_state=0, neighbours=neighbours, palette=self.current_palette))
                 if self.name in STICKY and not self.is_text:
                     # ЭТО НУЖНО ДЕЛАТЬ ПОСЛЕ ДОБАВЛЕНИЯ ОБЪЕКТА В МАТРИЦУ
                     for array in neighbours:
@@ -281,6 +285,22 @@ class Editor(GameStrategy):
         """Вызывает меню управления редактора"""
         self.unresize()
         self.state = State(GameState.SWITCH, partial(EditorOverlay, self))
+
+    @property
+    def current_palette(self) -> Palette:
+        return self._current_palette
+
+    @current_palette.setter
+    def current_palette(self, value: Palette):
+        self._current_palette = value
+        self.buttons = self.parse_buttons()
+        for state in self.changes + [self.current_state]:
+            for line in state:
+                for cell in line:
+                    for rule_object in cell:
+                        rule_object.palette = value
+                        rule_object.animation = rule_object.animation_init()
+                        print(rule_object.name, "aaaaaaaa", value.name)
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает редактор (включая все его элементы) и обрабатывает все действия пользователя
