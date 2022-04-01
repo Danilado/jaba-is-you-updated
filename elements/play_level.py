@@ -2,7 +2,7 @@
 import math
 
 from utils import my_deepcopy
-from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX
+from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
 from global_types import SURFACE
 from elements.global_classes import sound_manager
 from classes.state import State
