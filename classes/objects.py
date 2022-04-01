@@ -602,13 +602,10 @@ class Object:
             if f'{rule_object.name} is win' in rule.text_rule:
                 for sec_rule in level_rules:
 
-                    if f'{self.name} is you' in sec_rule.text_rule:
-                        self.level_processor.state = State(GameState.BACK)
-                        return True
-
-                    if f'{self.name} is 3d' in sec_rule.text_rule:
-                        self.level_processor.state = State(GameState.BACK)
-                        return True
+                    if f'{self.name} is you' in sec_rule.text_rule or f'{self.name} is 3d' in sec_rule.text_rule:
+                        if not self.level_processor.flag_to_win_animation \
+                                and not self.level_processor.flag_to_level_start_animation:
+                            self.level_processor.flag_to_win_animation = True
         return False
 
     def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object) -> True:

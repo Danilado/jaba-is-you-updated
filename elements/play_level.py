@@ -40,11 +40,20 @@ class PlayLevel(GameStrategy):
         self.first_iteration = True
         self.objects_for_tp = []
 
+        self.win_offsets = [[(775, 325), 0], [(825, 325), 0], [(725, 325), 0], [(875, 325), 0], [(675, 325), 0],
+                            [(925, 325), 0], [(625, 325), 0], [(975, 325), 0], [(575, 325), 0], [(1025, 325), 0],
+                            [(525, 325), 0], [(1075, 325), 0], [(475, 325), 0], [(1100, 325), 0], [(450, 325), 0],
+                            [(1125, 325), 0], [(425, 325), 0]]
+        self.flag_to_win_animation = False
+        self.flag_to_delay = False
+        self.win_text = self.text_to_png('congratulations')
+
         self.num_obj_3d = 0
         self.count_3d_obj = 0
         self.flag = True
 
-        self.level_name_object_text = self.text_to_png(level_name)
+        self.level_name_object_text = self.text_to_png('level ' + level_name)
+        self.flag_to_level_start_animation = True
         self.circle_radius = 650
 
         self.delay = pygame.time.get_ticks()
@@ -224,15 +233,14 @@ class PlayLevel(GameStrategy):
         # Issue created.
         sound_manager.load_music("sounds/Music/ruin")
 
-    def text_to_png(self, level_name):
-        level_text = 'level ' + level_name
-        if len(level_text) >= 32:
+    def text_to_png(self, text):
+        if len(text) >= 32:
             x_offset = 0
         else:
-            x_offset = (32 - len(level_text)) // 2
+            x_offset = (32 - len(text)) // 2
         text_in_objects = []
 
-        for letter in level_text:
+        for letter in text:
             if letter in TEXT_ONLY:
                 img_letter = Object(x_offset, 6, 1, letter, True, self.current_palette)
                 text_in_objects.append(img_letter)
@@ -244,15 +252,64 @@ class PlayLevel(GameStrategy):
         offsets = [(0, 0), (600, 0), (1000, 0), (1600, 0), (0, 900),
                    (300, 900), (800, 900), (1200, 900), (0, 300),
                    (0, 600), (1600, 100), (1600, 500), (1600, 900)]
-        if self.circle_radius > 0:
-            for offset in offsets:
+        for offset in offsets:
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               offset, self.circle_radius)
+        if pygame.time.get_ticks() - self.delay <= 3000:
+            for character_object in self.level_name_object_text:
+                character_object.draw(self.screen)
+        if pygame.time.get_ticks() - self.delay > 3000:
+            self.circle_radius -= 8
+        if self.circle_radius <= 0:
+            self.circle_radius = 0
+            self.flag_to_level_start_animation = False
+
+    def level_start_animation(self):
+        offsets = [(0, 0), (600, 0), (1000, 0), (1600, 0), (0, 900),
+                   (300, 900), (800, 900), (1200, 900), (0, 300),
+                   (0, 600), (1600, 100), (1600, 500), (1600, 900)]
+        for offset in offsets:
+            pygame.draw.circle(self.screen, (0, 50, 30),
+                               offset, self.circle_radius)
+        if pygame.time.get_ticks() - self.delay <= 3000:
+            for character_object in self.level_name_object_text:
+                character_object.draw(self.screen)
+        if pygame.time.get_ticks() - self.delay > 3000:
+            self.circle_radius -= 8
+        if self.circle_radius <= 0:
+            self.circle_radius = 0
+            self.flag_to_level_start_animation = False
+
+    def win_animation(self):
+        boarder_offsets = [(0, 0), (600, 0), (1000, 0), (1600, 0), (0, 900),
+                           (300, 900), (800, 900), (1200, 900), (0, 300),
+                           (0, 600), (1600, 100), (1600, 500), (1600, 900)]
+        max_radius = 100
+        if not self.flag_to_level_start_animation and self.flag_to_win_animation:
+            for offset, radius in self.win_offsets:
                 pygame.draw.circle(self.screen, (0, 50, 30),
-                                   offset, self.circle_radius)
-            if pygame.time.get_ticks() - self.delay <= 3000:
-                for character_object in self.level_name_object_text:
+                                   offset, radius)
+            if self.win_offsets[0][1] < max_radius:
+                self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
+                for index in range(1, len(self.win_offsets), 2):
+                    self.win_offsets[index][1] += 0.1 * (len(self.win_offsets) - index)
+                    self.win_offsets[index + 1][1] += 0.1 * (len(self.win_offsets) - index)
+
+            if self.win_offsets[0][1] >= max_radius and not self.flag_to_delay:
+                self.flag_to_delay = True
+                self.delay = pygame.time.get_ticks()
+
+            if self.win_offsets[0][1] >= max_radius:
+                for character_object in self.win_text:
                     character_object.draw(self.screen)
-            if pygame.time.get_ticks() - self.delay > 3000:
-                self.circle_radius -= 8
+
+            if self.win_offsets[0][1] >= max_radius and pygame.time.get_ticks() - self.delay >= 1000:
+                for offset1 in boarder_offsets:
+                    pygame.draw.circle(self.screen, (0, 50, 30), offset1, self.circle_radius)
+                self.circle_radius += 8
+
+            if self.circle_radius >= 650:
+                self.state = State(GameState.BACK)
 
     def functional_event_check(self, events: List[pygame.event.Event]):
         for event in events:
@@ -397,8 +454,10 @@ class PlayLevel(GameStrategy):
                 if f'{rule_object.name} is win' in rule.text_rule:
                     for level_object in matrix[i][j]:
                         for second_rule in self.level_rules:
-                            if f'{level_object.name} is you' in second_rule.text_rule:
-                                self.state = State(GameState.BACK)
+                            if f'{level_object.name} is you' in second_rule.text_rule \
+                                    or f'{level_object.name} is 3d' in second_rule.text_rule:
+                                if not self.flag_to_win_animation and not self.flag_to_level_start_animation:
+                                    self.flag_to_win_animation = True
 
     def find_rules(self):
         self.level_rules = []
@@ -496,8 +555,11 @@ class PlayLevel(GameStrategy):
             self.find_rules()
             self.first_iteration = False
 
-        if self.circle_radius:
+        if self.flag_to_level_start_animation:
             self.level_start_animation()
+
+        if self.flag_to_win_animation:
+            self.win_animation()
 
         if self.moved:
             self.moved = False
