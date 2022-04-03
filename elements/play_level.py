@@ -679,6 +679,19 @@ class PlayLevel(GameStrategy):
         game_object.animation = game_object.animation_init()
         game_object.moved = False
 
+    def check_matrix(self):
+        for i in range(len(self.matrix)):
+            for j in range(len(self.matrix[i])):
+                for obj in self.matrix[i][j]:
+                    if obj.x != j or obj.y != i:
+                        obj.x = j
+                        obj.y = i
+                        obj.animation = obj.animation_init()
+                        self.matrix[i][j].pop(obj.get_index(self.matrix))
+                        obj.animation = obj.animation_init()
+                        self.matrix[i][j].append(copy(obj))
+                        obj.animation = obj.animation_init()
+
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         self.screen.fill(self.current_palette.pixels[4][6])
         self.state = None
@@ -689,13 +702,15 @@ class PlayLevel(GameStrategy):
             particle.draw(self.screen)
 
         self.functional_event_check(events)
-
         if self.status_cancel:
             if len(self.history_of_matrix) > 0:
                 self.matrix = self.copy_matrix(self.history_of_matrix[-1])
                 self.history_of_matrix.pop()
+                self.check_matrix()
+
             else:
                 self.matrix = self.copy_matrix(self.start_matrix)
+                self.check_matrix()
 
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
@@ -754,10 +769,11 @@ class PlayLevel(GameStrategy):
 
         if self.first_iteration:
             self.find_rules()
+            self.matrix = self.copy_matrix(self.start_matrix)
             self.first_iteration = False
 
-        if self.flag_to_level_start_animation:
-            self.level_start_animation()
+        #if self.flag_to_level_start_animation:
+        #    self.level_start_animation()
 
         if self.flag_to_win_animation:
             self.win_animation()
