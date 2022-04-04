@@ -2,6 +2,8 @@ from typing import List
 
 import pygame
 
+from utils import get_pressed_direction
+
 
 class MoveCursor:
     def __init__(self):
@@ -110,22 +112,6 @@ class MoveCursor:
                 matrix[x][y + 1][-1].x * 50, matrix[x][y + 1][-1].y * 50)
             matrix[x][y].pop(num_el)
 
-    def check_events(self, events: List[pygame.event.Event]):
+    def check_events(self):
         """Метод обработки событий"""
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_d:
-                    self.turning_side = 0
-
-                if event.key == pygame.K_w:
-                    self.turning_side = 1
-
-                if event.key == pygame.K_a:
-                    self.turning_side = 2
-
-                if event.key == pygame.K_s:
-                    self.turning_side = 3
-
-            if event.type == pygame.KEYUP:
-                if event.key in [pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a]:
-                    self.turning_side = -1
+        self.turning_side = get_pressed_direction()

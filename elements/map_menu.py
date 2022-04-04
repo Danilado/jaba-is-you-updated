@@ -158,7 +158,7 @@ class MapMenu(GameStrategy):
                         self.flag_anime = True
 
         if not self.flag_anime:
-            self.cursor.check_events(events)
+            self.cursor.check_events()
             self.cursor.move(self.matrix)
 
         if SHOW_GRID:

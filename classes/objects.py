@@ -13,6 +13,7 @@ from settings import TEXT_ONLY, SPRITE_ONLY, RESOLUTION, NOUNS, OPERATORS, PROPE
 from classes.animation import Animation
 from classes.game_state import GameState
 from classes.state import State
+from utils import get_pressed_direction
 
 pygame.font.init()
 font = pygame.font.Font("fonts/ConsolateElf.ttf", 15)
@@ -883,41 +884,7 @@ class Object:
         :param number: Номер правила YOU объекта (/YOU2)
         :type number: int
         """
-        for event in events:
-            if number == 1:
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_d:
-                        self.turning_side = 0
-                    if event.key == pygame.K_w:
-                        self.turning_side = 1
-                    if event.key == pygame.K_a:
-                        self.turning_side = 2
-                    if event.key == pygame.K_s:
-                        self.turning_side = 3
-                    if event.key in [pygame.K_RIGHT, pygame.K_LEFT, pygame.K_DOWN,
-                                     pygame.K_UP, pygame.K_SPACE]:
-                        self.turning_side = -1
-                if event.type == pygame.KEYUP:
-                    if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
-                                     pygame.K_d, pygame.K_SPACE]:
-                        self.turning_side = -1
-            if number == 2:
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RIGHT:
-                        self.turning_side = 0
-                    if event.key == pygame.K_UP:
-                        self.turning_side = 1
-                    if event.key == pygame.K_LEFT:
-                        self.turning_side = 2
-                    if event.key == pygame.K_DOWN:
-                        self.turning_side = 3
-                    if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
-                                     pygame.K_d, pygame.K_SPACE]:
-                        self.turning_side = -1
-                if event.type == pygame.KEYUP:
-                    if event.key in [pygame.K_RIGHT, pygame.K_LEFT, pygame.K_DOWN,
-                                     pygame.K_UP, pygame.K_SPACE]:
-                        self.turning_side = -1
+        self.turning_side = get_pressed_direction(number == 2)
 
     @property
     def is_operator(self) -> bool:

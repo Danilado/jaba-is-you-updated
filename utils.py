@@ -20,15 +20,24 @@ def my_deepcopy(arr):
     return new_arr
 
 
-def get_pressed_direction() -> \
+def get_pressed_direction(arrows: bool = False) -> \
         Literal[-1, 0, 1, 2, 3]:
     """Метод обработки клавиш поворота чего-либо"""
-    side_and_key: Dict[int, Literal[0, 1, 2, 3]] = {
-        pygame.K_d: 0,
-        pygame.K_w: 1,
-        pygame.K_a: 2,
-        pygame.K_s: 3
-    }
+    side_and_key: Dict[int, Literal[0, 1, 2, 3]]
+    if arrows:
+        side_and_key = {
+            pygame.K_RIGHT: 0,
+            pygame.K_UP: 1,
+            pygame.K_LEFT: 2,
+            pygame.K_DOWN: 3
+        }
+    else:
+        side_and_key = {
+            pygame.K_d: 0,
+            pygame.K_w: 1,
+            pygame.K_a: 2,
+            pygame.K_s: 3
+        }
     bad: Final[Literal[-1]] = -1
     turning_side: Literal[-1, 0, 1, 2, 3] = bad
     for key in side_and_key.keys():
