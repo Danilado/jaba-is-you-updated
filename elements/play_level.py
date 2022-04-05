@@ -170,7 +170,7 @@ class PlayLevel(GameStrategy):
         :rtype: bool
         """
         return RESOLUTION[0] // 50 - 1 >= x + delta_x >= 0 \
-               and RESOLUTION[1] // 50 - 1 >= y + delta_y >= 0
+            and RESOLUTION[1] // 50 - 1 >= y + delta_y >= 0
 
     def check_noun(self, i, j, delta_i, delta_j, status=None):
         noun_objects = []
@@ -209,10 +209,12 @@ class PlayLevel(GameStrategy):
                                 if not self.check_prefix(i - delta_i, j - delta_j, -delta_i, -delta_j):
                                     pass
                                 else:
-                                    prefix = self.check_prefix(i - delta_i, j - delta_j, -delta_i, -delta_j)
+                                    prefix = self.check_prefix(
+                                        i - delta_i, j - delta_j, -delta_i, -delta_j)
                                     noun_objects = []
                                     for pfix in prefix:
-                                        noun_objects.append([pfix, first_object])
+                                        noun_objects.append(
+                                            [pfix, first_object])
                                     last_i = prefix[-1].y
                                     last_j = prefix[-1].x
                                     for second_objects in self.matrix[last_i - delta_i][last_j - delta_j]:
@@ -238,7 +240,8 @@ class PlayLevel(GameStrategy):
                     if self.check_valid_range(j, i, delta_j * 2, delta_i * 2):
                         for second_objects in self.matrix[i + delta_i][j + delta_j]:
                             if second_objects.name == 'and':
-                                properties = self.check_property(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
+                                properties = self.check_property(
+                                    i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
                                 if not properties:
                                     pass
                                 else:
@@ -259,7 +262,8 @@ class PlayLevel(GameStrategy):
                                 delta_i *= 2
                                 delta_j *= 2
                                 object_not = maybe_not
-                    nouns = self.check_noun(i + delta_i, j + delta_j, delta_i, delta_j, 'property')
+                    nouns = self.check_noun(
+                        i + delta_i, j + delta_j, delta_i, delta_j, 'property')
                     if not nouns:
                         return False
                     else:
@@ -277,9 +281,11 @@ class PlayLevel(GameStrategy):
                                 delta_j *= 2
                                 object_not = maybe_not
 
-                    nouns = self.check_noun(i + delta_i, j + delta_j, delta_i, delta_j, 'property')
+                    nouns = self.check_noun(
+                        i + delta_i, j + delta_j, delta_i, delta_j, 'property')
                     if not nouns:
-                        properties = self.check_property(i + delta_i, j + delta_j, delta_i, delta_j)
+                        properties = self.check_property(
+                            i + delta_i, j + delta_j, delta_i, delta_j)
                         if not properties:
                             return False
                         else:
@@ -299,7 +305,8 @@ class PlayLevel(GameStrategy):
             for first_object in self.matrix[i][j]:
                 if first_object.name in INFIX \
                         and self.check_valid_range(j, i, delta_j, delta_i):
-                    nouns = self.check_noun(i + delta_i, j + delta_j, delta_i, delta_j)
+                    nouns = self.check_noun(
+                        i + delta_i, j + delta_j, delta_i, delta_j)
                     if not nouns:
                         return False
                     else:
@@ -315,7 +322,8 @@ class PlayLevel(GameStrategy):
                     if self.check_valid_range(j, i, delta_j * -2, delta_i * -2):
                         for second_objects in self.matrix[i + delta_i][j + delta_j]:
                             if second_objects.name == 'and':
-                                prefix = self.check_prefix(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
+                                prefix = self.check_prefix(
+                                    i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
                                 if not prefix:
                                     pass
                                 else:
@@ -336,7 +344,8 @@ class PlayLevel(GameStrategy):
             return False
         else:
             if not self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j):
-                arguments = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)
+                arguments = self.check_verb(
+                    i + delta_i, j + delta_j, delta_i, delta_j)
                 if not arguments:
                     status = False
                 else:
@@ -348,8 +357,10 @@ class PlayLevel(GameStrategy):
                         object_not = arguments[1]
                         properties = arguments[2]
             else:
-                infix = self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j)
-                arguments = self.check_verb(i + delta_i * 3, j + delta_j * 3, delta_i, delta_j)
+                infix = self.check_infix(
+                    i + delta_i, j + delta_j, delta_i, delta_j)
+                arguments = self.check_verb(
+                    i + delta_i * 3, j + delta_j * 3, delta_i, delta_j)
                 if not arguments:
                     status = False
                 else:
@@ -373,17 +384,20 @@ class PlayLevel(GameStrategy):
                                     rules.append(TextRule(text, objects))
                                 else:
                                     text = f'{noun[1].name} {verb.name} {object_not.name} {property[1].name}'
-                                    objects = [noun[1], verb, object_not, property]
+                                    objects = [noun[1], verb,
+                                               object_not, property]
                                     rules.append(TextRule(text, objects))
                             else:
                                 if object_not is None:
                                     text = f'{noun[0].name} {noun[1].name} {verb.name} {property[1].name}'
-                                    objects = [noun[0], noun[1], verb, property]
+                                    objects = [
+                                        noun[0], noun[1], verb, property]
                                     rules.append(TextRule(text, objects))
                                 else:
                                     text = f'{noun[0].name} {noun[1].name} {verb.name} ' \
                                            f'{object_not.name} {property[1].name}'
-                                    objects = [noun[0], noun[1], verb, object_not, property]
+                                    objects = [noun[0], noun[1],
+                                               verb, object_not, property]
                                     rules.append(TextRule(text, objects))
 
             elif len(infix) != 0:
@@ -393,23 +407,27 @@ class PlayLevel(GameStrategy):
                             if noun[0] is None:
                                 if object_not is None:
                                     text = f'{noun[1].name} {infix[0].name} {infix[1].name} {verb.name} {property.name}'
-                                    objects = [noun[1], infix[1], infix[0], verb, property]
+                                    objects = [noun[1], infix[1],
+                                               infix[0], verb, property]
                                     rules.append(TextRule(text, objects))
                                 else:
                                     text = f'{noun[1].name} {infix[0].name} {infix[1].name}' \
                                            f' {verb.name} {object_not.name} {property.name}'
-                                    objects = [noun[1], infix[1], infix[0], verb, object_not, property]
+                                    objects = [
+                                        noun[1], infix[1], infix[0], verb, object_not, property]
                                     rules.append(TextRule(text, objects))
                             else:
                                 if object_not is None:
                                     text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
                                            f' {infix[1].name} {verb.name} {property.name}'
-                                    objects = [noun[0], noun[1], infix[1], infix[0], verb, property]
+                                    objects = [noun[0], noun[1],
+                                               infix[1], infix[0], verb, property]
                                     rules.append(TextRule(text, objects))
                                 else:
                                     text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
                                            f' {infix[1].name} {verb.name} {object_not.name} {property.name}'
-                                    objects = [noun[0], noun[1], infix[1], infix[0], verb, object_not, property]
+                                    objects = [noun[0], noun[1], infix[1],
+                                               infix[0], verb, object_not, property]
                                     rules.append(TextRule(text, objects))
 
             for rule in rules:
@@ -767,7 +785,6 @@ class PlayLevel(GameStrategy):
 
         if self.flag_to_win_animation:
             self.win_animation()
-
 
         if self.moved:
             self.moved = False

@@ -3,6 +3,7 @@ import random
 
 import pygame
 
+
 class Broken:
     @staticmethod
     def apply(rule_object, level_rules, *_, **__):
@@ -228,8 +229,9 @@ class Melt:
 
 class Win:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix, rule_object, level_rules, level_processor, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
+            rule_object.level_processor = level_processor
             rule_object.check_win(level_rules, level_object)
 
 
@@ -244,7 +246,8 @@ class ShutOpen:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
-            rule_object.check_shut_open(0, 0, matrix, level_rules, level_object)
+            rule_object.check_shut_open(
+                0, 0, matrix, level_rules, level_object)
 
 
 class Sink:
@@ -262,7 +265,8 @@ class Make:
             if check_object.name == rule_noun:
                 status = False
         if status:
-            matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+            matrix[rule_object.y][rule_object.x].pop(
+                rule_object.get_index(matrix))
             new_object = copy(rule_object)
             new_object.name = rule_noun
             new_object.animation = new_object.animation_init()
@@ -380,7 +384,8 @@ class RuleProcessor:
                                                         rule_object=self.object,
                                                         events=self.events,
                                                         level_rules=self.rules,
-                                                        rule_noun=rule.split()[-1],
+                                                        rule_noun=rule.split(
+                                                        )[-1],
                                                         num_obj_3d=self.num_obj_3d,
                                                         level_processor=self.level_processor)
 
