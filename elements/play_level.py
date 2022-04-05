@@ -46,10 +46,10 @@ class PlayLevel(GameStrategy):
 
         self.win_offsets = [[(775, 325), 0], [(825, 325), 0], [(725, 325), 0], [(875, 325), 0], [(675, 325), 0],
                             [(925, 325), 0], [(625, 325), 0], [
-            (975, 325), 0], [(575, 325), 0], [(1025, 325), 0],
-            [(525, 325), 0], [(1075, 325), 0], [
-            (475, 325), 0], [(1100, 325), 0], [(450, 325), 0],
-            [(1125, 325), 0], [(425, 325), 0]]
+                                (975, 325), 0], [(575, 325), 0], [(1025, 325), 0],
+                            [(525, 325), 0], [(1075, 325), 0], [
+                                (475, 325), 0], [(1100, 325), 0], [(450, 325), 0],
+                            [(1125, 325), 0], [(425, 325), 0]]
         self.flag_to_win_animation = False
         self.flag_to_delay = False
         self.win_text = self.text_to_png('congratulations')
@@ -67,8 +67,8 @@ class PlayLevel(GameStrategy):
         self.particles = [Particle(self.screen, 'dot', ParticleStrategy(
             (randint(0, 1600), randint(-50, 1650)), (950, - 50),
             0, (randint(0, 360), randint(0, 360)), 40, 50 + randint(-10, 10), True, True),
-            self.current_palette.pixels[3][6]) for _ in range(20)
-        ]
+                                   self.current_palette.pixels[3][6]) for _ in range(20)
+                          ]
 
     def parse_file(self, level_name: str):
         """
@@ -103,7 +103,7 @@ class PlayLevel(GameStrategy):
             self.start_matrix = self.matrix
         if DEBUG:
             print("\n".join((
-                "-"*100,
+                "-" * 100,
                 f"Level {level_name} successfully parsed!",
                 f"palette: {self.current_palette.name}",
                 f"palette size: {len(self.current_palette.pixels[0])}x{len(self.current_palette.pixels)}"
@@ -497,9 +497,9 @@ class PlayLevel(GameStrategy):
                 self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
                 for index in range(1, len(self.win_offsets), 2):
                     self.win_offsets[index][1] += 0.1 * \
-                        (len(self.win_offsets) - index)
+                                                  (len(self.win_offsets) - index)
                     self.win_offsets[index + 1][1] += 0.1 * \
-                        (len(self.win_offsets) - index)
+                                                      (len(self.win_offsets) - index)
 
             if self.win_offsets[0][1] >= max_radius and not self.flag_to_delay:
                 self.flag_to_delay = True
@@ -519,6 +519,10 @@ class PlayLevel(GameStrategy):
                 self.state = State(GameState.BACK)
 
     def functional_event_check(self, events: List[pygame.event.Event]):
+        pressed = pygame.key.get_pressed()
+        self.moved = any(pressed[key] for key in [pygame.K_w, pygame.K_a, pygame.K_s,
+                         pygame.K_d, pygame.K_SPACE, pygame.K_UP,
+                         pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT])
         for event in events:
             if event.type == pygame.QUIT:
                 self.state = State(GameState.BACK)
@@ -528,41 +532,32 @@ class PlayLevel(GameStrategy):
                 if event.key == pygame.K_z:
                     self.status_cancel = True
                     self.moved = True
-                if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
-                                 pygame.K_d, pygame.K_SPACE, pygame.K_UP,
-                                 pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT]:
-                    self.moved = True
             if event.type == pygame.KEYUP:
-                if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
-                                 pygame.K_d, pygame.K_SPACE, pygame.K_UP,
-                                 pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT]:
-                    self.moved = False
                 if event.key == pygame.K_z:
                     self.status_cancel = False
                     self.moved = True
 
     def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key in [pygame.K_w, pygame.K_a, pygame.K_SPACE, pygame.K_UP,
-                                 pygame.K_LEFT]:
-                    rules.processor.update_lists(level_processor=self,
-                                                 matrix=matrix,
-                                                 events=[event])
-                    for i, line in enumerate(self.matrix):
-                        for j, cell in enumerate(line):
-                            for rule_object in cell:
-                                self.apply_rules(matrix, rule_object, i, j)
-                elif event.key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]:
-                    rules.processor.update_lists(level_processor=self,
-                                                 matrix=matrix,
-                                                 events=[event])
-                    for i in range(len(self.matrix) - 1, -1, -1):
-                        for j in range(len(self.matrix[i]) - 1, -1, -1):
-                            for rule_object in self.matrix[i][j]:
-                                self.apply_rules(matrix, rule_object, i, j)
+        pressed = pygame.key.get_pressed()
+        if any(pressed[key] for key in [pygame.K_w, pygame.K_a, pygame.K_SPACE, pygame.K_UP,
+                                                         pygame.K_LEFT]):
+            rules.processor.update_lists(level_processor=self,
+                                         matrix=matrix,
+                                         events=events)
+            for i, line in enumerate(self.matrix):
+                for j, cell in enumerate(line):
+                    for rule_object in cell:
+                        self.apply_rules(matrix, rule_object, i, j)
+        if any(pressed[key] for key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]):
+            rules.processor.update_lists(level_processor=self,
+                                         matrix=matrix,
+                                         events=events)
+            for i in range(len(self.matrix) - 1, -1, -1):
+                for j in range(len(self.matrix[i]) - 1, -1, -1):
+                    for rule_object in self.matrix[i][j]:
+                        self.apply_rules(matrix, rule_object, i, j)
 
-    def apply_rules(self, matrix, rule_object, i, j):   # TODO: Performance issue
+    def apply_rules(self, matrix, rule_object, i, j):  # TODO: Performance issue
         if not rule_object.special_text:
             is_hot = False
             is_hide = False
@@ -740,6 +735,9 @@ class PlayLevel(GameStrategy):
                                 game_object.num_3d = self.count_3d_obj
                                 self.count_3d_obj += 1
             self.flag = False
+        else:
+            rules.processor.dictionary['you'].reset_timer()
+            rules.processor.dictionary['you2'].reset_timer()
 
         for line in self.matrix:
             for cell in line:
