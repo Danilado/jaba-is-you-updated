@@ -129,17 +129,18 @@ class Loader(GameStrategy):
         """
         self.screen.fill("black")
         self._state = None
-        if events:
-            self.screen.fill("black")
-            for event in events:
-                if event.type == pygame.QUIT:
+
+        self.screen.fill("black")
+        for event in events:
+            if event.type == pygame.QUIT:
+                self._state = State(GameState.BACK)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     self._state = State(GameState.BACK)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self._state = State(GameState.BACK)
-            for button in self.buttons:
-                button.draw(self.screen)
-                button.update(events)
-            if self._state is None:
-                self._state = State(GameState.FLIP, None)
+        for button in self.buttons:
+            button.draw(self.screen)
+            button.update(events)
+        if self._state is None:
+            self._state = State(GameState.FLIP, None)
+
         return self._state

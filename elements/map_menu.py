@@ -145,17 +145,17 @@ class MapMenu(GameStrategy):
         """
         self.screen.fill("black")
         self._state = None
-        if events:
-            self.screen.fill("black")
-            for event in events:
-                if event.type == pygame.QUIT:
+
+        self.screen.fill("black")
+        for event in events:
+            if event.type == pygame.QUIT:
+                self._state = State(GameState.BACK)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     self._state = State(GameState.BACK)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self._state = State(GameState.BACK)
-                    if event.key == pygame.K_RETURN:
-                        self.delay = pygame.time.get_ticks()
-                        self.flag_anime = True
+                if event.key == pygame.K_RETURN:
+                    self.delay = pygame.time.get_ticks()
+                    self.flag_anime = True
 
         if not self.flag_anime:
             self.cursor.check_events()
