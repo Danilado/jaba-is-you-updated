@@ -1,0 +1,16 @@
+default
+21 0 1 ghost True
+22 0 1 is False
+23 0 1 you False
+21 1 1 ghost True
+22 1 1 is False
+24 1 1 defeat False
+26 1 1 frog False
+21 2 1 frog True
+22 2 1 is False
+23 2 1 you False
+23 4 1 ghost False
+23 5 1 ghost False
+23 6 1 ghost False
+23 7 1 ghost False
+23 8 1 ghost False

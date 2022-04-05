@@ -117,6 +117,7 @@ class Object:
         self.level_processor = None
         self.is_fall = False
         self.status_switch_name = 0
+        self.has_objects = []
 
         self.moved = moved
         self.recursively_used = False
@@ -793,7 +794,7 @@ class Object:
         return False
 
     def motion(self, delta_x, delta_y, matrix, level_rules, status=None) -> bool:
-        """Осуществляет движение объекта
+        """Осуществляет движение объектаd
 
         :param delta_x: Сдвиг объекта по оси x
         :type delta_x: int

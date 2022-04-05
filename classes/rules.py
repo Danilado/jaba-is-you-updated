@@ -3,7 +3,6 @@ import random
 
 import pygame
 
-
 class Broken:
     @staticmethod
     def apply(rule_object, level_rules, *_, **__):
@@ -220,6 +219,58 @@ class Shift:
                     level_object.motion(-1, 0, matrix, level_rules, 'push')
 
 
+class Melt:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        for level_object in matrix[rule_object.y][rule_object.x]:
+            rule_object.check_melt(0, 0, matrix, level_rules, level_object)
+
+
+class Win:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        for level_object in matrix[rule_object.y][rule_object.x]:
+            rule_object.check_win(level_rules, level_object)
+
+
+class Defeat:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        for level_object in matrix[rule_object.y][rule_object.x]:
+            rule_object.check_defeat(0, 0, matrix, level_rules, level_object)
+
+
+class ShutOpen:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        for level_object in matrix[rule_object.y][rule_object.x]:
+            rule_object.check_shut_open(0, 0, matrix, level_rules, level_object)
+
+
+class Sink:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, *_, **__):
+        for level_object in matrix[rule_object.y][rule_object.x]:
+            rule_object.check_sink(0, 0, matrix, level_rules, level_object)
+
+
+class Make:
+    @staticmethod
+    def apply(matrix, rule_object, rule_noun, *_, **__):
+        status = True
+        for check_object in matrix[rule_object.y][rule_object.x]:
+            if check_object.name == rule_noun:
+                status = False
+        if status:
+            matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+            new_object = copy(rule_object)
+            new_object.name = rule_noun
+            new_object.animation = new_object.animation_init()
+            matrix[rule_object.y][rule_object.x].append(new_object)
+            new_object = copy(rule_object)
+            matrix[rule_object.y][rule_object.x].append(new_object)
+
+
 class Tele:
     @staticmethod
     def apply(matrix, rule_object, *_, **__):
@@ -279,6 +330,12 @@ class RuleProcessor:
             'move': Move(),
             'text': Text(),
             'you2': You2(),
+            'melt': Melt(),
+            'shut': ShutOpen(),
+            'defeat': Defeat(),
+            'sink': Sink(),
+            'win': Win(),
+            'make': Make(),
         }
 
     def update_lists(self, level_processor, matrix, events):
@@ -293,16 +350,29 @@ class RuleProcessor:
         self.object = rule_object
 
     def process(self, rule) -> bool:
-        if rule.split()[-1] not in self.dictionary:
-            return False
+        status_rule = None
+        if rule.split()[-1] in self.dictionary:
+            status_rule = 'property'
+        if rule.split()[-2] in self.dictionary:
+            status_rule = 'verb'
         try:
-            self.dictionary[rule.split()[-1]].apply(matrix=self.matrix,
-                                                    rule_object=self.object,
-                                                    events=self.events,
-                                                    level_rules=self.rules,
-                                                    objects_for_tp=self.objects_for_tp,
-                                                    num_obj_3d=self.num_obj_3d,
-                                                    level_processor=self.level_processor)
+            if status_rule == 'property':
+                self.dictionary[rule.split()[-1]].apply(matrix=self.matrix,
+                                                        rule_object=self.object,
+                                                        events=self.events,
+                                                        level_rules=self.rules,
+                                                        objects_for_tp=self.objects_for_tp,
+                                                        num_obj_3d=self.num_obj_3d,
+                                                        level_processor=self.level_processor)
+            elif status_rule == 'verb':
+                self.dictionary[rule.split()[-2]].apply(matrix=self.matrix,
+                                                        rule_object=self.object,
+                                                        events=self.events,
+                                                        level_rules=self.rules,
+                                                        rule_noun=rule.split()[-1],
+                                                        num_obj_3d=self.num_obj_3d,
+                                                        level_processor=self.level_processor)
+
         except RecursionError:
             print(
                 f'!!! RecursionError appeared somewhere in {rule.split()[-1]} rule')

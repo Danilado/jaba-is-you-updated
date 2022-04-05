@@ -549,6 +549,7 @@ class PlayLevel(GameStrategy):
             is_hide = False
             is_safe = False
             locked_sides = []
+            has_objects = []
             is_open = False
             is_shut = False
             is_phantom = False
@@ -561,7 +562,7 @@ class PlayLevel(GameStrategy):
             is_fall = False
             for rule in self.level_rules:
                 for noun in NOUNS:
-                    if f'{rule_object.name} is {noun}' in rule.text_rule and not rule_object.is_text:
+                    if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
                         if rule_object.status_switch_name == 0:
                             matrix[i][j].pop(rule_object.get_index(matrix))
                             rule_object.name = noun
@@ -572,9 +573,8 @@ class PlayLevel(GameStrategy):
                             rule_object.status_switch_name = 2
                         elif rule_object.status_switch_name == 2:
                             rule_object.status_switch_name = 0
-
-
-
+                    if f'{rule_object.name} has {noun}' in rule.text_rule and not rule_object.is_text:
+                        has_objects.append(noun)
 
                 if f'{rule_object.name} is 3d' in rule.text_rule:
                     is_3d = True
@@ -640,22 +640,13 @@ class PlayLevel(GameStrategy):
             rule_object.is_float = is_float
             rule_object.is_3d = is_3d
             rule_object.is_fall = is_fall
+            rule_object.has_objects = has_objects
 
             for rule in self.level_rules:
 
                 if rule_object.name in rule.text_rule:
                     rules.processor.update_object(rule_object)
                     rules.processor.process(rule.text_rule)
-
-            for rule in self.level_rules:
-                if f'{rule_object.name} is win' in rule.text_rule \
-                        and not rule_object.is_text:
-                    for level_object in matrix[i][j]:
-                        for second_rule in self.level_rules:
-                            if f'{level_object.name} is you' in second_rule.text_rule \
-                                    or f'{level_object.name} is 3d' in second_rule.text_rule:
-                                if not self.flag_to_win_animation and not self.flag_to_level_start_animation:
-                                    self.flag_to_win_animation = True
 
     def find_rules(self):
         self.level_rules = []
@@ -707,7 +698,6 @@ class PlayLevel(GameStrategy):
                 self.matrix = self.copy_matrix(self.history_of_matrix[-1])
                 self.history_of_matrix.pop()
                 self.check_matrix()
-
             else:
                 self.matrix = self.copy_matrix(self.start_matrix)
                 self.check_matrix()
@@ -772,11 +762,12 @@ class PlayLevel(GameStrategy):
             self.matrix = self.copy_matrix(self.start_matrix)
             self.first_iteration = False
 
-        #if self.flag_to_level_start_animation:
-        #    self.level_start_animation()
+        if self.flag_to_level_start_animation:
+            self.level_start_animation()
 
         if self.flag_to_win_animation:
             self.win_animation()
+
 
         if self.moved:
             self.moved = False
