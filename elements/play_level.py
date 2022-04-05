@@ -31,6 +31,7 @@ class PlayLevel(GameStrategy):
         self.start_matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
         self.history_of_matrix = []
+        self.delta_cansel = 0
 
         self.parse_file(level_name)
         self.level_rules = []
@@ -694,13 +695,17 @@ class PlayLevel(GameStrategy):
 
         self.functional_event_check(events)
         if self.status_cancel:
-            if len(self.history_of_matrix) > 0:
-                self.matrix = self.copy_matrix(self.history_of_matrix[-1])
-                self.history_of_matrix.pop()
-                self.check_matrix()
-            else:
-                self.matrix = self.copy_matrix(self.start_matrix)
-                self.check_matrix()
+            new_time = pygame.time.get_ticks()
+            if new_time > self.delta_cansel + 200:
+                if len(self.history_of_matrix) > 0:
+                    self.matrix = self.copy_matrix(self.history_of_matrix[-1])
+                    self.history_of_matrix.pop()
+                    self.check_matrix()
+                    self.delta_cansel = new_time
+                else:
+                    self.matrix = self.copy_matrix(self.start_matrix)
+                    self.check_matrix()
+                    self.delta_cansel = new_time
 
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)

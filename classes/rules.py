@@ -237,7 +237,7 @@ class Defeat:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
-            rule_object.check_defeat(0, 0, matrix, level_rules, level_object)
+            level_object.check_defeat(0, 0, matrix, level_rules, rule_object)
 
 
 class ShutOpen:
