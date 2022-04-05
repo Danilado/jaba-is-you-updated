@@ -271,6 +271,16 @@ class Make:
             matrix[rule_object.y][rule_object.x].append(new_object)
 
 
+class Write:
+    @staticmethod
+    def apply(matrix, rule_object, rule_noun, *_, **__):
+        matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+        rule_object.name = rule_noun
+        rule_object.is_text = True
+        rule_object.animation = rule_object.animation_init()
+        matrix[rule_object.y][rule_object.x].append(rule_object)
+
+
 class Tele:
     @staticmethod
     def apply(matrix, rule_object, *_, **__):
@@ -336,6 +346,7 @@ class RuleProcessor:
             'sink': Sink(),
             'win': Win(),
             'make': Make(),
+            'write': Write()
         }
 
     def update_lists(self, level_processor, matrix, events):
