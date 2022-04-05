@@ -58,17 +58,20 @@ class Turn:
 
 
 class You:
-    @staticmethod
-    def apply(matrix, rule_object, events, level_rules, level_processor, *_, **__):
-        rule_object.check_events(events, 1)
-        rule_object.move(matrix, level_rules, level_processor)
+    delay: int = 200
 
+    def __init__(self, num: int = 1):
+        self.timer: int = pygame.time.get_ticks()
+        self.num: int = num
 
-class You2:
-    @staticmethod
-    def apply(matrix, rule_object, events, level_rules, level_processor, *_, **__):
-        rule_object.check_events(events, 2)
-        rule_object.move(matrix, level_rules, level_processor)
+    def reset_timer(self):
+        self.timer -= self.delay
+
+    def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
+        if pygame.time.get_ticks()-self.timer > self.delay:
+            self.timer = pygame.time.get_ticks()
+            rule_object.check_events(events, self.num)
+            rule_object.move(matrix, level_rules, level_processor)
 
 
 class Is3d:
@@ -264,7 +267,8 @@ class RuleProcessor:
 
         self.dictionary = {
             'broken': Broken(),
-            'you': You(),
+            'you': You(1),
+            'you2': You(2),
             '3d': Is3d(),
             'chill': Chill(),
             'boom': Boom(),
@@ -278,7 +282,6 @@ class RuleProcessor:
             'tele': Tele(),
             'move': Move(),
             'text': Text(),
-            'you2': You2(),
         }
 
     def update_lists(self, level_processor, matrix, events):

@@ -529,7 +529,7 @@ class PlayLevel(GameStrategy):
                 for j, cell in enumerate(line):
                     for rule_object in cell:
                         self.apply_rules(matrix, rule_object, i, j)
-        elif any(pressed[key] for key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]):
+        if any(pressed[key] for key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]):
             rules.processor.update_lists(level_processor=self,
                                          matrix=matrix,
                                          events=events)
@@ -704,6 +704,9 @@ class PlayLevel(GameStrategy):
                                 game_object.num_3d = self.count_3d_obj
                                 self.count_3d_obj += 1
             self.flag = False
+        else:
+            rules.processor.dictionary['you'].reset_timer()
+            rules.processor.dictionary['you2'].reset_timer()
 
         for line in self.matrix:
             for cell in line:
