@@ -50,19 +50,20 @@ class MainMenu(GameStrategy):
                    GuiSettings(), "Выйти", self._exit_the_game),
         ]
         self._state = None
-        if events:
-            self.screen.fill("black")
-            for event in events:
-                if event.type == pygame.QUIT:
+        self.screen.fill("black")
+
+        for event in events:
+            if event.type == pygame.QUIT:
+                self._exit_the_game()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     self._exit_the_game()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self._exit_the_game()
-            for button in buttons:
-                button.draw(self.screen)
-                button.update(events)
-            if self._state is None:
-                self._state = State(GameState.FLIP, None)
+        for button in buttons:
+            button.draw(self.screen)
+            button.update(events)
+        if self._state is None:
+            self._state = State(GameState.FLIP, None)
+
         return self._state
 
     def music(self):

@@ -117,6 +117,7 @@ class Object:
         self.level_processor = None
         self.is_fall = False
         self.status_switch_name = 0
+        self.has_objects = []
 
         self.moved = moved
         self.recursively_used = False
@@ -440,7 +441,7 @@ class Object:
             for rule in level_rules:
                 if f'{self.name} is melt' in rule.text_rule:
                     for sec_rule in level_rules:
-                        if not rule_object.is_text and  f'{rule_object.name} is hot' in sec_rule.text_rule:
+                        if not rule_object.is_text and f'{rule_object.name} is hot' in sec_rule.text_rule:
                             matrix[self.y][self.x].pop(self.get_index(matrix))
                             return False
         for rule in level_rules:
@@ -499,14 +500,14 @@ class Object:
         """
         if not self.is_safe:
             for rule in level_rules:
-                if not rule_object.is_text and  self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
+                if not rule_object.is_text and self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
                         or self.is_shut and f'{rule_object.name} is open' in rule.text_rule:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
                     matrix[self.y + delta_y][self.x +
                                              delta_x].pop(rule_object.get_index(matrix))
                     return False
         for rule in level_rules:
-            if not rule_object.is_text and  self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
+            if not rule_object.is_text and self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
                     or self.is_shut and f'{rule_object.name} is open' in rule.text_rule:
                 if not self.is_safe:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
@@ -793,7 +794,7 @@ class Object:
         return False
 
     def motion(self, delta_x, delta_y, matrix, level_rules, status=None) -> bool:
-        """Осуществляет движение объекта
+        """Осуществляет движение объектаd
 
         :param delta_x: Сдвиг объекта по оси x
         :type delta_x: int
@@ -824,7 +825,7 @@ class Object:
             if self.status == 'alive':
                 for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
                     if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True)
-                            or not self.can_interact(rule_object, level_rules)) and status_motion != False:
+                        or not self.can_interact(rule_object, level_rules)) and status_motion != False:
                         if self.object_can_move(level_rules) and not self.is_still:
                             status_motion = True
 
@@ -839,7 +840,7 @@ class Object:
                         else:
                             status_motion = False
 
-                if status_motion == True:
+                if status_motion is True:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
                     self.pull_objects(delta_x, delta_y,
                                       matrix, level_rules)
