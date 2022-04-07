@@ -52,8 +52,8 @@ class Loader(GameStrategy):
         for index, level in enumerate(self.find_levels()):
             self.buttons.append(
                 Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
-                       settings.RESOLUTION[1] // 2 - int(
-                           350 * settings.WINDOW_SCALE + 50 * index * settings.WINDOW_SCALE),
+                       settings.RESOLUTION[1] // 2 - int(350 * settings.WINDOW_SCALE)
+                       + int(50 * index * settings.WINDOW_SCALE),
                        int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
                        level,
                        partial(self.go_to_game if self.overlay is None else self.return_and_quit, level)),
