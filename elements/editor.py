@@ -47,7 +47,7 @@ def direction_to_unicode(direction: int) -> str:
         3 - Влево
     :return: Один символ - Юникод-стрелка
     """
-    return '↑' if direction == 1 else '→' if direction == 0 else '↓' if direction == 3 else '←'
+    return '↑' if direction == 0 else '→' if direction == 1 else '↓' if direction == 2 else '←'
 
 
 class Editor(GameStrategy):
@@ -76,6 +76,12 @@ class Editor(GameStrategy):
         self.direction = 1
         self.is_text = False
         self.name: Optional[str] = None
+        self.direction_key_map = {
+            0: 1,
+            1: 0,
+            2: 3,
+            3: 2,
+        }
         # history
         self.changes: List[List[List[List[Object]]]] = []
         # matrix state
@@ -98,7 +104,8 @@ class Editor(GameStrategy):
         # features
         self.screen = pygame.display.set_mode((1800, 900))
         self.page_turn(0)
-        self.empty_object = Object(-1, -1, 0, 'empty', is_text=False, palette=self.current_palette)
+        self.empty_object = Object(-1, -1, 0, 'empty',
+                                   is_text=False, palette=self.current_palette)
 
     def save(self, state, name=None):
         """Сохранение трёхмерного массива в память
@@ -140,8 +147,8 @@ class Editor(GameStrategy):
                 ObjectButton(x=RESOLUTION[0] + 28 + 84 * (index % 2),
                              y=25 + 55 * (index - index % 2), width=50, height=50, outline=(0, 0, 0),
                              settings=EuiSettings(), text=text, action=partial(self.set_name, text),
-                             is_text=self.is_text, direction=self.direction, movement_state=0,
-                             palette=self.current_palette))
+                             is_text=self.is_text, direction=self.direction_key_map[self.direction],
+                             movement_state=0, palette=self.current_palette))
         return button_array
 
     def unresize(self):
@@ -281,6 +288,11 @@ class Editor(GameStrategy):
                             neighbour.x, neighbour.y)
                         neighbour.animation = neighbour.animation_init()
 
+    def pickup(self):
+        if len(self.current_state[self.focus[1]][self.focus[0]]) > 0:
+            self.name = self.current_state[self.focus[1]
+                                           ][self.focus[0]][-1].name
+
     def overlay(self):
         """Вызывает меню управления редактора"""
         self.unresize()
@@ -338,6 +350,7 @@ class Editor(GameStrategy):
 
         self.screen.fill("black")
         for event in events:
+            event: pygame.event.Event
             if event.type == pygame.QUIT:
                 self.extreme_exit()
                 self.state = State(GameState.BACK)
@@ -345,20 +358,22 @@ class Editor(GameStrategy):
                 if event.key == pygame.K_ESCAPE:
                     self.overlay()
                 if event.key == pygame.K_e:
-                    self.turn(1)
-                if event.key == pygame.K_q:
                     self.turn(-1)
+                if event.key == pygame.K_q:
+                    self.turn(1)
                 if event.key == pygame.K_t:
                     self.is_text_swap()
                 if event.key == pygame.K_x:
                     self.set_tool(0)
                 if event.key == pygame.K_c:
                     self.set_tool(1)
-                if event.key == pygame.K_a:
+                if event.key == pygame.K_v:
                     self.set_tool(2)
-                if event.key == pygame.K_TAB:
+                if event.key == pygame.K_a:
+                    self.page_turn(-1)
+                if event.key == pygame.K_d:
                     self.page_turn(1)
-                if event.key == pygame.K_z and event.mod == 4160:
+                if event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
                     self.undo()
             if event.type == pygame.MOUSEMOTION:
                 if event.pos[0] <= 1600:
@@ -372,7 +387,7 @@ class Editor(GameStrategy):
                     elif self.tool == 0:
                         self.delete()
                     else:
-                        print(self.current_state[self.focus[1]][self.focus[0]])
+                        self.pickup()
 
         indicators = [
             Button(RESOLUTION[0] + 17, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
@@ -380,11 +395,11 @@ class Editor(GameStrategy):
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
                    f"Text\n{'True' if self.is_text else 'False'}", self.is_text_swap),
             Button(RESOLUTION[0] + 17, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
-                   f"Tool\n{'Create' if self.tool == 1 else 'Delete' if self.tool == 0 else 'Lookup'}",
+                   f"Tool\n{'Create' if self.tool == 1 else 'Delete' if self.tool == 0 else 'Pickup'}",
                    partial(self.set_tool, 0 if self.tool == 1 else 1 if self.tool == 2 else 2)),
             Button(RESOLUTION[0] + 101, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
                    f"Dir\n{direction_to_unicode(self.direction)}",
-                   partial(self.turn, 1)),
+                   partial(self.turn, -1)),
         ]
 
         pygame.draw.rect(self.screen, (44, 44, 44),
@@ -402,17 +417,19 @@ class Editor(GameStrategy):
             if self.state is None and button.update(events) and button.action is exit:
                 break
             button.draw(self.screen)
+
         for pagination_button in self.pagination_buttons:
             pagination_button.update(events)
             pagination_button.draw(self.screen)
+
         for indicator in indicators:
             indicator.update(events)
             indicator.draw(self.screen)
 
         for line in self.current_state:
             for cell in line:
-                for object_button in cell:
-                    object_button.draw(self.screen)
+                for object in cell:
+                    object.draw(self.screen)
 
         if self.state is None:
             self.state = State(GameState.FLIP)

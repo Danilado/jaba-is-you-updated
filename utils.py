@@ -1,3 +1,4 @@
+from copy import copy
 from typing import Final, Literal, Dict
 
 import pygame
@@ -16,7 +17,7 @@ def my_deepcopy(arr):
         if isinstance(val, list):
             new_arr.append(my_deepcopy(val))
         else:
-            new_arr.append(val)
+            new_arr.append(copy(val))
     return new_arr
 
 

@@ -716,7 +716,7 @@ class Object:
         :rtype: bool
         """
         return RESOLUTION[0] // 50 - 1 >= self.x + delta_x >= 0 \
-               and RESOLUTION[1] // 50 - 1 >= self.y + delta_y >= 0
+            and RESOLUTION[1] // 50 - 1 >= self.y + delta_y >= 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules) -> None:
         """Тянет объекты с правилом pull
@@ -826,7 +826,7 @@ class Object:
             if self.status == 'alive':
                 for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
                     if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True)
-                        or not self.can_interact(rule_object, level_rules)) and status_motion != False:
+                            or not self.can_interact(rule_object, level_rules)) and status_motion != False:
                         if self.object_can_move(level_rules) and not self.is_still:
                             status_motion = True
 
