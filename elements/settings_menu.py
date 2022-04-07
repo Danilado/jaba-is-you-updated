@@ -2,6 +2,7 @@ from typing import List, Optional
 
 import pygame
 
+import settings
 from classes.slider import Slider
 from classes.button import Button
 from classes.game_state import GameState
@@ -9,7 +10,6 @@ from classes.game_strategy import GameStrategy
 from classes.state import State
 from elements.global_classes import GuiSettings
 from global_types import SURFACE
-from settings import RESOLUTION
 from utils import settings_saves
 
 
@@ -23,24 +23,70 @@ class SettingsMenu(GameStrategy):
         self._state: Optional[State] = None
         self.options = settings_saves()
 
-        x = int(RESOLUTION[0] // 2 + 200 + 400 * pygame.mixer.music.get_volume())
-        y = int(RESOLUTION[1] // 2 - 300 + 3)
+        x = int(settings.RESOLUTION[0] // 2 + (200 + 400 * pygame.mixer.music.get_volume()) * settings.WINDOW_SCALE)
+        y = int(settings.RESOLUTION[1] // 2 - 300 * settings.WINDOW_SCALE + 3 * settings.WINDOW_SCALE)
         self.circle_music = [x, y]
 
-        self.slider = Slider(RESOLUTION[0] // 2 + 200, RESOLUTION[1] // 2 - 300, 400, 6, (50, 10, 250),
+        self.slider = Slider(settings.RESOLUTION[0] // 2 + 200 * settings.WINDOW_SCALE,
+                             settings.RESOLUTION[1] // 2 - 300 * settings.WINDOW_SCALE,
+                             400 * settings.WINDOW_SCALE, 6 * settings.WINDOW_SCALE, (50, 10, 250),
                              self.circle_music, 5, (250, 100, 250), self.set_music_volume)
         self.buttons = [
-            Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 180, 1200, 50, (0, 0, 0),
+            Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(180 * settings.WINDOW_SCALE),
+                   int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                    GuiSettings(), "Выключить сетку", self.set_show_grid),
-            Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 120, 1200, 50, (0, 0, 0),
+            Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(120 * settings.WINDOW_SCALE),
+                   int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                    GuiSettings(), "Язык: Русский", self.set_language),
-            Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 60, 1200, 50, (0, 0, 0),
+            Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE), settings.RESOLUTION[1] // 2,
+                   int(1200 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                    GuiSettings(), "Назад", self.go_back),
+            Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(60 * settings.WINDOW_SCALE),
+                   int(575 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0),
+                   GuiSettings(), "800x450", self.set_resolution_800x450),
+            Button(settings.RESOLUTION[0] // 2 + int(25 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(60 * settings.WINDOW_SCALE),
+                   int(575 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0),
+                   GuiSettings(), "1600x900", self.set_resolution_1600x900),
         ]
+
+    def set_resolution_800x450(self):
+        settings.WINDOW_SCALE = 0.5
+        settings.RESOLUTION = [800, 450]
+        self.screen = pygame.display.set_mode(settings.RESOLUTION)
+        self.options[3] = 1
+        self.options[4] = 0.5
+        x = int(settings.RESOLUTION[0] // 2 + (200 + 400 * pygame.mixer.music.get_volume()) * settings.WINDOW_SCALE)
+        y = int(settings.RESOLUTION[1] // 2 - 300 * settings.WINDOW_SCALE + 3 * settings.WINDOW_SCALE)
+        self.circle_music = [x, y]
+        self.slider = Slider(settings.RESOLUTION[0] // 2 + 200 * settings.WINDOW_SCALE,
+                             settings.RESOLUTION[1] // 2 - 300 * settings.WINDOW_SCALE,
+                             400 * settings.WINDOW_SCALE, 6 * settings.WINDOW_SCALE, (50, 10, 250),
+                             self.circle_music, 5, (250, 100, 250), self.set_music_volume)
+
+    def set_resolution_1600x900(self):
+        settings.WINDOW_SCALE = 1.0
+        settings.RESOLUTION = [1600, 900]
+        self.screen = pygame.display.set_mode(settings.RESOLUTION)
+        self.options[3] = 0
+        self.options[4] = 1
+        x = int(settings.RESOLUTION[0] // 2 + (200 + 400 * pygame.mixer.music.get_volume()) * settings.WINDOW_SCALE)
+        y = int(settings.RESOLUTION[1] // 2 - 300 * settings.WINDOW_SCALE + 3 * settings.WINDOW_SCALE)
+        self.circle_music = [x, y]
+        self.slider = Slider(settings.RESOLUTION[0] // 2 + 200 * settings.WINDOW_SCALE,
+                             settings.RESOLUTION[1] // 2 - 300 * settings.WINDOW_SCALE,
+                             400 * settings.WINDOW_SCALE, 6 * settings.WINDOW_SCALE, (50, 10, 250),
+                             self.circle_music, 5, (250, 100, 250), self.set_music_volume)
 
     def save_file(self):
         with open('option_settings', mode='w', encoding='utf-8') as file:
-            for index, param in enumerate(self.options):
+            for _, param in enumerate(self.options):
                 file.write(f'{param}\n')
             file.close()
 
@@ -62,42 +108,74 @@ class SettingsMenu(GameStrategy):
             self.options[0] = True
 
     def set_music_volume(self):
-        if pygame.mouse.get_pos()[0] > RESOLUTION[0] // 2 + 200:
-            if RESOLUTION[0] // 2 + 200 + 400 > pygame.mouse.get_pos()[0]:
+        if pygame.mouse.get_pos()[0] > settings.RESOLUTION[0] // 2 + 200 * settings.WINDOW_SCALE:
+            if settings.RESOLUTION[0] // 2 + (200 + 400) * settings.WINDOW_SCALE > pygame.mouse.get_pos()[0]:
                 self.circle_music[0] = int(pygame.mouse.get_pos()[0])
             else:
-                self.circle_music[0] = RESOLUTION[0] // 2 + 200 + 400
+                self.circle_music[0] = settings.RESOLUTION[0] // 2 + (200 + 400) * settings.WINDOW_SCALE
         else:
-            self.circle_music[0] = RESOLUTION[0] // 2 + 200
-        pygame.mixer.music.set_volume((self.circle_music[0] - (RESOLUTION[0] // 2 + 200)) / 400)
+            self.circle_music[0] = settings.RESOLUTION[0] // 2 + 200 * settings.WINDOW_SCALE
+        pygame.mixer.music.set_volume(
+            (self.circle_music[0] - (settings.RESOLUTION[0] // 2 + 200 * settings.WINDOW_SCALE)) / 400)
         self.options[2] = pygame.mixer.music.get_volume()
 
     def check_options(self):
         if self.options[0]:
             if self.options[1] == 'Ru':
-                self.buttons[0] = Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 180, 1200, 50, (0, 0, 0),
+                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                         settings.RESOLUTION[1] // 2 - int(180 * settings.WINDOW_SCALE),
+                                         int(1200 * settings.WINDOW_SCALE),
+                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                                          GuiSettings(), "Выключить сетку", self.set_show_grid)
             else:
-                self.buttons[0] = Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 180, 1200, 50, (0, 0, 0),
+                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                         settings.RESOLUTION[1] // 2 - int(180 * settings.WINDOW_SCALE),
+                                         int(1200 * settings.WINDOW_SCALE),
+                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                                          GuiSettings(), "Turn off grid", self.set_show_grid)
         else:
             if self.options[1] == 'Ru':
-                self.buttons[0] = Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 180, 1200, 50, (0, 0, 0),
+                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                         settings.RESOLUTION[1] // 2 - int(180 * settings.WINDOW_SCALE),
+                                         int(1200 * settings.WINDOW_SCALE),
+                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                                          GuiSettings(), "Включить сетку", self.set_show_grid)
             else:
-                self.buttons[0] = Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 180, 1200, 50, (0, 0, 0),
+                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                         settings.RESOLUTION[1] // 2 - int(180 * settings.WINDOW_SCALE),
+                                         int(1200 * settings.WINDOW_SCALE),
+                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                                          GuiSettings(), "Turn on grid", self.set_show_grid)
 
         if self.options[1] == 'Ru':
-            self.buttons[1] = Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 120, 1200, 50, (0, 0, 0),
+            self.buttons[1] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                     settings.RESOLUTION[1] // 2 - int(120 * settings.WINDOW_SCALE),
+                                     int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                                      GuiSettings(), "Язык: Русский", self.set_language)
-            self.buttons[2] = Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 60, 1200, 50, (0, 0, 0),
+            self.buttons[2] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                     settings.RESOLUTION[1] // 2,
+                                     int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                                      GuiSettings(), "Назад", self.go_back)
         else:
-            self.buttons[1] = Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 120, 1200, 50, (0, 0, 0),
+            self.buttons[1] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                     settings.RESOLUTION[1] // 2 - int(120 * settings.WINDOW_SCALE),
+                                     int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                                      GuiSettings(), "Language: English", self.set_language)
-            self.buttons[2] = Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 60, 1200, 50, (0, 0, 0),
+            self.buttons[2] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                     settings.RESOLUTION[1] // 2,
+                                     int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                                      GuiSettings(), "Back", self.go_back)
+
+        self.buttons[3] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                 settings.RESOLUTION[1] // 2 - int(60 * settings.WINDOW_SCALE),
+                                 int(575 * settings.WINDOW_SCALE),
+                                 int(50 * settings.WINDOW_SCALE), (0, 0, 0),
+                                 GuiSettings(), "800x450", self.set_resolution_800x450)
+        self.buttons[4] = Button(settings.RESOLUTION[0] // 2 + int(25 * settings.WINDOW_SCALE),
+                                 settings.RESOLUTION[1] // 2 - int(60 * settings.WINDOW_SCALE),
+                                 int(575 * settings.WINDOW_SCALE),
+                                 int(50 * settings.WINDOW_SCALE), (0, 0, 0),
+                                 GuiSettings(), "1600x900", self.set_resolution_1600x900)
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает интерфейс загрузчика и обрабатывает все события
@@ -111,12 +189,16 @@ class SettingsMenu(GameStrategy):
         self.screen.fill("black")
         self._state = None
         if events:
-            f2 = pygame.font.SysFont('fonts/ConsolateElf.ttf', 24)
+            font = pygame.font.Font('fonts/ConsolateElf.ttf', int(20 * settings.WINDOW_SCALE))
             if self.options[1] == 'Ru':
-                text1 = f2.render('Громкость музыки', False, (255, 255, 255))
+                text = 'Громкость музыки'
+                text1 = font.render(text, True, (255, 255, 255))
             else:
-                text1 = f2.render('Music volume', False, (255, 255, 255))
-            self.screen.blit(text1, (RESOLUTION[0] // 2 + 200 - 175, RESOLUTION[1] // 2 - 300 - 6))
+                text = 'Music volume'
+                text1 = font.render(text, True, (255, 255, 255))
+            self.screen.blit(text1, (
+                settings.RESOLUTION[0] // 2 + (200 - 14 * len(text)) * settings.WINDOW_SCALE,
+                settings.RESOLUTION[1] // 2 + (-300 - 15) * settings.WINDOW_SCALE))
             for event in events:
                 if event.type == pygame.QUIT:
                     self._state = State(GameState.BACK)

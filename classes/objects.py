@@ -6,10 +6,11 @@ from typing import List, Literal
 
 import pygame
 
+import settings
 from classes.palette import Palette
 from elements.global_classes import sprite_manager, palette_manager
 from global_types import SURFACE
-from settings import TEXT_ONLY, SPRITE_ONLY, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
+from settings import TEXT_ONLY, SPRITE_ONLY, NOUNS, OPERATORS, PROPERTIES
 from classes.animation import Animation
 from classes.game_state import GameState
 from classes.state import State
@@ -87,14 +88,14 @@ class Object:
 
         self.x = x
         self.y = y
-        self.xpx = x * 50
-        self.ypx = y * 50
+        self.xpx = x * 50 * settings.WINDOW_SCALE
+        self.ypx = y * 50 * settings.WINDOW_SCALE
 
         self.angle_3d = angle_3d
         self.num_3d = num_3d
 
-        self.width = 50
-        self.height = 50
+        self.width = 50 * settings.WINDOW_SCALE
+        self.height = 50 * settings.WINDOW_SCALE
 
         self.animation: Animation
         self.movement_state = movement_state
@@ -166,7 +167,7 @@ class Object:
             path = os.path.join('./', 'sprites', 'text')
             animation.sprites = [pygame.transform.scale(sprite_manager.get(
                 os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}"), default=True, palette=self.palette),
-                (50, 50)) for index in range(0, 3)]
+                (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)]
         else:
             path = os.path.join('./', 'sprites', self.name)
             try:
@@ -188,32 +189,32 @@ class Object:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_0_{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 15:
                     frame = self.investigate_neighbours()
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{frame}_{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 3:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{self.movement_state % 4}_{index}'), default=True,
                         palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 24:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{self.direction_key_map[self.direction] * 8}_{index}'), default=True,
                         palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 27:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_'
                                      f'{self.movement_state % 4 + self.direction_key_map[self.direction] * 8}_'
                                      f'{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 31:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(
@@ -221,7 +222,7 @@ class Object:
                             f'{self.name}_'
                             f'{self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0)}_'
                             f'{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 else:
                     print(f'{self.name} somehow fucked up while setting animation')
             except FileNotFoundError:
@@ -370,8 +371,8 @@ class Object:
         if not self.is_still:
             self.x += delta_x
             self.y += delta_y
-            self.ypx -= delta_y * 50
-            self.xpx -= delta_x * 50
+            self.ypx -= delta_y * int((50 * settings.WINDOW_SCALE))
+            self.xpx -= delta_x * int((50 * settings.WINDOW_SCALE))
         self.animation = None
         self.movement_state += 1
         self.moved = True
@@ -440,7 +441,7 @@ class Object:
             for rule in level_rules:
                 if f'{self.name} is melt' in rule.text_rule:
                     for sec_rule in level_rules:
-                        if not rule_object.is_text and  f'{rule_object.name} is hot' in sec_rule.text_rule:
+                        if not rule_object.is_text and f'{rule_object.name} is hot' in sec_rule.text_rule:
                             matrix[self.y][self.x].pop(self.get_index(matrix))
                             return False
         for rule in level_rules:
@@ -713,8 +714,8 @@ class Object:
         :return: Можно ли двигаться в данном направлении
         :rtype: bool
         """
-        return RESOLUTION[0] // 50 - 1 >= self.x + delta_x >= 0 \
-               and RESOLUTION[1] // 50 - 1 >= self.y + delta_y >= 0
+        return settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1 >= self.x + delta_x >= 0 \
+               and settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1 >= self.y + delta_y >= 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules) -> None:
         """Тянет объекты с правилом pull
@@ -753,9 +754,9 @@ class Object:
             self.locked_sides.append('up')
         elif side == 'left' and self.x == 0:
             self.locked_sides.append('left')
-        elif side == 'right' and self.x == RESOLUTION[0] // 50 - 1:
+        elif side == 'right' and self.x == settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1:
             self.locked_sides.append('right')
-        elif side == 'down' and self.y == RESOLUTION[1] // 50 - 1:
+        elif side == 'down' and self.y == settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1:
             self.locked_sides.append('down')
         if side in self.locked_sides:
             return False

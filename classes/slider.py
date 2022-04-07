@@ -21,8 +21,9 @@ class Slider:
     :ivar action: Функция вызывающаяся при нажатии
     """
 
-    def __init__(self, xpx: int, ypx: int, width: int, height: int, color_rect, circle_center: int, radius: int,
-                 color_circle, action: Optional[Callable[[], Any]]):
+    def __init__(self, xpx: float, ypx: float, width: float, height: float, color_rect,
+                 circle_center: list[float, float],
+                 radius: float, color_circle, action: Optional[Callable[[], Any]]):
         """
         Инициализация ползунка
 

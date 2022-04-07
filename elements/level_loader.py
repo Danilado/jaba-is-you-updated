@@ -5,6 +5,7 @@ from typing import List, Optional
 
 import pygame
 
+import settings
 from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
@@ -13,7 +14,6 @@ from classes.state import State
 from elements.play_level import PlayLevel
 from elements.global_classes import GuiSettings, palette_manager
 from global_types import SURFACE
-from settings import RESOLUTION
 from utils import language_words
 
 
@@ -43,13 +43,19 @@ class Loader(GameStrategy):
         self._state: Optional[State] = None
         self.lang_words = language_words()
         self.buttons = [
-            Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 400, 1200, 50, (0, 0, 0),
-                   GuiSettings(), f"{self.lang_words[10]}", self.go_back),
+            Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(400 * settings.WINDOW_SCALE),
+                   int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[10]}",
+                   self.go_back),
         ]
         for index, level in enumerate(self.find_levels()):
             self.buttons.append(
-                Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 350 + 50 * index, 1200, 50, (0, 0, 0),
-                       GuiSettings(), level,
+                Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                       settings.RESOLUTION[1] // 2 - int(
+                           350 * settings.WINDOW_SCALE + 50 * index * settings.WINDOW_SCALE),
+                       int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                       level,
                        partial(self.go_to_game if self.overlay is None else self.return_and_quit, level)),
             )
 

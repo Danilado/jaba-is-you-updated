@@ -2,6 +2,7 @@ from typing import List, Optional, TYPE_CHECKING
 
 import pygame
 
+import settings
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.palette import Palette
@@ -18,7 +19,7 @@ class PaletteChoose(GameStrategy):
     def __init__(self, editor: "Editor", screen: SURFACE):
         self.editor: "Editor" = editor
         self.lang_words = language_words()
-        font = pygame.font.SysFont("Arial", int(72 * 2.5))
+        font = pygame.font.SysFont("Arial", int(72 * 2.5 * settings.WINDOW_SCALE))
         self._choose_palette_text = font.render(
             f"{self.lang_words[19]}:", True, (255, 255, 255))
         super().__init__(screen)
@@ -31,8 +32,8 @@ class PaletteChoose(GameStrategy):
         :param y_pixel_offset: Отступ по оси y
         :return: None, или палитру на которую нажали
         """
-        distance_between_palettes = 5
-        pixel_size = 35
+        distance_between_palettes = 5 * settings.WINDOW_SCALE
+        pixel_size = 35 * settings.WINDOW_SCALE
         for palette in palette_manager.palettes:
             length_of_palette_pixels_abscissa = len(palette.pixels[-1])
             length_of_palette_pixels_ordinate = len(palette.pixels)

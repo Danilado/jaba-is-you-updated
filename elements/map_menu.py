@@ -2,11 +2,11 @@ from typing import List, Optional
 from functools import partial
 
 import pygame
-
-from elements.global_classes import sound_manager
+import settings
+from elements.global_classes import sound_manager, palette_manager
 from elements.play_level import PlayLevel
 
-from settings import SHOW_GRID, RESOLUTION, STICKY
+from settings import SHOW_GRID, STICKY
 from global_types import SURFACE
 
 from classes.cursor import MoveCursor
@@ -31,31 +31,31 @@ class MapMenu(GameStrategy):
         self.radius = 0
         self.flag_anime = False
         self.delay = 0
+        self.current_palette = palette_manager.get_palette('default')
+
+    def set_pallete(self, level_name: str):
+        path_to_file = f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
+        with open(path_to_file, mode='r', encoding='utf-8') as level_file:
+            for line in level_file.readlines():
+                parameters = line.strip().split(' ')
+                self.current_palette = palette_manager.get_palette(parameters[0])
+                break
 
     def animation_level(self):
         if self.flag_anime:
-            pygame.draw.circle(self.screen, (0, 50, 30), (0, 0), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (600, 0), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30),
-                               (1000, 0), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30),
-                               (1600, 0), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (0, 900), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30),
-                               (300, 900), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30),
-                               (800, 900), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30),
-                               (1200, 900), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (0, 300), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30), (0, 600), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30),
-                               (1600, 100), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30),
-                               (1600, 500), self.radius)
-            pygame.draw.circle(self.screen, (0, 50, 30),
-                               (1600, 900), self.radius)
-            self.radius += 8
+            offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),
+                       (1000 * settings.WINDOW_SCALE, 0),
+                       (1600 * settings.WINDOW_SCALE, 0), (0, 900 * settings.WINDOW_SCALE),
+                       (300 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE),
+                       (800 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE),
+                       (1200 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE), (0, 300 * settings.WINDOW_SCALE),
+                       (0, 600 * settings.WINDOW_SCALE), (1600 * settings.WINDOW_SCALE, 100 * settings.WINDOW_SCALE),
+                       (1600 * settings.WINDOW_SCALE, 500 * settings.WINDOW_SCALE),
+                       (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
+            for offset in offsets:
+                pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+                                   offset, self.radius)
+            self.radius += 8 * settings.WINDOW_SCALE
 
     def parse_file(self, level_name: str):
         """
@@ -100,18 +100,27 @@ class MapMenu(GameStrategy):
         neighbours = [None for _ in range(4)]
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == RESOLUTION[1] // 50 - 1:
+        elif x == settings.RESOLUTION[1] // 50 * settings.WINDOW_SCALE - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == RESOLUTION[0] // 50 - 1:
+        elif y == settings.RESOLUTION[0] // 50 * settings.WINDOW_SCALE - 1:
             neighbours[1] = [self.empty_object]
 
         for index, offset in enumerate(offsets):
             if neighbours[index] is None:
                 neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
         return neighbours
+
+    def level_name(self):
+        for i, line in enumerate(self.matrix):
+            for j, cell in enumerate(line):
+                for k, rule_object in enumerate(cell):
+                    if k < len(cell) and j < 31:
+                        if rule_object.name == 'cursor' and not rule_object.is_text:
+                            if self.matrix[i][j][0].name in self.cursor.levels:
+                                return self.matrix[i][j][0].name
 
     def go_to_game(self):
         for i, line in enumerate(self.matrix):
@@ -153,17 +162,17 @@ class MapMenu(GameStrategy):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self._state = State(GameState.BACK)
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pygame.K_RETURN and self.level_name() in self.cursor.levels:
                         self.delay = pygame.time.get_ticks()
+                        self.set_pallete(self.level_name())
                         self.flag_anime = True
-
         if not self.flag_anime:
             self.cursor.check_events(events)
             self.cursor.move(self.matrix)
 
         if SHOW_GRID:
-            for xpx in range(0, RESOLUTION[0], 50):
-                for ypx in range(0, RESOLUTION[1], 50):
+            for xpx in range(0, settings.RESOLUTION[0], int(50 * settings.WINDOW_SCALE)):
+                for ypx in range(0, settings.RESOLUTION[1], int(50 * settings.WINDOW_SCALE)):
                     pygame.draw.rect(
                         self.screen, (255, 255, 255), (xpx, ypx, 50, 50), 1)
 

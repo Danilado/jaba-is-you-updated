@@ -4,11 +4,14 @@ import math
 from copy import copy
 from random import randint
 from typing import List, Optional
+
+import numpy as numpy
 import pygame
+import settings
 
 from classes.particle import Particle, ParticleStrategy
 from utils import my_deepcopy, settings_saves
-from settings import RESOLUTION, NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
+from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
 from global_types import SURFACE
 from elements.global_classes import sound_manager, palette_manager
 from classes.state import State
@@ -43,12 +46,16 @@ class PlayLevel(GameStrategy):
         self.first_iteration = True
         self.objects_for_tp = []
 
-        self.win_offsets = [[(775, 325), 0], [(825, 325), 0], [(725, 325), 0], [(875, 325), 0], [(675, 325), 0],
-                            [(925, 325), 0], [(625, 325), 0], [
-                                (975, 325), 0], [(575, 325), 0], [(1025, 325), 0],
-                            [(525, 325), 0], [(1075, 325), 0], [
-                                (475, 325), 0], [(1100, 325), 0], [(450, 325), 0],
-                            [(1125, 325), 0], [(425, 325), 0]]
+        self.win_offsets = [[[775, 325], 0], [[825, 325], 0], [[725, 325], 0], [[875, 325], 0], [[675, 325], 0],
+                            [[925, 325], 0], [[625, 325], 0], [
+                                [975, 325], 0], [[575, 325], 0], [[1025, 325], 0],
+                            [[525, 325], 0], [[1075, 325], 0], [
+                                [475, 325], 0], [[1100, 325], 0], [[450, 325], 0],
+                            [[1125, 325], 0], [[425, 325], 0]]
+        for i, _ in enumerate(self.win_offsets):
+            for index, _ in enumerate(self.win_offsets[i][0]):
+                self.win_offsets[i][0][index] *= settings.WINDOW_SCALE
+        print(self.win_offsets)
         self.flag_to_win_animation = False
         self.flag_to_delay = False
         self.win_text = self.text_to_png('congratulations')
@@ -125,12 +132,12 @@ class PlayLevel(GameStrategy):
 
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == RESOLUTION[1] // 50 - 1:
+        elif x == settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == RESOLUTION[0] // 50 - 1:
+        elif y == settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1:
             neighbours[1] = [self.empty_object]
         for index, offset in enumerate(offsets):
             if neighbours[index] == []:
@@ -169,8 +176,8 @@ class PlayLevel(GameStrategy):
         :return: Можно ли двигаться в данном направлении
         :rtype: bool
         """
-        return RESOLUTION[0] // 50 - 1 >= x + delta_x >= 0 \
-               and RESOLUTION[1] // 50 - 1 >= y + delta_y >= 0
+        return settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1 >= x + delta_x >= 0 \
+               and settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1 >= y + delta_y >= 0
 
     def check_noun(self, i, j, delta_i, delta_j, status=None):
         noun_objects = []
@@ -450,9 +457,15 @@ class PlayLevel(GameStrategy):
         return text_in_objects
 
     def level_start_animation(self):
-        offsets = [(0, 0), (600, 0), (1000, 0), (1600, 0), (0, 900),
-                   (300, 900), (800, 900), (1200, 900), (0, 300),
-                   (0, 600), (1600, 100), (1600, 500), (1600, 900)]
+        offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),
+                   (1000 * settings.WINDOW_SCALE, 0),
+                   (1600 * settings.WINDOW_SCALE, 0), (0, 900 * settings.WINDOW_SCALE),
+                   (300 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE),
+                   (800 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE),
+                   (1200 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE), (0, 300 * settings.WINDOW_SCALE),
+                   (0, 600 * settings.WINDOW_SCALE), (1600 * settings.WINDOW_SCALE, 100 * settings.WINDOW_SCALE),
+                   (1600 * settings.WINDOW_SCALE, 500 * settings.WINDOW_SCALE),
+                   (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
         for offset in offsets:
             pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
                                offset, self.circle_radius)
@@ -466,10 +479,18 @@ class PlayLevel(GameStrategy):
             self.flag_to_level_start_animation = False
 
     def win_animation(self):
-        boarder_offsets = [(0, 0), (600, 0), (1000, 0), (1600, 0), (0, 900),
-                           (300, 900), (800, 900), (1200, 900), (0, 300),
-                           (0, 600), (1600, 100), (1600, 500), (1600, 900)]
-        max_radius = 100
+        boarder_offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),
+                           (1000 * settings.WINDOW_SCALE, 0),
+                           (1600 * settings.WINDOW_SCALE, 0), (0, 900 * settings.WINDOW_SCALE),
+                           (300 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE),
+                           (800 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE),
+                           (1200 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE),
+                           (0, 300 * settings.WINDOW_SCALE),
+                           (0, 600 * settings.WINDOW_SCALE),
+                           (1600 * settings.WINDOW_SCALE, 100 * settings.WINDOW_SCALE),
+                           (1600 * settings.WINDOW_SCALE, 500 * settings.WINDOW_SCALE),
+                           (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
+        max_radius = 100 * settings.WINDOW_SCALE
         if not self.flag_to_level_start_animation and self.flag_to_win_animation:
             for offset, radius in self.win_offsets:
                 pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
@@ -494,9 +515,9 @@ class PlayLevel(GameStrategy):
                 for offset1 in boarder_offsets:
                     pygame.draw.circle(
                         self.screen, self.current_palette.pixels[3][6], offset1, self.circle_radius)
-                self.circle_radius += 8
+                self.circle_radius += 8 * settings.WINDOW_SCALE
 
-            if self.circle_radius >= 650:
+            if self.circle_radius >= 650 * settings.WINDOW_SCALE:
                 self.state = State(GameState.BACK)
 
     def functional_event_check(self, events: List[pygame.event.Event]):
@@ -686,7 +707,6 @@ class PlayLevel(GameStrategy):
             particle.draw(self.screen)
 
         self.functional_event_check(events)
-
         if self.status_cancel:
             if len(self.history_of_matrix) > 0:
                 self.matrix = self.copy_matrix(self.history_of_matrix[-1])
@@ -716,7 +736,8 @@ class PlayLevel(GameStrategy):
                     if game_object.is_3d:
                         level_3d = True
                         if game_object.num_3d == self.num_obj_3d:
-                            raycasting(self.screen, (game_object.xpx + 25, game_object.ypx + 25),
+                            raycasting(self.screen, (game_object.xpx + int(50 // 2 * settings.WINDOW_SCALE),
+                                                     game_object.ypx + int(50 // 2 * settings.WINDOW_SCALE)),
                                        game_object.angle_3d / 180 * math.pi, self.matrix)
                         count_3d_obj += 1
 
@@ -744,10 +765,11 @@ class PlayLevel(GameStrategy):
                         game_object.draw(self.screen)
 
             if self.show_grid:
-                for x in range(0, RESOLUTION[0], 50):
-                    for y in range(0, RESOLUTION[1], 50):
+                for x in numpy.arange(0, settings.RESOLUTION[0], 50 * settings.WINDOW_SCALE):
+                    for y in numpy.arange(0, settings.RESOLUTION[1], 50 * settings.WINDOW_SCALE):
                         pygame.draw.rect(
-                            self.screen, (255, 255, 255), (x, y, 50, 50), 1)
+                            self.screen, (255, 255, 255),
+                            (x, y, 50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE), 1)
 
         if self.first_iteration:
             self.find_rules()

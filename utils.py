@@ -1,3 +1,6 @@
+import os
+
+
 def my_deepcopy(arr):
     """Полное копирование трёхмерного массива без использования указателей
 
@@ -16,17 +19,27 @@ def my_deepcopy(arr):
 
 
 def settings_saves():
-    with open('option_settings', mode='r', encoding='utf-8') as saves:
-        options = []
-        for param in saves:
-            options.append(param.strip())
-        if options[0] == 'False':
-            options[0] = False
-        else:
-            options[0] = True
-        options[1] = str(options[1])
-        options[2] = float(options[2])
-        return options
+    options = []
+    if os.path.exists('option_settings'):
+        with open('option_settings', mode='r', encoding='utf-8') as saves:
+            for param in saves:
+                options.append(param.strip())
+            if options[0] == 'False':
+                options[0] = False
+            else:
+                options[0] = True
+            options[1] = str(options[1])
+            options[2] = float(options[2])
+            options[3] = int(options[3])
+            options[4] = float(options[4])
+    else:
+        options.append(True)
+        options.append('Eng')
+        options.append(1.0)
+        options.append(0)
+        options.append(1.0)
+    return options
+
 
 
 def language_words():

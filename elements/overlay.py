@@ -11,7 +11,7 @@ from classes.state import State
 from elements.global_classes import GuiSettings, EuiSettings
 from elements.level_loader import Loader
 from elements.palette_choose import PaletteChoose
-from settings import RESOLUTION
+import settings
 from utils import language_words
 
 if TYPE_CHECKING:
@@ -41,24 +41,46 @@ class EditorOverlay(GameStrategy):
         if self.label is None:
             self.label = self.lang_words[7]
         self.buttons = [
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
-                   EuiSettings(), f"{self.lang_words[6]} {self.label}"),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
-                   GuiSettings(), f"{self.lang_words[10]}", self.cancel),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 60, 400, 50, (0, 0, 0),
-                   GuiSettings(), f"{self.lang_words[11]}", self.load),
-            Input(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2, 400, 50, (255, 255, 255),
-                  EuiSettings(), f"{self.lang_words[12]}"),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 + 60, 400, 50, (0, 0, 0),
-                   GuiSettings(), f"{self.lang_words[13]}", self.save),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 + 120, 400, 50, (0, 0, 0),
-                   GuiSettings(), f"{self.lang_words[14]}", self.force_exit),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 + 180, 400, 50, (0, 0, 0),
-                   GuiSettings(), f"{self.lang_words[15]}", self.hard_force_exit),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 230, 400, 50, (0, 0, 0),
-                   EuiSettings()),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 180, 400, 50, (0, 0, 0),
-                   GuiSettings(), f"{self.lang_words[9]}", self.switch_to_palette_choose),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(280 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), EuiSettings(),
+                   f"{self.lang_words[6]} {self.label}"),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(120 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[10]}",
+                   self.cancel),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(60 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[11]}",
+                   self.load),
+            Input(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE), settings.RESOLUTION[1] // 2,
+                  int(400 * settings.WINDOW_SCALE),
+                  int(50 * settings.WINDOW_SCALE), (255, 255, 255), EuiSettings(), f"{self.lang_words[12]}"),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 + int(60 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[13]}",
+                   self.save),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 + int(120 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[14]}",
+                   self.force_exit),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 + int(180 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[15]}",
+                   self.hard_force_exit),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(230 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), EuiSettings()),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(180 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[9]}",
+                   self.switch_to_palette_choose),
         ]
 
     def save(self):
@@ -119,7 +141,10 @@ class EditorOverlay(GameStrategy):
             if event.type == pygame.KEYUP:
                 if str(self.buttons[3]):
                     self.label = str(self.buttons[3])
-                self.buttons[0] = Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
+                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                                         settings.RESOLUTION[1] // 2 - int(280 * settings.WINDOW_SCALE),
+                                         int(400 * settings.WINDOW_SCALE),
+                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
                                          EuiSettings(), f"{self.lang_words[6]} {self.label}")
 
         for button in self.buttons:
@@ -131,7 +156,7 @@ class EditorOverlay(GameStrategy):
                 self.editor.level_name = str(self.buttons[3])
                 if self.editor.level_name == '':
                     self.editor.level_name = None
-            self.screen = pygame.display.set_mode((1800, 900))
+            self.screen = pygame.display.set_mode((1800 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
         if self.state is None:
             self.state = State(GameState.FLIP)
         return self.state
