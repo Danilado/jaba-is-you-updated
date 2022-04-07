@@ -409,8 +409,8 @@ class Editor(GameStrategy):
         ]
 
         pygame.draw.rect(self.screen, (44, 44, 44),
-                         ((self.focus[0] * 50 - 200) * settings.WINDOW_SCALE,
-                          (self.focus[0] * 50 - 200) * settings.WINDOW_SCALE,
+                         (self.focus[0] * 50 * settings.WINDOW_SCALE,
+                          self.focus[1] * 50 * settings.WINDOW_SCALE,
                           50 * settings.WINDOW_SCALE,
                           50 * settings.WINDOW_SCALE))
 
