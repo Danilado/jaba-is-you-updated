@@ -58,20 +58,14 @@ class Turn:
 
 
 class You:
-    delay: int = 200
-
     def __init__(self, num: int = 1):
         self.timer: int = pygame.time.get_ticks()
         self.num: int = num
 
-    def reset_timer(self):
-        self.timer -= self.delay
-
     def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
-        if pygame.time.get_ticks()-self.timer > self.delay:
-            self.timer = pygame.time.get_ticks()
-            rule_object.check_events(events, self.num)
-            rule_object.move(matrix, level_rules, level_processor)
+        self.timer = pygame.time.get_ticks()
+        rule_object.check_events(events, self.num)
+        rule_object.move(matrix, level_rules, level_processor)
 
 
 class Is3d:
@@ -347,7 +341,6 @@ class RuleProcessor:
             'tele': Tele(),
             'move': Move(),
             'text': Text(),
-            'you2': You2(),
             'melt': Melt(),
             'shut': ShutOpen(),
             'defeat': Defeat(),
