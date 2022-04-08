@@ -1,0 +1,8 @@
+default
+16 0 1 baba True
+17 0 1 is False
+19 0 1 defeat False
+21 0 1 baba False
+16 1 1 baba True
+17 1 1 is False
+18 1 1 you False

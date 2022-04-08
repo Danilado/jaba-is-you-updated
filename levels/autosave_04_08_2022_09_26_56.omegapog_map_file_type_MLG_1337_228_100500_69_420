@@ -1,0 +1,11 @@
+default
+17 0 1 bat True
+18 0 1 is False
+19 0 1 you False
+17 1 1 bat True
+18 1 1 is False
+19 1 1 shut False
+17 2 1 bat True
+18 2 1 is False
+20 2 1 open False
+21 2 1 bat False
