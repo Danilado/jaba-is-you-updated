@@ -233,6 +233,11 @@ class Win:
 class Defeat:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
+        for rule in level_rules:
+            if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text:
+                if not rule_object.is_safe:
+                    matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+                    return False
         for level_object in matrix[rule_object.y][rule_object.x]:
             level_object.check_defeat(0, 0, matrix, level_rules, rule_object)
 
@@ -240,6 +245,11 @@ class Defeat:
 class ShutOpen:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
+        for rule in level_rules:
+            if f'{rule_object.name} is open' in rule.text_rule and not rule_object.is_text:
+                if not rule_object.is_safe:
+                    matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+                    return False
         for level_object in matrix[rule_object.y][rule_object.x]:
             rule_object.check_shut_open(
                 0, 0, matrix, level_rules, level_object)
@@ -249,7 +259,8 @@ class Sink:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
-            rule_object.check_sink(0, 0, matrix, level_rules, level_object)
+            if len(matrix[rule_object.y][rule_object.x]) > 1:
+                rule_object.check_sink(0, 0, matrix, level_rules, level_object)
 
 
 class Make:
