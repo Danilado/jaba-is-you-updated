@@ -77,6 +77,8 @@ class PaletteChoose(GameStrategy):
         self.screen.blit(self._choose_palette_text, (0, 0))
         palette = self._process_palette(
             0, self._choose_palette_text.get_height())
+        pygame.display.flip()
+
         if palette is not None:
             self.editor.current_palette = palette
             state = State(GameState.BACK)
@@ -87,6 +89,7 @@ class PaletteChoose(GameStrategy):
             else:
                 pygame.event.set_allowed(None)
                 print("none")
+
         return state
 
     def on_init(self):
