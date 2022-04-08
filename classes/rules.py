@@ -64,7 +64,6 @@ class You:
     def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
         rule_object.check_events(events, self.num)
         rule_object.move(matrix, level_rules, level_processor)
-        print('--------------------')
 
 
 class Is3d:

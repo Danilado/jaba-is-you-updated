@@ -2,10 +2,11 @@ from pprint import pprint
 from typing import Final, TYPE_CHECKING, Callable, List, Union, Type
 import pygame
 
-
-from settings import RESOLUTION, FRAMES_PER_SECOND, DEBUG
+import settings
+from settings import FRAMES_PER_SECOND, DEBUG
 from classes.game_state import GameState
 from global_types import SURFACE
+from utils import settings_saves
 
 if TYPE_CHECKING:
     from classes.game_strategy import GameStrategy
@@ -24,7 +25,12 @@ class GameContext:
 
         :param game_strategy: GameStrategy которая будет отрисовываться по умолчанию.
         """
-        self.screen: Final[SURFACE] = pygame.display.set_mode(RESOLUTION)
+        if settings_saves()[3] == 0:
+            settings.RESOLUTION = [1600, 900]
+        else:
+            settings.RESOLUTION = [800, 450]
+        settings.WINDOW_SCALE = settings_saves()[4]
+        self.screen: Final[SURFACE] = pygame.display.set_mode(settings.RESOLUTION)
         self._running: bool = True
         self._history: List["GameStrategy"] = []
 
@@ -86,6 +92,7 @@ class GameContext:
     def run(self):
         """Функция запуска игры"""
         clock = pygame.time.Clock()
+        pygame.mixer.music.set_volume(settings_saves()[2])
         while self.running:
             try:
                 delta_time = clock.tick(FRAMES_PER_SECOND)

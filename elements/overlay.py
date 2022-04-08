@@ -11,7 +11,8 @@ from classes.state import State
 from elements.global_classes import GuiSettings, EuiSettings
 from elements.level_loader import Loader
 from elements.palette_choose import PaletteChoose
-from settings import RESOLUTION
+import settings
+from utils import language_words
 
 if TYPE_CHECKING:
     from elements.editor import Editor
@@ -23,7 +24,8 @@ class EditorOverlay(GameStrategy):
     """
 
     def on_init(self):
-        pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUSEBUTTONUP])
+        pygame.event.set_allowed(
+            [pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUSEBUTTONUP])
         print("QUIT KEYDOWN KEYUP MOUSEBUTTONUP")
 
     def __init__(self, editor: "Editor", screen: pygame.Surface):
@@ -37,27 +39,65 @@ class EditorOverlay(GameStrategy):
         self.editor: "Editor" = editor
         self.loaded_flag = False
         self.label = self.editor.level_name
+        self.lang_words = language_words()
         if self.label is None:
-            self.label = "Новый уровень"
+            self.label = self.lang_words[7]
         self.buttons = [
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
-                   EuiSettings(), f"Вы изменяете {self.label}"),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 120, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Назад", self.cancel),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 60, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Загрузить уровень", self.load),
-            Input(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2, 400, 50, (255, 255, 255),
-                  EuiSettings(), "Новое название"),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 + 60, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Сохранить", self.save),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 + 120, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Сохранить и выйти в главное меню", self.force_exit),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 + 180, 400, 50, (0, 0, 0),
-                   GuiSettings(), "Выйти без сохранения", self.hard_force_exit),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 230, 400, 50, (0, 0, 0),
-                   EuiSettings()),
-            Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 180, 400, 50, (0, 0, 0),
-                   GuiSettings(), f"Поменять палитру", self.switch_to_palette_choose),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 -
+                   int(280 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE), (0, 0, 0), EuiSettings(),
+                   f"{self.lang_words[6]} {self.label}"),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 -
+                   int(120 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[10]}",
+                   self.cancel),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 -
+                   int(60 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[11]}",
+                   self.load),
+            Input(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE), settings.RESOLUTION[1] // 2,
+                  int(400 * settings.WINDOW_SCALE),
+                  int(50 * settings.WINDOW_SCALE), (255, 255, 255), EuiSettings(), f"{self.lang_words[12]}"),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 +
+                   int(60 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[13]}",
+                   self.save),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 +
+                   int(120 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[14]}",
+                   self.force_exit),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 +
+                   int(180 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[15]}",
+                   self.hard_force_exit),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 -
+                   int(230 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), EuiSettings()),
+            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 -
+                   int(180 * settings.WINDOW_SCALE),
+                   int(400 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[9]}",
+                   self.switch_to_palette_choose),
         ]
 
     def save(self):
@@ -105,31 +145,37 @@ class EditorOverlay(GameStrategy):
         """
         self.state = State(GameState.BACK) if self.loaded_flag else None
         self.editor.new_loaded = bool(self.loaded_flag)
-        self.buttons[7].text = f"Текущая палитра: {self.editor.current_palette.name}"
-        if events:
-            self.screen.fill('black')
-            for event in events:
-                if event.type == pygame.QUIT:
-                    self.state = State(GameState.BACK)
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+        self.buttons[7].text = f"{self.lang_words[8]}: {self.editor.current_palette.name}"
+        self.screen.fill('black')
+
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.state = State(GameState.BACK)
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_ESCAPE:
                     self.editor.level_name = str(self.buttons[3])
                     self.state = State(GameState.BACK)
-                if event.type == pygame.KEYUP:
-                    if str(self.buttons[3]):
-                        self.label = str(self.buttons[3])
-                    self.buttons[0] = Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
-                                             EuiSettings(), f"Вы изменяете {self.label}")
-            for button in self.buttons:
-                button.update(events)
-                button.draw(self.screen)
-            if self.state is not None:
-                if str(self.buttons[3]) != '':
-                    self.editor.level_name = str(self.buttons[3])
-                    if self.editor.level_name == '':
-                        self.editor.level_name = None
-                self.screen = pygame.display.set_mode((1800, 900))
-                pygame.event.set_allowed(None)
-                print("none")
-            else:
-                self.state = State(GameState.FLIP)
+            if event.type == pygame.KEYUP:
+                if str(self.buttons[3]):
+                    self.label = str(self.buttons[3])
+                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
+                                         settings.RESOLUTION[1] // 2 -
+                                         int(280 * settings.WINDOW_SCALE),
+                                         int(400 * settings.WINDOW_SCALE),
+                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
+                                         EuiSettings(), f"{self.lang_words[6]} {self.label}")
+
+        for button in self.buttons:
+            button.update(events)
+            button.draw(self.screen)
+
+        if self.state is not None:
+            if str(self.buttons[3]) != '':
+                self.editor.level_name = str(self.buttons[3])
+                if self.editor.level_name == '':
+                    self.editor.level_name = None
+            self.screen = pygame.display.set_mode(
+                (1800 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
+        if self.state is None:
+            self.state = State(GameState.FLIP)
         return self.state

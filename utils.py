@@ -2,6 +2,7 @@ from copy import copy
 from typing import Final, Literal, Dict
 
 import pygame
+import os
 
 
 def my_deepcopy(arr):
@@ -46,3 +47,38 @@ def get_pressed_direction(arrows: bool = False) -> \
             turning_side = side_and_key[key]
             # break
     return turning_side
+
+
+def settings_saves():
+    options = []
+    if os.path.exists('option_settings'):
+        with open('option_settings', mode='r', encoding='utf-8') as saves:
+            for param in saves:
+                options.append(param.strip())
+            if options[0] == 'False':
+                options[0] = False
+            else:
+                options[0] = True
+            options[1] = str(options[1])
+            options[2] = float(options[2])
+            options[3] = int(options[3])
+            options[4] = float(options[4])
+    else:
+        options.append(True)
+        options.append('Eng')
+        options.append(1.0)
+        options.append(0)
+        options.append(1.0)
+    return options
+
+
+def language_words():
+    if settings_saves()[1] == 'Ru':
+        file = 'ru_words'
+    else:
+        file = 'eng_words'
+    with open(file, mode='r', encoding='utf-8') as words_file:
+        words = []
+        for param in words_file:
+            words.append(param.strip())
+        return words

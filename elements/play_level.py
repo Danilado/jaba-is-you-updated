@@ -1,12 +1,13 @@
 """draw_matrix.py hopefully refactored by Gospodin"""
 import math
-import time
 from copy import copy
 from random import randint
 from typing import List, Optional, Dict, Tuple
 
 import pygame
+import numpy as numpy
 
+import settings
 from classes import rules
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
@@ -18,13 +19,14 @@ from classes.text_rule import TextRule
 from elements.global_classes import sound_manager, palette_manager
 from global_types import SURFACE
 from settings import SHOW_GRID, RESOLUTION, NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
-from utils import my_deepcopy
+from utils import my_deepcopy, settings_saves
 
 
 class PlayLevel(GameStrategy):
     def __init__(self, level_name: str, screen: SURFACE):
         super().__init__(screen)
         self.state: Optional[State] = None
+        self.show_grid = settings_saves()[0]
 
         self.matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
@@ -46,6 +48,10 @@ class PlayLevel(GameStrategy):
 
         self.win_offsets = [[(775, 325), 0], [(825, 325), 0], [(725, 325), 0], [(875, 325), 0], [(675, 325), 0], [(925, 325), 0], [(625, 325), 0], [(975, 325), 0], [
             (575, 325), 0], [(1025, 325), 0], [(525, 325), 0], [(1075, 325), 0], [(475, 325), 0], [(1100, 325), 0], [(450, 325), 0], [(1125, 325), 0], [(425, 325), 0]]
+        for i, _ in enumerate(self.win_offsets):
+            self.win_offsets[i][0] = (
+                self.win_offsets[i][0][0]*settings.WINDOW_SCALE, self.win_offsets[i][0][1]*settings.WINDOW_SCALE)
+
         self.flag_to_win_animation = False
         self.flag_to_delay = False
         self.win_text = self.text_to_png('congratulations')
@@ -64,8 +70,6 @@ class PlayLevel(GameStrategy):
 
         self.particles = [Particle(self.screen, 'dot', ParticleStrategy((randint(0, 1600), randint(-50, 1650)), (950, - 50), (randint(20, 35), randint(
             40, 65)), (randint(0, 360), randint(0, 360*5)), 20, 60 + randint(-20, 20), True, True), self.current_palette.pixels[3][6]) for _ in range(40)]
-
-        self.apply_rules_cache: Dict[str, Object] = {}
 
     def parse_file(self, level_name: str):
         """
@@ -100,7 +104,7 @@ class PlayLevel(GameStrategy):
             self.start_matrix = self.matrix
         if DEBUG:
             print("\n".join((
-                "-"*100,
+                "-" * 100,
                 f"Level {level_name} successfully parsed!",
                 f"palette: {self.current_palette.name}",
                 f"palette size: {len(self.current_palette.pixels[0])}x{len(self.current_palette.pixels)}"
@@ -123,12 +127,12 @@ class PlayLevel(GameStrategy):
 
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == RESOLUTION[1] // 50 - 1:
+        elif x == settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == RESOLUTION[0] // 50 - 1:
+        elif y == settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1:
             neighbours[1] = [self.empty_object]
         for index, offset in enumerate(offsets):
             if not neighbours[index]:
@@ -167,7 +171,8 @@ class PlayLevel(GameStrategy):
         :return: Можно ли двигаться в данном направлении
         :rtype: bool
         """
-        return RESOLUTION[0] // 50 - 1 >= x + delta_x >= 0 and RESOLUTION[1] // 50 - 1 >= y + delta_y >= 0
+        return settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1 >= x + delta_x >= 0 \
+            and settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1 >= y + delta_y >= 0
 
     def check_noun(self, i, j, delta_i, delta_j, status=None):
         noun_objects = []
@@ -453,9 +458,18 @@ class PlayLevel(GameStrategy):
         return text_in_objects
 
     def level_start_animation(self):
-        offsets = [(0, 0), (600, 0), (1000, 0), (1600, 0), (0, 900),
-                   (300, 900), (800, 900), (1200, 900), (0, 300),
-                   (0, 600), (1600, 100), (1600, 500), (1600, 900)]
+        offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),
+                   (1000 * settings.WINDOW_SCALE, 0),
+                   (1600 * settings.WINDOW_SCALE,
+                    0), (0, 900 * settings.WINDOW_SCALE),
+                   (300 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE),
+                   (800 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE),
+                   (1200 * settings.WINDOW_SCALE, 900 *
+                    settings.WINDOW_SCALE), (0, 300 * settings.WINDOW_SCALE),
+                   (0, 600 * settings.WINDOW_SCALE), (1600 *
+                                                      settings.WINDOW_SCALE, 100 * settings.WINDOW_SCALE),
+                   (1600 * settings.WINDOW_SCALE, 500 * settings.WINDOW_SCALE),
+                   (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
         for offset in offsets:
             pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
                                offset, self.circle_radius)
@@ -469,10 +483,24 @@ class PlayLevel(GameStrategy):
             self.flag_to_level_start_animation = False
 
     def win_animation(self):
-        boarder_offsets = [(0, 0), (600, 0), (1000, 0), (1600, 0), (0, 900),
-                           (300, 900), (800, 900), (1200, 900), (0, 300),
-                           (0, 600), (1600, 100), (1600, 500), (1600, 900)]
-        max_radius = 100
+        boarder_offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),
+                           (1000 * settings.WINDOW_SCALE, 0),
+                           (1600 * settings.WINDOW_SCALE,
+                            0), (0, 900 * settings.WINDOW_SCALE),
+                           (300 * settings.WINDOW_SCALE,
+                            900 * settings.WINDOW_SCALE),
+                           (800 * settings.WINDOW_SCALE,
+                            900 * settings.WINDOW_SCALE),
+                           (1200 * settings.WINDOW_SCALE,
+                            900 * settings.WINDOW_SCALE),
+                           (0, 300 * settings.WINDOW_SCALE),
+                           (0, 600 * settings.WINDOW_SCALE),
+                           (1600 * settings.WINDOW_SCALE,
+                            100 * settings.WINDOW_SCALE),
+                           (1600 * settings.WINDOW_SCALE,
+                            500 * settings.WINDOW_SCALE),
+                           (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
+        max_radius = 100 * settings.WINDOW_SCALE
         if not self.flag_to_level_start_animation and self.flag_to_win_animation:
             for offset, radius in self.win_offsets:
                 pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
@@ -497,9 +525,9 @@ class PlayLevel(GameStrategy):
                 for offset1 in boarder_offsets:
                     pygame.draw.circle(
                         self.screen, self.current_palette.pixels[3][6], offset1, self.circle_radius)
-                self.circle_radius += 8
+                self.circle_radius += 8 * settings.WINDOW_SCALE
 
-            if self.circle_radius >= 650:
+            if self.circle_radius >= 650 * settings.WINDOW_SCALE:
                 self.state = State(GameState.BACK)
 
     def functional_event_check(self, events: List[pygame.event.Event]):
@@ -571,6 +599,7 @@ class PlayLevel(GameStrategy):
                             rule_object.status_switch_name = 2
                         elif rule_object.status_switch_name == 2:
                             rule_object.status_switch_name = 0
+
                     if f'{rule_object.name} has {noun}' in rule.text_rule and not rule_object.is_text:
                         has_objects.append(noun)
 
@@ -724,7 +753,8 @@ class PlayLevel(GameStrategy):
                     if game_object.is_3d:
                         level_3d = True
                         if game_object.num_3d == self.num_obj_3d:
-                            raycasting(self.screen, (game_object.xpx + 25, game_object.ypx + 25),
+                            raycasting(self.screen, (game_object.xpx + int(50 // 2 * settings.WINDOW_SCALE),
+                                                     game_object.ypx + int(50 // 2 * settings.WINDOW_SCALE)),
                                        game_object.angle_3d / 180 * math.pi, self.matrix)
                         count_3d_obj += 1
 
@@ -751,11 +781,12 @@ class PlayLevel(GameStrategy):
                                 self.update_sticky_neighbours(game_object)
                         game_object.draw(self.screen)
 
-            if SHOW_GRID:
-                for x in range(0, RESOLUTION[0], 50):
-                    for y in range(0, RESOLUTION[1], 50):
+            if self.show_grid:
+                for x in numpy.arange(0, settings.RESOLUTION[0], 50 * settings.WINDOW_SCALE):
+                    for y in numpy.arange(0, settings.RESOLUTION[1], 50 * settings.WINDOW_SCALE):
                         pygame.draw.rect(
-                            self.screen, (255, 255, 255), (x, y, 50, 50), 1)
+                            self.screen, (255, 255, 255),
+                            (x, y, 50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE), 1)
 
         if self.first_iteration:
             self.find_rules()

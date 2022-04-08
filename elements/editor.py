@@ -4,7 +4,7 @@ from math import ceil
 from typing import List, Optional
 
 import pygame
-
+import settings
 from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
@@ -14,8 +14,8 @@ from classes.palette import Palette
 from classes.state import State
 from elements.global_classes import EuiSettings, IuiSettings, sound_manager, palette_manager
 from elements.overlay import EditorOverlay
-from settings import SHOW_GRID, RESOLUTION, OBJECTS, STICKY
-from utils import my_deepcopy
+from settings import OBJECTS, STICKY
+from utils import my_deepcopy, settings_saves
 
 
 def unparse_all(state):
@@ -66,6 +66,7 @@ class Editor(GameStrategy):
         super().__init__(screen)
         # overlay related
         self.exit_flag = False
+        self.show_grid = settings_saves()[0]
         self.discard = False
         self.level_name = None
         self.state = None
@@ -94,15 +95,22 @@ class Editor(GameStrategy):
         self.page = 0
         self.pagination_limit = ceil(len(OBJECTS) / 12)
         self.pagination_buttons = [
-            Button(RESOLUTION[0] + 17, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
+            Button(settings.RESOLUTION[0] + int(17 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] - int(222 * settings.WINDOW_SCALE),
+                   int(75 * settings.WINDOW_SCALE), int(20 *
+                                                        settings.WINDOW_SCALE), (0, 0, 0), IuiSettings(),
                    "<", partial(self.page_turn, -1)),
-            Button(RESOLUTION[0] + 101, RESOLUTION[1] - 222, 75, 20, (0, 0, 0), IuiSettings(),
+            Button(settings.RESOLUTION[0] + int(101 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] - int(222 * settings.WINDOW_SCALE),
+                   int(75 * settings.WINDOW_SCALE), int(20 *
+                                                        settings.WINDOW_SCALE), (0, 0, 0), IuiSettings(),
                    ">", partial(self.page_turn, 1)),
         ]
         # quswadress' palette logic
         self._current_palette: Palette = palette_manager.get_palette("default")
         # features
-        self.screen = pygame.display.set_mode((1800, 900))
+        self.screen = pygame.display.set_mode(
+            (1800 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
         self.page_turn(0)
         self.empty_object = Object(-1, -1, 0, 'empty',
                                    is_text=False, palette=self.current_palette)
@@ -144,16 +152,20 @@ class Editor(GameStrategy):
         button_array = []
         for index, text in enumerate(button_objects_array):
             button_array.append(
-                ObjectButton(x=RESOLUTION[0] + 28 + 84 * (index % 2),
-                             y=25 + 55 * (index - index % 2), width=50, height=50, outline=(0, 0, 0),
-                             settings=EuiSettings(), text=text, action=partial(self.set_name, text),
-                             is_text=self.is_text, direction=self.direction_key_map[self.direction],
-                             movement_state=0, palette=self.current_palette))
+                ObjectButton(x=int(settings.RESOLUTION[0] + (28 + 84 * (index % 2)) * settings.WINDOW_SCALE),
+                             y=int((25 + 55 * (index - index % 2))
+                                   * settings.WINDOW_SCALE),
+                             width=int(50 * settings.WINDOW_SCALE),
+                             height=int(50 * settings.WINDOW_SCALE), outline=(0, 0, 0),
+                             button_settings=EuiSettings(), text=text, action=partial(self.set_name, text),
+                             is_text=self.is_text, direction=self.direction, movement_state=0,
+                             palette=self.current_palette))
         return button_array
 
     def unresize(self):
         """Меняет разрешение экрана с расширенного на изначальное через магические константы 1600х900"""
-        self.screen = pygame.display.set_mode((1600, 900))
+        self.screen = pygame.display.set_mode(
+            (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
 
     def safe_exit(self):
         """Функция подготовки к безопасному выходу из редактора без потери изменений"""
@@ -222,19 +234,19 @@ class Editor(GameStrategy):
         """
         offsets = [
             (0, -1),
-            (1,  0),
-            (0,  1),
+            (1, 0),
+            (0, 1),
             (-1, 0),
         ]
         neighbours = [None for _ in range(4)]
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == RESOLUTION[1]//50-1:
+        elif x == settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == RESOLUTION[0]//50-1:
+        elif y == settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1:
             neighbours[1] = [self.empty_object]
 
         for index, offset in enumerate(offsets):
@@ -376,8 +388,14 @@ class Editor(GameStrategy):
                 if event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
                     self.undo()
             if event.type == pygame.MOUSEMOTION:
-                if event.pos[0] <= 1600:
-                    self.focus = (event.pos[0] // 50, event.pos[1] // 50)
+                if event.pos[0] <= 1600 * settings.WINDOW_SCALE:
+                    self.focus = ((int(event.pos[0] // int(50 * settings.WINDOW_SCALE)) if int(
+                        event.pos[0] // int(50 * settings.WINDOW_SCALE)) <= settings.RESOLUTION[0] else
+                        int(event.pos[0] // int(50 * settings.WINDOW_SCALE)) - 1), (
+                        int(event.pos[1] // int(50 * settings.WINDOW_SCALE)) if int(
+                            event.pos[1] // int(50 * settings.WINDOW_SCALE)) <= settings.RESOLUTION[
+                            1] else
+                        int(event.pos[1] // int(50 * settings.WINDOW_SCALE)) - 1))
                 else:
                     self.focus = (-1, -1)
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -390,29 +408,46 @@ class Editor(GameStrategy):
                         self.pickup()
 
         indicators = [
-            Button(RESOLUTION[0] + 17, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
+            Button(settings.RESOLUTION[0] + int(17 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] - int(192 * settings.WINDOW_SCALE),
+                   int(75 * settings.WINDOW_SCALE), int(75 *
+                                                        settings.WINDOW_SCALE), (0, 0, 0), IuiSettings(),
                    f"Obj\n{self.name}"),
-            Button(RESOLUTION[0] + 101, RESOLUTION[1] - 192, 75, 75, (0, 0, 0), IuiSettings(),
+            Button(settings.RESOLUTION[0] + int(101 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] - int(192 * settings.WINDOW_SCALE),
+                   int(75 * settings.WINDOW_SCALE), int(75 *
+                                                        settings.WINDOW_SCALE), (0, 0, 0), IuiSettings(),
                    f"Text\n{'True' if self.is_text else 'False'}", self.is_text_swap),
-            Button(RESOLUTION[0] + 17, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
+            Button(settings.RESOLUTION[0] + int(17 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] - int(100 * settings.WINDOW_SCALE),
+                   int(75 * settings.WINDOW_SCALE), int(75 *
+                                                        settings.WINDOW_SCALE), (0, 0, 0), IuiSettings(),
                    f"Tool\n{'Create' if self.tool == 1 else 'Delete' if self.tool == 0 else 'Pickup'}",
                    partial(self.set_tool, 0 if self.tool == 1 else 1 if self.tool == 2 else 2)),
-            Button(RESOLUTION[0] + 101, RESOLUTION[1] - 100, 75, 75, (0, 0, 0), IuiSettings(),
+            Button(settings.RESOLUTION[0] + int(101 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] - int(100 * settings.WINDOW_SCALE),
+                   int(75 * settings.WINDOW_SCALE), int(75 *
+                                                        settings.WINDOW_SCALE), (0, 0, 0), IuiSettings(),
                    f"Dir\n{direction_to_unicode(self.direction)}",
                    partial(self.turn, -1)),
         ]
 
         pygame.draw.rect(self.screen, (44, 44, 44),
-                         (self.focus[0] * 50, self.focus[1] * 50, 50, 50))
+                         (self.focus[0] * 50 * settings.WINDOW_SCALE,
+                          self.focus[1] * 50 * settings.WINDOW_SCALE,
+                          50 * settings.WINDOW_SCALE,
+                          50 * settings.WINDOW_SCALE))
 
-        if SHOW_GRID:
-            for i in range(RESOLUTION[0] // 50 + 1):  # Отрисовать сетку
+        if self.show_grid:
+            # Отрисовать сетку
+            for i in range(int(settings.RESOLUTION[0]) // int(50 * settings.WINDOW_SCALE) + 1):
+                pygame.draw.line(self.screen, (255, 255, 255), (i * 50 * settings.WINDOW_SCALE, 0),
+                                 (i * 50 * settings.WINDOW_SCALE, settings.RESOLUTION[1]), 1)
+            for i in range(int(settings.RESOLUTION[1]) // int(50 * settings.WINDOW_SCALE) + 1):
                 pygame.draw.line(self.screen, (255, 255, 255),
-                                 (i * 50, 0), (i * 50, RESOLUTION[1]), 1)
-            for i in range(RESOLUTION[1] // 50 + 1):
-                pygame.draw.line(self.screen, (255, 255, 255), (0, i * 50 - (1 if i == 18 else 0)),
-                                 (RESOLUTION[0], i * 50 - (1 if i == 18 else 0)), 1)
-
+                                 (0, i * 50 * settings.WINDOW_SCALE -
+                                  (1 if i == 18 else 0)),
+                                 (settings.RESOLUTION[0], i * 50 * settings.WINDOW_SCALE - (1 if i == 18 else 0)), 1)
         for button in self.buttons:
             if self.state is None and button.update(events) and button.action is exit:
                 break
