@@ -702,7 +702,7 @@ class PlayLevel(GameStrategy):
                     self.check_matrix()
                     self.delta_cancel = new_time
 
-        if self.moved:
+        if self.moved and not self.flag_to_win_animation:
             copy_matrix = self.copy_matrix(self.matrix)
             self.detect_iteration_direction(events, copy_matrix)
             self.history_of_matrix.append(self.copy_matrix(self.matrix))
