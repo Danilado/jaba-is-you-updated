@@ -22,8 +22,9 @@ class EditorOverlay(GameStrategy):
     Оверлей управления редактором уровней
     """
 
-    def music(self):
-        pass
+    def on_init(self):
+        pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUSEBUTTONUP])
+        print("QUIT KEYDOWN KEYUP MOUSEBUTTONUP")
 
     def __init__(self, editor: "Editor", screen: pygame.Surface):
         """Инициализирует оверлей
@@ -32,7 +33,7 @@ class EditorOverlay(GameStrategy):
         :param editor: Экземпляр класса Editor, который и управляет оверлей
         """
         super().__init__(screen)
-        self.state = None
+        self.state: Optional[State] = None
         self.editor: "Editor" = editor
         self.loaded_flag = False
         self.label = self.editor.level_name
@@ -105,31 +106,30 @@ class EditorOverlay(GameStrategy):
         self.state = State(GameState.BACK) if self.loaded_flag else None
         self.editor.new_loaded = bool(self.loaded_flag)
         self.buttons[7].text = f"Текущая палитра: {self.editor.current_palette.name}"
-        self.screen.fill('black')
-
-        for event in events:
-            if event.type == pygame.QUIT:
-                self.state = State(GameState.BACK)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+        if events:
+            self.screen.fill('black')
+            for event in events:
+                if event.type == pygame.QUIT:
+                    self.state = State(GameState.BACK)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                     self.editor.level_name = str(self.buttons[3])
                     self.state = State(GameState.BACK)
-            if event.type == pygame.KEYUP:
-                if str(self.buttons[3]):
-                    self.label = str(self.buttons[3])
-                self.buttons[0] = Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
-                                         EuiSettings(), f"Вы изменяете {self.label}")
-
-        for button in self.buttons:
-            button.update(events)
-            button.draw(self.screen)
-
-        if self.state is not None:
-            if str(self.buttons[3]) != '':
-                self.editor.level_name = str(self.buttons[3])
-                if self.editor.level_name == '':
-                    self.editor.level_name = None
-            self.screen = pygame.display.set_mode((1800, 900))
-        if self.state is None:
-            self.state = State(GameState.FLIP)
+                if event.type == pygame.KEYUP:
+                    if str(self.buttons[3]):
+                        self.label = str(self.buttons[3])
+                    self.buttons[0] = Button(RESOLUTION[0] // 2 - 200, RESOLUTION[1] // 2 - 280, 400, 50, (0, 0, 0),
+                                             EuiSettings(), f"Вы изменяете {self.label}")
+            for button in self.buttons:
+                button.update(events)
+                button.draw(self.screen)
+            if self.state is not None:
+                if str(self.buttons[3]) != '':
+                    self.editor.level_name = str(self.buttons[3])
+                    if self.editor.level_name == '':
+                        self.editor.level_name = None
+                self.screen = pygame.display.set_mode((1800, 900))
+                pygame.event.set_allowed(None)
+                print("none")
+            else:
+                self.state = State(GameState.FLIP)
         return self.state

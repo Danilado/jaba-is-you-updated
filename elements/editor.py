@@ -435,7 +435,7 @@ class Editor(GameStrategy):
             self.state = State(GameState.FLIP)
         return self.state
 
-    def music(self):
+    def on_init(self):
         sound_manager.load_music("sounds/Music/editor")
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play()

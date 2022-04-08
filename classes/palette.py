@@ -20,11 +20,15 @@ class Palette:
         :param x_pixel_offset: Отступ отрисовки по оси абсциссы
         :param y_pixel_offset: Отступ отрисовки по оси ординат
         """
+        blit_sequences = []
         for y_palette_pixel, line in enumerate(self.pixels):
             for x_palette_pixel, pixel_color in enumerate(line):
-                pygame.draw.rect(screen, pixel_color, pygame.rect.Rect(
+                pixel_surface = pygame.surface.Surface((pixel_size, pixel_size))
+                pixel_surface.fill(pixel_color)
+                pixel_surface = pixel_surface.convert(screen)
+                position = (
                     x_pixel_offset + x_palette_pixel * pixel_size,
                     y_pixel_offset + y_palette_pixel * pixel_size,
-                    pixel_size,
-                    pixel_size
-                ))
+                )
+                blit_sequences.append((pixel_surface, position, pygame.rect.Rect(0, 0, pixel_size, pixel_size)))
+        screen.blits(blit_sequences, doreturn=0)

@@ -25,7 +25,6 @@ class MapMenu(GameStrategy):
         self.cursor = MoveCursor()
         self._state: Optional[State] = None
         self.first_iteration = True
-        self.moved = False
         self.parse_file(self.find_map_menu())
         self.empty_object = Object(-1, -1, 0, 'empty', False)
         self.radius = 0
@@ -143,10 +142,7 @@ class MapMenu(GameStrategy):
         :type delta_time_in_milliseconds: int
         :return: Возвращает состояние для правильной работы game_context
         """
-        self.screen.fill("black")
         self._state = None
-
-        self.screen.fill("black")
         for event in events:
             if event.type == pygame.QUIT:
                 self._state = State(GameState.BACK)
@@ -159,7 +155,9 @@ class MapMenu(GameStrategy):
 
         if not self.flag_anime:
             self.cursor.check_events()
-            self.cursor.move(self.matrix)
+            needed_to_redraw_objects = self.cursor.turning_side != -1
+        else:
+            needed_to_redraw_objects = True
 
         if SHOW_GRID:
             for xpx in range(0, RESOLUTION[0], 50):
@@ -170,33 +168,34 @@ class MapMenu(GameStrategy):
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:
-                    if self.first_iteration or self.moved:
+                    if self.first_iteration:
                         if game_object.name in STICKY and not game_object.is_text:
                             neighbours = self.get_neighbours(
                                 game_object.x, game_object.y)
                             game_object.neighbours = neighbours
                             game_object.animation = game_object.animation_init()
-                    game_object.draw(self.screen)
-
-        if self.first_iteration:
-            self.first_iteration = False
-
-        if self.moved:
-            self.moved = False
-
-        if self.flag_anime:
+                    if game_object.animation.is_need_to_switch_frames:
+                        needed_to_redraw_objects = True
+        if needed_to_redraw_objects:
+            self.screen.fill("black")
+            if self._state is None:
+                self._state = State(GameState.FLIP)
+            self.cursor.move(self.matrix)
+            for line in self.matrix:
+                for cell in line:
+                    for game_object in cell:
+                        game_object.draw(self.screen)
             self.animation_level()
-            if pygame.time.get_ticks() - self.delay > 1500:
+            if self.flag_anime and pygame.time.get_ticks() - self.delay > 1500:
                 self.flag_anime = False
                 self.radius = 0
                 self.go_to_game()
-
-        if self._state is None:
-            self._state = State(GameState.FLIP, None)
+        if self.first_iteration:
+            self.first_iteration = False
 
         return self._state
 
-    def music(self):
+    def on_init(self):
         sound_manager.load_music("sounds/Music/burn")
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play()

@@ -21,8 +21,8 @@ class MainMenu(GameStrategy):
 
     def __init__(self, screen: SURFACE):
         super().__init__(screen)
+        self.screen.set_alpha(None)
         self._state: Optional[State] = None
-        sound_manager.load_music("sounds/Music/menu")
 
     def _start_the_game(self):
         self._state = State(GameState.SWITCH, MapMenu)
@@ -50,23 +50,26 @@ class MainMenu(GameStrategy):
                    GuiSettings(), "Выйти", self._exit_the_game),
         ]
         self._state = None
-        self.screen.fill("black")
+        if events:
+            self.screen.fill("black")
 
-        for event in events:
-            if event.type == pygame.QUIT:
-                self._exit_the_game()
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
+            for event in events:
+                if event.type == pygame.QUIT:
                     self._exit_the_game()
-        for button in buttons:
-            button.draw(self.screen)
-            button.update(events)
-        if self._state is None:
-            self._state = State(GameState.FLIP, None)
-
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self._exit_the_game()
+            for button in buttons:
+                button.draw(self.screen)
+                button.update(events)
+            if self._state is None:
+                self._state = State(GameState.FLIP, None)
+            else:
+                pygame.event.set_allowed(None)
         return self._state
 
-    def music(self):
+    def on_init(self):
         sound_manager.load_music("sounds/Music/menu")
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play()
+        pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONUP])
+        print("QUIT, KEYDOWN, MOUSEBUTTONUP")

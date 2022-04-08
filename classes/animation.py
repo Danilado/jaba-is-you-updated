@@ -93,13 +93,15 @@ class Animation:
         copy.current_sprites_index = self.current_sprites_index
         return copy
 
-    def update(self) -> None:
+    @property
+    def is_need_to_switch_frames(self) -> bool:
+        return pygame.time.get_ticks() - self._timer >= self.sprite_switch_delay
+
+    def update(self) -> bool:
         """
         Обновление :attr:`~.Animation.current_sprite`.
-
-        :return: Ничего
         """
-        if pygame.time.get_ticks() - self._timer >= self.sprite_switch_delay:
+        if self.is_need_to_switch_frames:
             if self.synchronize:
                 _sync[self.sprite_switch_delay] = pygame.time.get_ticks()
                 self._timer = _sync[self.sprite_switch_delay]
@@ -107,6 +109,8 @@ class Animation:
                 self._timer = pygame.time.get_ticks()
             self.current_sprites_index = (
                 self._current_sprites_index + 1) % len(self.sprites)
+            return True
+        return False
 
     def draw(self, screen: SURFACE) -> None:
         """

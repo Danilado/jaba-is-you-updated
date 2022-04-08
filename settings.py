@@ -89,7 +89,8 @@ VERBS = ['has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play']
 
 PREFIX = ['lonely', 'idle', 'powered']
 
-INFIX = ['on', 'never', 'facing', 'without', 'above', 'below', 'seeing', 'nextto', 'feeling', 'near']
+INFIX = ['on', 'never', 'facing', 'without', 'above',
+         'below', 'seeing', 'nextto', 'feeling', 'near']
 
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',

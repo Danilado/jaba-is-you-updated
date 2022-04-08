@@ -105,13 +105,21 @@ class GameContext:
                         raise KeyboardInterrupt
                     if draw_state.game_state is GameState.SWITCH:
                         self.game_strategy = draw_state.switch_to
-                        self.game_strategy.music()
+
+                        pygame.event.set_blocked(pygame.SYSWMEVENT)
+                        # Unknown Windows 10 event that reduces performance
+
+                        self.game_strategy.on_init()
                     elif draw_state.game_state is GameState.FLIP:
                         pygame.display.flip()
                     elif draw_state.game_state is GameState.BACK:
                         if len(self.history) > 1:
                             self.game_strategy = self.history[-2]
-                            self.game_strategy.music()
+
+                            pygame.event.set_blocked(pygame.SYSWMEVENT)
+                            # Unknown Windows 10 event that reduces performance
+
+                            self.game_strategy.on_init()
                         else:
                             raise ValueError(
                                 "Can't back; Use debug to show the history of strategies; ")

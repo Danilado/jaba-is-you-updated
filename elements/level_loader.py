@@ -22,7 +22,7 @@ class Loader(GameStrategy):
     поиска файлов уровней в папке и их первичной обработки
     """
 
-    def music(self):
+    def on_init(self):
         pass
 
     def __init__(self, screen: SURFACE, from_editor_overlay=None, plug=None):

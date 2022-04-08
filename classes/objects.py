@@ -2,7 +2,7 @@
 from copy import copy
 import os
 import os.path
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 import pygame
 
@@ -31,6 +31,15 @@ font = pygame.font.Font("fonts/ConsolateElf.ttf", 15)
 # Во вторых, придётся искать все упоминания объектов вручную
 # В третьих, сами структуры выглядят по уродски, а иначе нужно
 # Создавать классы, которые трудно сериализировать
+# quswadress:
+# #define MNE_LEN_REFAKTORIT "Это просто оправдание лени refactor-ть это."
+# 1) Изменится половина кода? И что с того? MNE_LEN_REFACTORIT
+# 2) MNE_LEN_REFACTORIT
+# 3) Не спорю. Но если структуры могут работать с своими данными(то есть имеют какие-нибудь методы) то нет \
+#       (именно поэтому есть параметр min-public-methods в pylint-е). Как пример можно привести структуру Palette.
+# 4) Про часть с сериализацией, я не понял. А в чём собственно трудность? Если ты про /
+#       большую связность классов друг с другом, то не думаю что это является серьёзной трудностью, просто /
+#       сделай метод `serialize_this_shit` который будет принимать в себя все эти классы и возвращать байты, и всё.
 
 class Object:
     """
@@ -338,7 +347,7 @@ class Object:
             pass
 
     @staticmethod
-    def find_side(delta_x, delta_y) -> str:
+    def find_side(delta_x, delta_y) -> Optional[str]:
         """Поиск направления движения
 
         :param delta_x: Сдвиг объекта по оси x
@@ -346,7 +355,6 @@ class Object:
         :param delta_y: Сдвиг объекта по оси y
         :type delta_y: int
         :return: Сторона движения
-        :rtype: str
         """
         side = None
         if delta_y > 0:
@@ -392,7 +400,7 @@ class Object:
             self.direction = 3
         matrix[self.y][self.x].append(copy(self))
 
-    def check_swap(self, delta_x, delta_y, matrix, level_rules, rule_object) -> True:
+    def check_swap(self, delta_x, delta_y, matrix, level_rules, rule_object) -> Literal[True]:
         """Проверяет правило swap у объекта и сразу
         выполняет действие, если возможно
 
@@ -615,7 +623,7 @@ class Object:
                             self.level_processor.flag_to_win_animation = True
         return False
 
-    def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object) -> True:
+    def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object) -> Literal[True]:
         """Проверяет все правила, действующие на объект
         И меняет его статус в зависимости от них
 

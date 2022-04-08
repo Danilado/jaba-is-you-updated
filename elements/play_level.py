@@ -1,37 +1,37 @@
 """draw_matrix.py hopefully refactored by Gospodin"""
 import math
-
+import time
 from copy import copy
 from random import randint
-from typing import List, Optional
+from typing import List, Optional, Dict, Tuple
+
 import pygame
 
-from classes.palette import Palette
-from classes.particle import Particle, ParticleStrategy
-from utils import my_deepcopy
-from settings import SHOW_GRID, RESOLUTION, NOUNS, OPERATORS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
-from global_types import SURFACE
-from elements.global_classes import sound_manager, palette_manager
-from classes.state import State
-from classes.ray_casting import raycasting
-from classes.text_rule import TextRule
-from classes.objects import Object
-from classes.game_strategy import GameStrategy
-from classes.game_state import GameState
 from classes import rules
+from classes.game_state import GameState
+from classes.game_strategy import GameStrategy
+from classes.objects import Object
+from classes.particle import Particle, ParticleStrategy
+from classes.ray_casting import raycasting
+from classes.state import State
+from classes.text_rule import TextRule
+from elements.global_classes import sound_manager, palette_manager
+from global_types import SURFACE
+from settings import SHOW_GRID, RESOLUTION, NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
+from utils import my_deepcopy
 
 
 class PlayLevel(GameStrategy):
     def __init__(self, level_name: str, screen: SURFACE):
         super().__init__(screen)
-        self.state = None
+        self.state: Optional[State] = None
 
         self.matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
         self.start_matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
         self.history_of_matrix = []
-        self.delta_cansel = 0
+        self.delta_cancel = 0
 
         self.parse_file(level_name)
         self.level_rules = []
@@ -64,6 +64,8 @@ class PlayLevel(GameStrategy):
 
         self.particles = [Particle(self.screen, 'dot', ParticleStrategy((randint(0, 1600), randint(-50, 1650)), (950, - 50), (randint(20, 35), randint(
             40, 65)), (randint(0, 360), randint(0, 360*5)), 20, 60 + randint(-20, 20), True, True), self.current_palette.pixels[3][6]) for _ in range(40)]
+
+        self.apply_rules_cache: Dict[str, Object] = {}
 
     def parse_file(self, level_name: str):
         """
@@ -129,7 +131,7 @@ class PlayLevel(GameStrategy):
         elif y == RESOLUTION[0] // 50 - 1:
             neighbours[1] = [self.empty_object]
         for index, offset in enumerate(offsets):
-            if neighbours[index] == []:
+            if not neighbours[index]:
                 neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
         return neighbours
 
@@ -137,10 +139,10 @@ class PlayLevel(GameStrategy):
     def remove_copied_rules(arr):
         new_arr = []
         arr_text_rules = []
-        for var in arr:
-            if var.text_rule not in arr_text_rules:
-                new_arr.append(var)
-                arr_text_rules.append(var.text_rule)
+        for rule in arr:
+            if rule.text_rule not in arr_text_rules:
+                new_arr.append(rule)
+                arr_text_rules.append(rule.text_rule)
         return new_arr
 
     def form_rule(self, first_object: Object, operator_object: Object, *other_objects: List[Object]):
@@ -165,8 +167,7 @@ class PlayLevel(GameStrategy):
         :return: Можно ли двигаться в данном направлении
         :rtype: bool
         """
-        return RESOLUTION[0] // 50 - 1 >= x + delta_x >= 0 \
-            and RESOLUTION[1] // 50 - 1 >= y + delta_y >= 0
+        return RESOLUTION[0] // 50 - 1 >= x + delta_x >= 0 and RESOLUTION[1] // 50 - 1 >= y + delta_y >= 0
 
     def check_noun(self, i, j, delta_i, delta_j, status=None):
         noun_objects = []
@@ -184,9 +185,7 @@ class PlayLevel(GameStrategy):
                                 if second_objects.name == 'and':
                                     nouns = self.check_noun(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j,
                                                             'property')
-                                    if not nouns:
-                                        pass
-                                    else:
+                                    if nouns:
                                         for noun in nouns:
                                             noun_objects.append(noun)
                         elif self.check_valid_range(j, i, delta_j * -2, delta_i * -2) and status == 'main':
@@ -196,15 +195,11 @@ class PlayLevel(GameStrategy):
                                     status = 'and'
                                     nouns = self.check_noun(i + delta_i * -2, j + delta_j * -2, delta_i, delta_j,
                                                             'main')
-                                    if not nouns:
-                                        pass
-                                    else:
+                                    if nouns:
                                         for noun in nouns:
                                             noun_objects.append(noun)
                             if status is None:
-                                if not self.check_prefix(i - delta_i, j - delta_j, -delta_i, -delta_j):
-                                    pass
-                                else:
+                                if self.check_prefix(i - delta_i, j - delta_j, -delta_i, -delta_j):
                                     prefix = self.check_prefix(
                                         i - delta_i, j - delta_j, -delta_i, -delta_j)
                                     noun_objects = []
@@ -218,9 +213,7 @@ class PlayLevel(GameStrategy):
                                             result = self.check_noun(last_i - delta_i * 2,
                                                                      last_j - delta_j * 2,
                                                                      delta_i, delta_j, 'main')
-                                            if not result:
-                                                pass
-                                            else:
+                                            if result:
                                                 nouns = result
                                                 for noun in nouns:
                                                     noun_objects.append(noun)
@@ -238,9 +231,7 @@ class PlayLevel(GameStrategy):
                             if second_objects.name == 'and':
                                 properties = self.check_property(
                                     i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
-                                if not properties:
-                                    pass
-                                else:
+                                if properties:
                                     for property in properties:
                                         property_objects.append(['', property])
                     return property_objects
@@ -320,11 +311,9 @@ class PlayLevel(GameStrategy):
                             if second_objects.name == 'and':
                                 prefix = self.check_prefix(
                                     i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
-                                if not prefix:
-                                    pass
-                                else:
-                                    for pfix in prefix:
-                                        prefix_objects.append(pfix)
+                                if isinstance(prefix, list):
+                                    for prefix_object in prefix:
+                                        prefix_objects.append(prefix_object)
                 return prefix_objects
         return False
 
@@ -442,7 +431,7 @@ class PlayLevel(GameStrategy):
 
         return copy_matrix
 
-    def music(self):
+    def on_init(self):
         # TODO by Gospodin: add music and theme choice in editor
         # Issue created.
         sound_manager.load_music("sounds/Music/ruin")
@@ -514,13 +503,7 @@ class PlayLevel(GameStrategy):
                 self.state = State(GameState.BACK)
 
     def functional_event_check(self, events: List[pygame.event.Event]):
-        pressed = pygame.key.get_pressed()
-        if pygame.time.get_ticks() - 200 > self.move_delay:
-            self.move_delay = pygame.time.get_ticks()
-            self.moved = any(pressed[key] for key in [pygame.K_w, pygame.K_a, pygame.K_s,
-                                                      pygame.K_d, pygame.K_SPACE, pygame.K_UP,
-                                                      pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT])
-
+        flag = False
         for event in events:
             if event.type == pygame.QUIT:
                 self.state = State(GameState.BACK)
@@ -530,10 +513,24 @@ class PlayLevel(GameStrategy):
                 if event.key == pygame.K_z:
                     self.status_cancel = True
                     self.moved = True
+                if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
+                                 pygame.K_d, pygame.K_SPACE, pygame.K_UP,
+                                 pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT]:
+                    self.moved = True
+                    flag = 1
+                    self.move_delay = pygame.time.get_ticks()
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_z:
                     self.status_cancel = False
                     self.moved = True
+
+        if not flag:
+            pressed = pygame.key.get_pressed()
+            if pygame.time.get_ticks() - 200 > self.move_delay:
+                self.move_delay = pygame.time.get_ticks()
+                self.moved = any(pressed[key] for key in [pygame.K_w, pygame.K_a, pygame.K_s,
+                                                          pygame.K_d, pygame.K_SPACE, pygame.K_UP,
+                                                          pygame.K_LEFT, pygame.K_DOWN, pygame.K_RIGHT])
 
     def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
         pressed = pygame.key.get_pressed()
@@ -546,7 +543,7 @@ class PlayLevel(GameStrategy):
                 for j, cell in enumerate(line):
                     for rule_object in cell:
                         self.apply_rules(matrix, rule_object, i, j)
-        if any(pressed[key] for key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]):
+        elif any(pressed[key] for key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]):
             rules.processor.update_lists(level_processor=self,
                                          matrix=matrix,
                                          events=events)
@@ -555,23 +552,12 @@ class PlayLevel(GameStrategy):
                     for rule_object in self.matrix[i][j]:
                         self.apply_rules(matrix, rule_object, i, j)
 
-    def apply_rules(self, matrix, rule_object, i, j):   # TODO: Performance issue
+    def apply_rules(self, matrix, rule_object, i, j):
         if not rule_object.special_text:
-            is_hot = False
-            is_hide = False
-            is_safe = False
+            is_hot = is_hide = is_safe = is_open = is_shut = is_phantom = \
+                is_text = is_still = is_sleep = is_weak = is_float = is_3d = is_fall = False
             locked_sides = []
             has_objects = []
-            is_open = False
-            is_shut = False
-            is_phantom = False
-            is_text = False
-            is_still = False
-            is_sleep = False
-            is_weak = False
-            is_float = False
-            is_3d = False
-            is_fall = False
             for rule in self.level_rules:
                 for noun in NOUNS:
                     if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
@@ -640,8 +626,7 @@ class PlayLevel(GameStrategy):
             rule_object.is_hot = is_hot
             rule_object.is_hide = is_hide
             rule_object.is_safe = is_safe
-            rule_object.locked_sides = my_deepcopy(
-                locked_sides)
+            rule_object.locked_sides = my_deepcopy(locked_sides)
             rule_object.is_open = is_open
             rule_object.is_shut = is_shut
             rule_object.is_phantom = is_phantom
@@ -655,13 +640,12 @@ class PlayLevel(GameStrategy):
             rule_object.has_objects = has_objects
 
             for rule in self.level_rules:
-
                 if rule_object.name in rule.text_rule:
                     rules.processor.update_object(rule_object)
                     rules.processor.process(rule.text_rule)
 
     def find_rules(self):
-        self.level_rules = []
+        self.level_rules.clear()
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 self.scan_rules(i, j, 0, 1)
@@ -707,16 +691,16 @@ class PlayLevel(GameStrategy):
         self.functional_event_check(events)
         if self.status_cancel:
             new_time = pygame.time.get_ticks()
-            if new_time > self.delta_cansel + 200:
+            if new_time > self.delta_cancel + 200:
                 if len(self.history_of_matrix) > 0:
                     self.matrix = self.copy_matrix(self.history_of_matrix[-1])
                     self.history_of_matrix.pop()
                     self.check_matrix()
-                    self.delta_cansel = new_time
+                    self.delta_cancel = new_time
                 else:
                     self.matrix = self.copy_matrix(self.start_matrix)
                     self.check_matrix()
-                    self.delta_cansel = new_time
+                    self.delta_cancel = new_time
 
         if self.moved:
             copy_matrix = self.copy_matrix(self.matrix)
@@ -744,6 +728,7 @@ class PlayLevel(GameStrategy):
                                        game_object.angle_3d / 180 * math.pi, self.matrix)
                         count_3d_obj += 1
 
+        # TODO by quswadress: И паттерн стратегия такой: Ну да, ну да, делайте свои большие if-ы, раздувайте классы!
         if level_3d:
             if self.count_3d_obj != count_3d_obj:
                 self.count_3d_obj = 0
@@ -756,8 +741,7 @@ class PlayLevel(GameStrategy):
 
             if count_3d_obj != 0:
                 self.num_obj_3d %= self.count_3d_obj
-
-        if not level_3d:
+        else:
             for line in self.matrix:
                 for cell in line:
                     for game_object in cell:

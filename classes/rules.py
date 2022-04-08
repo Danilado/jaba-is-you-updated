@@ -59,13 +59,12 @@ class Turn:
 
 class You:
     def __init__(self, num: int = 1):
-        self.timer: int = pygame.time.get_ticks()
         self.num: int = num
 
     def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
-        self.timer = pygame.time.get_ticks()
         rule_object.check_events(events, self.num)
         rule_object.move(matrix, level_rules, level_processor)
+        print('--------------------')
 
 
 class Is3d:

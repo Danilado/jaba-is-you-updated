@@ -15,11 +15,10 @@ if TYPE_CHECKING:
 
 class PaletteChoose(GameStrategy):
     def __init__(self, editor: "Editor", screen: SURFACE):
+        super().__init__(screen)
         self.editor: "Editor" = editor
         font = pygame.font.SysFont("Arial", int(72 * 2.5))
-        self._choose_palette_text = font.render(
-            "Выберите палитру:", True, (255, 255, 255))
-        super().__init__(screen)
+        self._choose_palette_text = font.render("Выберите палитру:", True, (255, 255, 255))
 
     def _process_palette(self, x_pixel_offset=0, y_pixel_offset=0) -> Optional[Palette]:
         """
@@ -77,10 +76,13 @@ class PaletteChoose(GameStrategy):
             state = State(GameState.BACK)
             print(f"choose: {self.editor.current_palette.name}")
 
-        if state is None:
-            state = State(GameState.FLIP)
-
+            if state is None:
+                state = State(GameState.FLIP)
+            else:
+                pygame.event.set_allowed(None)
+                print("none")
         return state
 
-    def music(self):
-        pass  # Пустой, чтобы не менять музыку
+    def on_init(self):
+        pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
+        print("QUIT and KEYDOWN")

@@ -44,5 +44,5 @@ def get_pressed_direction(arrows: bool = False) -> \
     for key in side_and_key.keys():
         if pygame.key.get_pressed()[key]:
             turning_side = side_and_key[key]
-            break
+            # break
     return turning_side
