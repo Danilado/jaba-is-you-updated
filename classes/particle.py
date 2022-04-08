@@ -2,7 +2,7 @@
 from math import sin, cos
 import os
 from random import randint
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import pygame
 
@@ -17,9 +17,9 @@ preset_strategies = {}
 class ParticleStrategy:
     """Класс стратегии движения партикла"""
 
-    def __init__(self, x_dimensions: Tuple[int, int] = None, y_dimensions: Tuple[int, int] = None,
-                 size: int = None, rotation: Tuple[int, int] = None, wobble: int = 0,
-                 duration: int = None, loop: bool = False, randomize_start_values: bool = False):
+    def __init__(self, x_dimensions: Optional[Tuple[int, int]] = None, y_dimensions: Optional[Tuple[int, int]] = None,
+                 size: Optional[Tuple[int, int]] = None, rotation: Optional[Tuple[int, int]] = None, wobble: int = 0,
+                 duration: Optional[int] = None, loop: bool = False, randomize_start_values: bool = False):
         """Инициализация стратегии партикла
 
         :param x_dimensions: координаты x начала и конца движения партикла, defaults to None
@@ -27,7 +27,7 @@ class ParticleStrategy:
         :param y_dimensions: координаты y начала и конца движения партикла, defaults to None
         :type y_dimensions: Tuple[int, int], optional
         :param size_args: размер партикла, defaults to None
-        :type size: int, optional
+        :type size: Tuple[int, int], optional
         :param rotation: угол поворота спрайта партикла в начале и конце движения, defaults to None
         :type rotation: Tuple[int, int], optional
         :param wobble: кол-во пикселей смещения партикла в процессе движение, defaults to 0
@@ -52,7 +52,9 @@ class ParticleStrategy:
             self.y_start = y_dimensions[0]
             self.y_offset = y_dimensions[1] - self.y_start
 
-            self.size = size
+            self.size = size[0]
+            self.size_start = size[0]
+            self.size_offset = size[1] - self.size_start
 
             self.angle = rotation[0]
             self.angle_start = rotation[0]
@@ -70,7 +72,12 @@ class ParticleStrategy:
                 self.time_randomizer = randint(0, self.duration)
 
             self.start_timestamp = pygame.time.get_ticks()
-        except IndexError or TypeError:
+        except IndexError:
+            print('IndexError в партиклах, ёпта. Что-то не ладно.')
+            print(x_dimensions, y_dimensions, rotation, duration, loop)
+            print('^ В создание стратегии партикла переданы неправильные аргументы ^')
+        except TypeError:
+            print('TypeError в партиклах, ёпта. Что-то не ладно.')
             print(x_dimensions, y_dimensions, rotation, duration, loop)
             print('^ В создание стратегии партикла переданы неправильные аргументы ^')
 
@@ -83,6 +90,7 @@ class ParticleStrategy:
                 self.x_position = self.x_start
                 self.y_position = self.y_start
                 self.angle = self.angle_start
+                self.size = self.size_start
                 return self.update_values()
             return False
         time_offset = time_position / self.duration
@@ -95,6 +103,9 @@ class ParticleStrategy:
                 cos((timestamp+self.time_randomizer)/1000)
             self.y_position += self.wobble * \
                 sin((timestamp+self.time_randomizer)/1000)
+
+        self.size = self.size_start + self.size_offset * time_offset
+
         self.angle = self.angle_start + self.angle_offset * time_offset
         return True
 
@@ -136,5 +147,8 @@ class Particle:
 
     def draw(self, screen):
         if self.update():
-            screen.blit(pygame.transform.rotate(self.sprites[self.sprite_index], int(self.strategy.angle)),
-                        (self.strategy.x_position, self.strategy.y_position))
+            screen.blit(
+                pygame.transform.scale(
+                    pygame.transform.rotate(
+                        self.sprites[self.sprite_index], int(self.strategy.angle)),
+                    (self.strategy.size, )*2), (self.strategy.x_position, self.strategy.y_position))

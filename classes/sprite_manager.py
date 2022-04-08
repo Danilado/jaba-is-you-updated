@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Sequence, Tuple
+from typing import Dict, Sequence
 
 import pygame
 
@@ -114,7 +114,7 @@ class SpriteManager(BaseDownloadManager):
 
         default: bool = get_from_kwargs("default", (bool,))
         palette: Palette = get_from_kwargs("palette", (Palette,))
-        color: COLOR = get_from_kwargs("color", (Tuple, str))
+        color: COLOR = get_from_kwargs("color", (tuple, str, pygame.color.Color, pygame.Color))
         sprite_info = get_from_kwargs("sprite_info", (SpriteInfo,))
         if sprite_info is None:
             sprite_info = args[0]

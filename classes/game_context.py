@@ -2,10 +2,11 @@ from pprint import pprint
 from typing import Final, TYPE_CHECKING, Callable, List, Union, Type
 import pygame
 
-
-from settings import RESOLUTION, FRAMES_PER_SECOND, DEBUG
+import settings
+from settings import FRAMES_PER_SECOND, DEBUG
 from classes.game_state import GameState
 from global_types import SURFACE
+from utils import settings_saves
 
 if TYPE_CHECKING:
     from classes.game_strategy import GameStrategy
@@ -24,7 +25,12 @@ class GameContext:
 
         :param game_strategy: GameStrategy которая будет отрисовываться по умолчанию.
         """
-        self.screen: Final[SURFACE] = pygame.display.set_mode(RESOLUTION)
+        if settings_saves()[3] == 0:
+            settings.RESOLUTION = [1600, 900]
+        else:
+            settings.RESOLUTION = [800, 450]
+        settings.WINDOW_SCALE = settings_saves()[4]
+        self.screen: Final[SURFACE] = pygame.display.set_mode(settings.RESOLUTION)
         self._running: bool = True
         self._history: List["GameStrategy"] = []
 
@@ -86,6 +92,7 @@ class GameContext:
     def run(self):
         """Функция запуска игры"""
         clock = pygame.time.Clock()
+        pygame.mixer.music.set_volume(settings_saves()[2])
         while self.running:
             try:
                 delta_time = clock.tick(FRAMES_PER_SECOND)
@@ -105,13 +112,21 @@ class GameContext:
                         raise KeyboardInterrupt
                     if draw_state.game_state is GameState.SWITCH:
                         self.game_strategy = draw_state.switch_to
-                        self.game_strategy.music()
+
+                        pygame.event.set_blocked(pygame.SYSWMEVENT)
+                        # Unknown Windows 10 event that reduces performance
+
+                        self.game_strategy.on_init()
                     elif draw_state.game_state is GameState.FLIP:
                         pygame.display.flip()
                     elif draw_state.game_state is GameState.BACK:
                         if len(self.history) > 1:
                             self.game_strategy = self.history[-2]
-                            self.game_strategy.music()
+
+                            pygame.event.set_blocked(pygame.SYSWMEVENT)
+                            # Unknown Windows 10 event that reduces performance
+
+                            self.game_strategy.on_init()
                         else:
                             raise ValueError(
                                 "Can't back; Use debug to show the history of strategies; ")

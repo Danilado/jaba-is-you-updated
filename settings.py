@@ -3,9 +3,10 @@ from typing import Final, Tuple
 
 DEBUG: bool = True
 
-RESOLUTION: Final[Tuple[int, int]] = (1600, 900)  # 32x18
+RESOLUTION: Tuple[int, int] = (800, 450)  # 32x18
 SHOW_GRID: Final[bool] = False
 FRAMES_PER_SECOND: Final[int] = 60
+WINDOW_SCALE: float = 1
 
 TEXT_ONLY = [
     '0', '1', '2', '3', '3d', '4', '5', '6', '7', '8', '9', 'a', 'ab', 'above',
@@ -89,7 +90,8 @@ VERBS = ['has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play']
 
 PREFIX = ['lonely', 'idle', 'powered']
 
-INFIX = ['on', 'never', 'facing', 'without', 'above', 'below', 'seeing', 'nextto', 'feeling', 'near']
+INFIX = ['on', 'never', 'facing', 'without', 'above',
+         'below', 'seeing', 'nextto', 'feeling', 'near']
 
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',

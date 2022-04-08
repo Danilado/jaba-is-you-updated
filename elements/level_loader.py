@@ -5,6 +5,7 @@ from typing import List, Optional
 
 import pygame
 
+import settings
 from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
@@ -13,7 +14,7 @@ from classes.state import State
 from elements.play_level import PlayLevel
 from elements.global_classes import GuiSettings, palette_manager
 from global_types import SURFACE
-from settings import RESOLUTION
+from utils import language_words
 
 
 class Loader(GameStrategy):
@@ -22,7 +23,7 @@ class Loader(GameStrategy):
     поиска файлов уровней в папке и их первичной обработки
     """
 
-    def music(self):
+    def on_init(self):
         pass
 
     def __init__(self, screen: SURFACE, from_editor_overlay=None, plug=None):
@@ -40,14 +41,21 @@ class Loader(GameStrategy):
         super().__init__(screen)
         self.overlay = from_editor_overlay
         self._state: Optional[State] = None
+        self.lang_words = language_words()
         self.buttons = [
-            Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 400, 1200, 50, (0, 0, 0),
-                   GuiSettings(), "Назад", self.go_back),
+            Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(400 * settings.WINDOW_SCALE),
+                   int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   f"{self.lang_words[10]}",
+                   self.go_back),
         ]
         for index, level in enumerate(self.find_levels()):
             self.buttons.append(
-                Button(RESOLUTION[0] // 2 - 600, RESOLUTION[1] // 2 - 350 + 50 * index, 1200, 50, (0, 0, 0),
-                       GuiSettings(), level,
+                Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                       settings.RESOLUTION[1] // 2 - int(350 * settings.WINDOW_SCALE)
+                       + int(50 * index * settings.WINDOW_SCALE),
+                       int(1200 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                       level,
                        partial(self.go_to_game if self.overlay is None else self.return_and_quit, level)),
             )
 
@@ -74,7 +82,10 @@ class Loader(GameStrategy):
         :param level_name: Название желаемого уровня
         """
         self.overlay.loaded_flag = True
-        self.overlay.editor.current_state = self.parse_file(level_name)
+        pallete_name, self.overlay.editor.current_state = self.parse_file(
+            level_name)
+        self.overlay.editor.current_palette = palette_manager.get_palette(
+            pallete_name)
         self.overlay.editor.level_name = level_name
         self._state = State(GameState.BACK)
 
@@ -87,11 +98,15 @@ class Loader(GameStrategy):
         """
         matrix: List[List[List[Object]]] = [[[]
                                              for _ in range(32)] for _ in range(18)]
-        leve_file = open(f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
-                         'r', 'utf-8')
+        leve_file = open(file=f'./levels/{str(level_name)}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
+                         mode='r', encoding='utf-8')
         lines = leve_file.read().split('\n')
+        pallete = lines[0]
+        if len(pallete.split(' ')) == 1:
+            lines.pop(0)
+        else:
+            pallete = 'default'
         for line_index, line in enumerate(lines):
-            # TODO by quswadress: Very similar to the method parse_file of Draw class.
             parameters = line.strip().split(' ')
             if len(parameters) > 1:
                 matrix[int(parameters[1])][int(parameters[0])].append(Object(
@@ -104,7 +119,7 @@ class Loader(GameStrategy):
             elif line_index == 0:
                 self.overlay.editor.current_palette = palette_manager.get_palette(
                     parameters[0])
-        return matrix
+        return pallete, matrix
 
     @staticmethod
     def find_levels() -> List[str]:
