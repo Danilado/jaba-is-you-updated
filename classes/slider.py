@@ -1,4 +1,4 @@
-from typing import Union, TYPE_CHECKING, Callable, Any, Optional, List, Sequence
+from typing import Union, TYPE_CHECKING, Callable, Any, Optional, List, Sequence, Tuple
 
 import pygame
 
@@ -22,7 +22,7 @@ class Slider:
     """
 
     def __init__(self, xpx: float, ypx: float, width: float, height: float, color_rect,
-                 circle_center: list[float, float],
+                 circle_center: Tuple[float, float],
                  radius: float, color_circle, action: Optional[Callable[[], Any]]):
         """
         Инициализация ползунка
