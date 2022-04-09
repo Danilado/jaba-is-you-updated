@@ -291,6 +291,21 @@ class Write:
         matrix[rule_object.y][rule_object.x].append(rule_object)
 
 
+class Eat:
+    @staticmethod
+    def apply(matrix, rule_object, rule_noun, *_, **__):
+        print('хуй')
+        for level_object in matrix[rule_object.y][rule_object.x]:
+            if level_object.name == rule_noun and not level_object.is_text:
+                if rule_object.name != rule_noun:
+                    matrix[level_object.y][level_object.x].pop(
+                        level_object.get_index(matrix))
+                else:
+                    if level_object.get_index(matrix) != rule_object.get_index(matrix):
+                        matrix[level_object.y][level_object.x].pop(
+                            level_object.get_index(matrix))
+
+
 class Tele:
     @staticmethod
     def apply(matrix, rule_object, *_, **__):
@@ -356,7 +371,8 @@ class RuleProcessor:
             'sink': Sink(),
             'win': Win(),
             'make': Make(),
-            'write': Write()
+            'write': Write(),
+            'eat':Eat()
         }
 
     def update_lists(self, level_processor, matrix, events):

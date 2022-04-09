@@ -740,6 +740,7 @@ class PlayLevel(GameStrategy):
 
         self.functional_event_check(events)
         if self.status_cancel:
+            self.check_matrix()
             new_time = pygame.time.get_ticks()
             if new_time > self.delta_cancel + 200:
                 if len(self.history_of_matrix) > 0:
