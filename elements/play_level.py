@@ -76,7 +76,7 @@ class PlayLevel(GameStrategy):
                                                     60 + randint(-20, 20), True, True),
                                    self.current_palette.pixels[3][6]) for _ in range(40)]
 
-        self.apply_rules_cache: Dict[str, Tuple[bool, bool, bool, bool, bool, bool, bool, bool,
+        self.apply_rules_cache: Dict[Object, Tuple[bool, bool, bool, bool, bool, bool, bool, bool,
                                                 bool, bool, bool, bool, bool, List[str], List[str]]] = {}
 
     def parse_file(self, level_name: str):
@@ -589,7 +589,7 @@ class PlayLevel(GameStrategy):
                         self.apply_rules(matrix, rule_object, i, j)
 
     def _create_in_cache_rules_thing(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int,
-                                     rule_cache_key: str):
+                                     rule_cache_key: Object):
         is_hot = is_hide = is_safe = is_open = is_shut = is_phantom = \
             is_text = is_still = is_sleep = is_weak = is_float = is_3d = is_fall = False
         locked_sides: List[str] = []
@@ -664,7 +664,7 @@ class PlayLevel(GameStrategy):
 
     def apply_rules(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int):
         if not rule_object.special_text:
-            rule_cache_key: str = rule_object.name
+            rule_cache_key: Object = rule_object
 
             if rule_cache_key not in self.apply_rules_cache:
                 self._create_in_cache_rules_thing(matrix, rule_object, i, j, rule_cache_key)
