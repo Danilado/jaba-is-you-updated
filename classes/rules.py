@@ -290,10 +290,10 @@ class Write:
         rule_object.animation = rule_object.animation_init()
         matrix[rule_object.y][rule_object.x].append(rule_object)
 
+
 class Fear:
     def apply(self, matrix, rule_object, rule_noun, level_rules, **__):
         fear_top = False
-        print(rule_object.name)
         if rule_object.check_valid_range(0, -1):
             for level_object in matrix[rule_object.y - 1][rule_object.x]:
                 if not level_object.is_text and level_object.name == rule_noun:
@@ -313,7 +313,7 @@ class Fear:
             for level_object in matrix[rule_object.y][rule_object.x + 1]:
                 if not level_object.is_text and level_object.name == rule_noun:
                     fear_right = True
-        turning_side = self.find_side_move(fear_top, fear_bottom, fear_left, fear_right, rule_object.find_side)
+        turning_side = self.find_side_move(fear_top, fear_bottom, fear_left, fear_right, rule_object.turning_side)
         if turning_side == 0:
             rule_object.motion(1, 0, matrix, level_rules)
         elif turning_side == 1:
@@ -323,22 +323,31 @@ class Fear:
         elif turning_side == 3:
             rule_object.motion(0, 1, matrix, level_rules)
 
-    def find_side_move(self, fear_top, fear_bottom, fear_left, fear_right, side):
+    @staticmethod
+    def find_side_move(fear_top, fear_bottom, fear_left, fear_right, side):
         if (fear_top and fear_bottom and not fear_left and not fear_right) or \
                 (not fear_top and not fear_bottom and fear_left and fear_right):
             return side
 
         if (fear_top and not fear_left and not fear_right and not fear_bottom) or\
-                (fear_top and not fear_bottom and fear_left and fear_right):
+                (fear_top and not fear_bottom and fear_left and fear_right) or\
+                (fear_top and fear_left and not fear_right and not fear_bottom and side == 2) or\
+                (fear_top and not fear_left and fear_right and not fear_bottom and side == 0):
             return 3
         if (not fear_top and fear_left and not fear_right and not fear_bottom) or\
-                (fear_top and fear_bottom and fear_left and not fear_right):
+                (fear_top and fear_bottom and fear_left and not fear_right) or \
+                (fear_left and fear_top and not fear_right and not fear_bottom and side == 1) or\
+                (fear_left and not fear_top and not fear_right and fear_bottom and side == 3):
             return 0
         if (not fear_top and not fear_left and fear_right and not fear_bottom) or\
-                (fear_top and fear_bottom and not fear_left and fear_right):
+                (fear_top and fear_bottom and not fear_left and fear_right) or \
+                (fear_right and fear_top and not fear_left and not fear_bottom and side == 1) or\
+                (fear_right and not fear_top and not fear_left and fear_bottom and side == 3):
             return 2
         if (not fear_top and not fear_left and not fear_right and fear_bottom) or\
-                (not fear_top and fear_bottom and fear_left and fear_right):
+                (not fear_top and fear_bottom and fear_left and fear_right) or \
+                (fear_bottom and fear_left and not fear_right and not fear_top and side == 2) or\
+                (fear_bottom and not fear_left and fear_right and not fear_top and side == 0):
             return 1
         return -1
 

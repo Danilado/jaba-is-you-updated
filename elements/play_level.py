@@ -17,7 +17,7 @@ from classes.state import State
 from classes.text_rule import TextRule
 from elements.global_classes import sound_manager, palette_manager
 from global_types import SURFACE
-from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
+from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG, OPERATORS
 from utils import my_deepcopy, settings_saves
 
 
@@ -690,9 +690,16 @@ class PlayLevel(GameStrategy):
             rule_object.has_objects = has_objects
 
             for rule in self.level_rules:
-                if rule_object.name in rule.text_rule:
+                if f'{rule_object.name} is you' in rule.text_rule:
                     rules.processor.update_object(rule_object)
                     rules.processor.process(rule.text_rule)
+
+            for rule in self.level_rules:
+                for verb in OPERATORS:
+                    if f'{rule_object.name} {verb}' in rule.text_rule\
+                            and f'{rule_object.name} is you' not in rule.text_rule:
+                        rules.processor.update_object(rule_object)
+                        rules.processor.process(rule.text_rule)
 
     def find_rules(self):
         self.level_rules.clear()
