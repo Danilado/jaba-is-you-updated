@@ -372,7 +372,7 @@ class RuleProcessor:
             'win': Win(),
             'make': Make(),
             'write': Write(),
-            'eat':Eat()
+            'eat': Eat()
         }
 
     def update_lists(self, level_processor, matrix, events):
