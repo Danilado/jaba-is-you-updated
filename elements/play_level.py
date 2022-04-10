@@ -5,7 +5,6 @@ from random import randint
 from typing import List, Optional, Dict, Tuple
 
 import pygame
-import numpy as numpy
 
 import settings
 from classes import rules
@@ -18,7 +17,7 @@ from classes.state import State
 from classes.text_rule import TextRule
 from elements.global_classes import sound_manager, palette_manager
 from global_types import SURFACE
-from settings import SHOW_GRID, RESOLUTION, NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
+from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG
 from utils import my_deepcopy, settings_saves
 
 
@@ -46,11 +45,13 @@ class PlayLevel(GameStrategy):
         self.first_iteration = True
         self.objects_for_tp = []
 
-        self.win_offsets = [[(775, 325), 0], [(825, 325), 0], [(725, 325), 0], [(875, 325), 0], [(675, 325), 0], [(925, 325), 0], [(625, 325), 0], [(975, 325), 0], [
-            (575, 325), 0], [(1025, 325), 0], [(525, 325), 0], [(1075, 325), 0], [(475, 325), 0], [(1100, 325), 0], [(450, 325), 0], [(1125, 325), 0], [(425, 325), 0]]
+        self.win_offsets = [[(775, 325), 0], [(825, 325), 0], [(725, 325), 0], [(875, 325), 0], [(675, 325), 0],
+                            [(925, 325), 0], [(625, 325), 0], [(975, 325), 0], [
+                                (575, 325), 0], [(1025, 325), 0], [(525, 325), 0], [(1075, 325), 0], [(475, 325), 0],
+                            [(1100, 325), 0], [(450, 325), 0], [(1125, 325), 0], [(425, 325), 0]]
         for i, _ in enumerate(self.win_offsets):
             self.win_offsets[i][0] = (
-                self.win_offsets[i][0][0]*settings.WINDOW_SCALE, self.win_offsets[i][0][1]*settings.WINDOW_SCALE)
+                self.win_offsets[i][0][0] * settings.WINDOW_SCALE, self.win_offsets[i][0][1] * settings.WINDOW_SCALE)
 
         self.flag_to_win_animation = False
         self.flag_to_delay = False
@@ -68,8 +69,15 @@ class PlayLevel(GameStrategy):
 
         self.delay = pygame.time.get_ticks()
 
-        self.particles = [Particle(self.screen, 'dot', ParticleStrategy((randint(0, 1600), randint(-50, 1650)), (950, - 50), (randint(20, 35), randint(
-            40, 65)), (randint(0, 360), randint(0, 360*5)), 20, 60 + randint(-20, 20), True, True), self.current_palette.pixels[3][6]) for _ in range(40)]
+        self.particles = [Particle(self.screen, 'dot',
+                                   ParticleStrategy((randint(0, 1600), randint(-50, 1650)), (950, - 50),
+                                                    (randint(20, 35), randint(
+                                                        40, 65)), (randint(0, 360), randint(0, 360 * 5)), 20,
+                                                    60 + randint(-20, 20), True, True),
+                                   self.current_palette.pixels[3][6]) for _ in range(40)]
+
+        self.apply_rules_cache: Dict[Object, Tuple[bool, bool, bool, bool, bool, bool, bool, bool,
+                                                bool, bool, bool, bool, bool, List[str], List[str]]] = {}
 
     def parse_file(self, level_name: str):
         """
@@ -172,7 +180,7 @@ class PlayLevel(GameStrategy):
         :rtype: bool
         """
         return settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1 >= x + delta_x >= 0 \
-            and settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1 >= y + delta_y >= 0
+               and settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1 >= y + delta_y >= 0
 
     def check_noun(self, i, j, delta_i, delta_j, status=None):
         noun_objects = []
@@ -314,8 +322,7 @@ class PlayLevel(GameStrategy):
                     if self.check_valid_range(j, i, delta_j * -2, delta_i * -2):
                         for second_objects in self.matrix[i + delta_i][j + delta_j]:
                             if second_objects.name == 'and':
-                                prefix = self.check_prefix(
-                                    i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
+                                prefix = self.check_prefix(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
                                 if isinstance(prefix, list):
                                     for prefix_object in prefix:
                                         prefix_objects.append(prefix_object)
@@ -509,9 +516,9 @@ class PlayLevel(GameStrategy):
                 self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
                 for index in range(1, len(self.win_offsets), 2):
                     self.win_offsets[index][1] += 0.1 * \
-                        (len(self.win_offsets) - index)
+                                                  (len(self.win_offsets) - index)
                     self.win_offsets[index + 1][1] += 0.1 * \
-                        (len(self.win_offsets) - index)
+                                                      (len(self.win_offsets) - index)
 
             if self.win_offsets[0][1] >= max_radius and not self.flag_to_delay:
                 self.flag_to_delay = True
@@ -562,6 +569,7 @@ class PlayLevel(GameStrategy):
 
     def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
         pressed = pygame.key.get_pressed()
+        self.apply_rules_cache.clear()
         if any(pressed[key] for key in [pygame.K_w, pygame.K_a, pygame.K_SPACE, pygame.K_UP,
                                         pygame.K_LEFT]):
             rules.processor.update_lists(level_processor=self,
@@ -580,77 +588,90 @@ class PlayLevel(GameStrategy):
                     for rule_object in self.matrix[i][j]:
                         self.apply_rules(matrix, rule_object, i, j)
 
-    def apply_rules(self, matrix, rule_object, i, j):
+    def _create_in_cache_rules_thing(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int,
+                                     rule_cache_key: Object):
+        is_hot = is_hide = is_safe = is_open = is_shut = is_phantom = \
+            is_text = is_still = is_sleep = is_weak = is_float = is_3d = is_fall = False
+        locked_sides: List[str] = []
+        has_objects: List[str] = []
+        for rule in self.level_rules:
+            for noun in NOUNS:
+                if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
+                    if rule_object.status_switch_name == 0:
+                        matrix[i][j].pop(rule_object.get_index(matrix))
+                        rule_object.name = noun
+                        rule_object.status_switch_name = 1
+                        rule_object.animation = rule_object.animation_init()
+                        matrix[i][j].append(copy(rule_object))
+                    elif rule_object.status_switch_name == 1:
+                        rule_object.status_switch_name = 2
+                    elif rule_object.status_switch_name == 2:
+                        rule_object.status_switch_name = 0
+                if f'{rule_object.name} has {noun}' in rule.text_rule and not rule_object.is_text:
+                    has_objects.append(noun)
+
+            if f'{rule_object.name} is 3d' in rule.text_rule:
+                is_3d = True
+
+            elif f'{rule_object.name} is hide' in rule.text_rule:
+                is_hide = True
+
+            elif f'{rule_object.name} is fall' in rule.text_rule:
+                is_fall = True
+
+            elif f'{rule_object.name} is weak' in rule.text_rule:
+                is_weak = True
+
+            elif f'{rule_object.name} is hot' in rule.text_rule:
+                is_hot = True
+
+            elif f'{rule_object.name} is still' in rule.text_rule:
+                is_still = True
+
+            elif f'{rule_object.name} is locked' in rule.text_rule:
+                if f'{rule_object.name} is lockeddown' in rule.text_rule:
+                    locked_sides.append('down')
+                elif f'{rule_object.name} is lockedup' in rule.text_rule:
+                    locked_sides.append('up')
+                elif f'{rule_object.name} is lockedleft' in rule.text_rule:
+                    locked_sides.append('left')
+                elif f'{rule_object.name} is lockedright' in rule.text_rule:
+                    locked_sides.append('right')
+
+            elif f'{rule_object.name} is safe' in rule.text_rule:
+                is_safe = True
+
+            elif f'{rule_object.name} is open' in rule.text_rule:
+                is_open = True
+
+            elif f'{rule_object.name} is phantom' in rule.text_rule:
+                is_phantom = True
+
+            elif f'{rule_object.name} is shut' in rule.text_rule:
+                is_shut = True
+
+            elif f'{rule_object.name} is text' in rule.text_rule:
+                is_text = True
+
+            elif f'{rule_object.name} is sleep' in rule.text_rule:
+                is_sleep = True
+
+            elif f'{rule_object.name} is float' in rule.text_rule:
+                is_float = True
+        self.apply_rules_cache[rule_cache_key] = (is_hot, is_hide, is_safe, is_open, is_shut, is_phantom,
+                                                  is_text, is_still, is_sleep, is_weak, is_float, is_3d, is_fall,
+                                                  locked_sides, has_objects)
+
+    def apply_rules(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int):
         if not rule_object.special_text:
-            is_hot = is_hide = is_safe = is_open = is_shut = is_phantom = \
-                is_text = is_still = is_sleep = is_weak = is_float = is_3d = is_fall = False
-            locked_sides = []
-            has_objects = []
-            for rule in self.level_rules:
-                for noun in NOUNS:
-                    if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
-                        if rule_object.status_switch_name == 0:
-                            matrix[i][j].pop(rule_object.get_index(matrix))
-                            rule_object.name = noun
-                            rule_object.status_switch_name = 1
-                            rule_object.animation = rule_object.animation_init()
-                            matrix[i][j].append(copy(rule_object))
-                        elif rule_object.status_switch_name == 1:
-                            rule_object.status_switch_name = 2
-                        elif rule_object.status_switch_name == 2:
-                            rule_object.status_switch_name = 0
+            rule_cache_key: Object = rule_object
 
-                    if f'{rule_object.name} has {noun}' in rule.text_rule and not rule_object.is_text:
-                        has_objects.append(noun)
-
-                if f'{rule_object.name} is 3d' in rule.text_rule:
-                    is_3d = True
-
-                elif f'{rule_object.name} is hide' in rule.text_rule:
-                    is_hide = True
-
-                elif f'{rule_object.name} is fall' in rule.text_rule:
-                    is_fall = True
-
-                elif f'{rule_object.name} is weak' in rule.text_rule:
-                    is_weak = True
-
-                elif f'{rule_object.name} is hot' in rule.text_rule:
-                    is_hot = True
-
-                elif f'{rule_object.name} is still' in rule.text_rule:
-                    is_still = True
-
-                elif f'{rule_object.name} is locked' in rule.text_rule:
-                    if f'{rule_object.name} is lockeddown' in rule.text_rule:
-                        locked_sides.append('down')
-                    elif f'{rule_object.name} is lockedup' in rule.text_rule:
-                        locked_sides.append('up')
-                    elif f'{rule_object.name} is lockedleft' in rule.text_rule:
-                        locked_sides.append('left')
-                    elif f'{rule_object.name} is lockedright' in rule.text_rule:
-                        locked_sides.append('right')
-
-                elif f'{rule_object.name} is safe' in rule.text_rule:
-                    is_safe = True
-
-                elif f'{rule_object.name} is open' in rule.text_rule:
-                    is_open = True
-
-                elif f'{rule_object.name} is phantom' in rule.text_rule:
-                    is_phantom = True
-
-                elif f'{rule_object.name} is shut' in rule.text_rule:
-                    is_shut = True
-
-                elif f'{rule_object.name} is text' in rule.text_rule:
-                    is_text = True
-
-                elif f'{rule_object.name} is sleep' in rule.text_rule:
-                    is_sleep = True
-
-                elif f'{rule_object.name} is float' in rule.text_rule:
-                    is_float = True
+            if rule_cache_key not in self.apply_rules_cache:
+                self._create_in_cache_rules_thing(matrix, rule_object, i, j, rule_cache_key)
+            is_hot, is_hide, is_safe, is_open, is_shut, is_phantom, is_text, is_still, is_sleep, \
+                is_weak, is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:13]
+            locked_sides: List[str] = self.apply_rules_cache[rule_cache_key][13]
+            has_objects: List[str] = self.apply_rules_cache[rule_cache_key][14]
 
             rule_object.is_hot = is_hot
             rule_object.is_hide = is_hide
@@ -783,8 +804,8 @@ class PlayLevel(GameStrategy):
                         game_object.draw(self.screen)
 
             if self.show_grid:
-                for x in numpy.arange(0, settings.RESOLUTION[0], 50 * settings.WINDOW_SCALE):
-                    for y in numpy.arange(0, settings.RESOLUTION[1], 50 * settings.WINDOW_SCALE):
+                for x in range(0, settings.RESOLUTION[0], int(50 * settings.WINDOW_SCALE)):
+                    for y in range(0, settings.RESOLUTION[1], int(50 * settings.WINDOW_SCALE)):
                         pygame.draw.rect(
                             self.screen, (255, 255, 255),
                             (x, y, 50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE), 1)
