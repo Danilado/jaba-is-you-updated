@@ -772,6 +772,7 @@ class PlayLevel(GameStrategy):
             if count_3d_obj != 0:
                 self.num_obj_3d %= self.count_3d_obj
         else:
+            self.check_matrix()
             for line in self.matrix:
                 for cell in line:
                     for game_object in cell:
