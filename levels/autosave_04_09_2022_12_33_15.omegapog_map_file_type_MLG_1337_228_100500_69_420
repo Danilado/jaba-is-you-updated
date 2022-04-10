@@ -1,0 +1,9 @@
+default
+17 0 1 baba True
+18 0 1 is False
+19 0 1 you False
+17 1 1 baba True
+18 1 1 eat False
+19 1 1 bat True
+20 5 1 baba False
+23 5 1 bat False

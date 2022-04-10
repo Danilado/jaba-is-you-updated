@@ -290,7 +290,6 @@ class Write:
         rule_object.animation = rule_object.animation_init()
         matrix[rule_object.y][rule_object.x].append(rule_object)
 
-
 class Fear:
     def apply(self, matrix, rule_object, rule_noun, level_rules, **__):
         fear_top = False
@@ -342,6 +341,21 @@ class Fear:
                 (not fear_top and fear_bottom and fear_left and fear_right):
             return 1
         return -1
+
+
+class Eat:
+    @staticmethod
+    def apply(matrix, rule_object, rule_noun, *_, **__):
+        print('хуй')
+        for level_object in matrix[rule_object.y][rule_object.x]:
+            if level_object.name == rule_noun and not level_object.is_text:
+                if rule_object.name != rule_noun:
+                    matrix[level_object.y][level_object.x].pop(
+                        level_object.get_index(matrix))
+                else:
+                    if level_object.get_index(matrix) != rule_object.get_index(matrix):
+                        matrix[level_object.y][level_object.x].pop(
+                            level_object.get_index(matrix))
 
 
 class Tele:
@@ -410,7 +424,8 @@ class RuleProcessor:
             'win': Win(),
             'make': Make(),
             'write': Write(),
-            'fear': Fear()
+            'fear': Fear(),
+            'eat': Eat()
         }
 
     def update_lists(self, level_processor, matrix, events):
