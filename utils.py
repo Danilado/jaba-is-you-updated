@@ -82,3 +82,10 @@ def language_words():
         for param in words_file:
             words.append(param.strip())
         return words
+
+
+def debug(*args):
+    """Главный дебаг мира, который дебажит вообще всё на свете и сразу и вообще.
+    Можно передать любое количество любых аргументов и всё выведется. Ультимативная вещь.
+    """
+    print('хуй', *args)
