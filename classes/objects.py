@@ -2,17 +2,19 @@
 from copy import copy
 import os
 import os.path
-from typing import List, Literal
+from typing import List, Literal, Optional
 
 import pygame
 
+import settings
 from classes.palette import Palette
 from elements.global_classes import sprite_manager, palette_manager
 from global_types import SURFACE
-from settings import TEXT_ONLY, SPRITE_ONLY, RESOLUTION, NOUNS, OPERATORS, PROPERTIES
+from settings import TEXT_ONLY, SPRITE_ONLY, NOUNS, OPERATORS, PROPERTIES
 from classes.animation import Animation
 from classes.game_state import GameState
 from classes.state import State
+from utils import get_pressed_direction
 
 pygame.font.init()
 font = pygame.font.Font("fonts/ConsolateElf.ttf", 15)
@@ -30,6 +32,15 @@ font = pygame.font.Font("fonts/ConsolateElf.ttf", 15)
 # Во вторых, придётся искать все упоминания объектов вручную
 # В третьих, сами структуры выглядят по уродски, а иначе нужно
 # Создавать классы, которые трудно сериализировать
+# quswadress:
+# #define MNE_LEN_REFAKTORIT "Это просто оправдание лени refactor-ть это."
+# 1) Изменится половина кода? И что с того? MNE_LEN_REFACTORIT
+# 2) MNE_LEN_REFACTORIT
+# 3) Не спорю. Но если структуры могут работать с своими данными(то есть имеют какие-нибудь методы) то нет \
+#       (именно поэтому есть параметр min-public-methods в pylint-е). Как пример можно привести структуру Palette.
+# 4) Про часть с сериализацией, я не понял. А в чём собственно трудность? Если ты про /
+#       большую связность классов друг с другом, то не думаю что это является серьёзной трудностью, просто /
+#       сделай метод `serialize_this_shit` который будет принимать в себя все эти классы и возвращать байты, и всё.
 
 class Object:
     """
@@ -87,14 +98,14 @@ class Object:
 
         self.x = x
         self.y = y
-        self.xpx = x * 50
-        self.ypx = y * 50
+        self.xpx = x * 50 * settings.WINDOW_SCALE
+        self.ypx = y * 50 * settings.WINDOW_SCALE
 
         self.angle_3d = angle_3d
         self.num_3d = num_3d
 
-        self.width = 50
-        self.height = 50
+        self.width = 50 * settings.WINDOW_SCALE
+        self.height = 50 * settings.WINDOW_SCALE
 
         self.animation: Animation
         self.movement_state = movement_state
@@ -167,7 +178,7 @@ class Object:
             path = os.path.join('./', 'sprites', 'text')
             animation.sprites = [pygame.transform.scale(sprite_manager.get(
                 os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}"), default=True, palette=self.palette),
-                (50, 50)) for index in range(0, 3)]
+                (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)]
         else:
             path = os.path.join('./', 'sprites', self.name)
             try:
@@ -189,32 +200,32 @@ class Object:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_0_{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 15:
                     frame = self.investigate_neighbours()
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{frame}_{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 3:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{self.movement_state % 4}_{index}'), default=True,
                         palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 24:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{self.direction_key_map[self.direction] * 8}_{index}'), default=True,
                         palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 27:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_'
                                      f'{self.movement_state % 4 + self.direction_key_map[self.direction] * 8}_'
                                      f'{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 elif state_max == 31:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(
@@ -222,7 +233,7 @@ class Object:
                             f'{self.name}_'
                             f'{self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0)}_'
                             f'{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
                 else:
                     print(f'{self.name} somehow fucked up while setting animation')
             except FileNotFoundError:
@@ -337,7 +348,7 @@ class Object:
             pass
 
     @staticmethod
-    def find_side(delta_x, delta_y) -> str:
+    def find_side(delta_x, delta_y) -> Optional[str]:
         """Поиск направления движения
 
         :param delta_x: Сдвиг объекта по оси x
@@ -345,7 +356,6 @@ class Object:
         :param delta_y: Сдвиг объекта по оси y
         :type delta_y: int
         :return: Сторона движения
-        :rtype: str
         """
         side = None
         if delta_y > 0:
@@ -371,8 +381,8 @@ class Object:
         if not self.is_still:
             self.x += delta_x
             self.y += delta_y
-            self.ypx -= delta_y * 50
-            self.xpx -= delta_x * 50
+            self.ypx -= delta_y * int((50 * settings.WINDOW_SCALE))
+            self.xpx -= delta_x * int((50 * settings.WINDOW_SCALE))
         self.animation = None
         self.movement_state += 1
         self.moved = True
@@ -391,7 +401,7 @@ class Object:
             self.direction = 3
         matrix[self.y][self.x].append(copy(self))
 
-    def check_swap(self, delta_x, delta_y, matrix, level_rules, rule_object) -> True:
+    def check_swap(self, delta_x, delta_y, matrix, level_rules, rule_object) -> Literal[True]:
         """Проверяет правило swap у объекта и сразу
         выполняет действие, если возможно
 
@@ -614,7 +624,7 @@ class Object:
                             self.level_processor.flag_to_win_animation = True
         return False
 
-    def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object) -> True:
+    def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object) -> Literal[True]:
         """Проверяет все правила, действующие на объект
         И меняет его статус в зависимости от них
 
@@ -714,8 +724,8 @@ class Object:
         :return: Можно ли двигаться в данном направлении
         :rtype: bool
         """
-        return RESOLUTION[0] // 50 - 1 >= self.x + delta_x >= 0 \
-               and RESOLUTION[1] // 50 - 1 >= self.y + delta_y >= 0
+        return settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1 >= self.x + delta_x >= 0 \
+            and settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1 >= self.y + delta_y >= 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules) -> None:
         """Тянет объекты с правилом pull
@@ -754,9 +764,9 @@ class Object:
             self.locked_sides.append('up')
         elif side == 'left' and self.x == 0:
             self.locked_sides.append('left')
-        elif side == 'right' and self.x == RESOLUTION[0] // 50 - 1:
+        elif side == 'right' and self.x == settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1:
             self.locked_sides.append('right')
-        elif side == 'down' and self.y == RESOLUTION[1] // 50 - 1:
+        elif side == 'down' and self.y == settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1:
             self.locked_sides.append('down')
         if side in self.locked_sides:
             return False
@@ -825,7 +835,7 @@ class Object:
             if self.status == 'alive':
                 for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
                     if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True)
-                        or not self.can_interact(rule_object, level_rules)) and status_motion != False:
+                            or not self.can_interact(rule_object, level_rules)) and status_motion != False:
                         if self.object_can_move(level_rules) and not self.is_still:
                             status_motion = True
 
@@ -884,41 +894,7 @@ class Object:
         :param number: Номер правила YOU объекта (/YOU2)
         :type number: int
         """
-        for event in events:
-            if number == 1:
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_d:
-                        self.turning_side = 0
-                    if event.key == pygame.K_w:
-                        self.turning_side = 1
-                    if event.key == pygame.K_a:
-                        self.turning_side = 2
-                    if event.key == pygame.K_s:
-                        self.turning_side = 3
-                    if event.key in [pygame.K_RIGHT, pygame.K_LEFT, pygame.K_DOWN,
-                                     pygame.K_UP, pygame.K_SPACE]:
-                        self.turning_side = -1
-                if event.type == pygame.KEYUP:
-                    if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
-                                     pygame.K_d, pygame.K_SPACE]:
-                        self.turning_side = -1
-            if number == 2:
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_RIGHT:
-                        self.turning_side = 0
-                    if event.key == pygame.K_UP:
-                        self.turning_side = 1
-                    if event.key == pygame.K_LEFT:
-                        self.turning_side = 2
-                    if event.key == pygame.K_DOWN:
-                        self.turning_side = 3
-                    if event.key in [pygame.K_w, pygame.K_a, pygame.K_s,
-                                     pygame.K_d, pygame.K_SPACE]:
-                        self.turning_side = -1
-                if event.type == pygame.KEYUP:
-                    if event.key in [pygame.K_RIGHT, pygame.K_LEFT, pygame.K_DOWN,
-                                     pygame.K_UP, pygame.K_SPACE]:
-                        self.turning_side = -1
+        self.turning_side = get_pressed_direction(number == 2)
 
     @property
     def is_operator(self) -> bool:

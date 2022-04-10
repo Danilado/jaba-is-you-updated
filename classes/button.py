@@ -2,6 +2,8 @@ from typing import Union, TYPE_CHECKING, Callable, Any, Optional, List, Sequence
 
 import pygame
 
+import settings
+
 if TYPE_CHECKING:
     from elements.global_classes import AbstractButtonSettings
     from global_types import COLOR, SURFACE
@@ -21,7 +23,8 @@ class Button:
     :ivar action: Функция вызывающаяся при нажатии
     """
 
-    def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR", settings: "AbstractButtonSettings",
+    def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR",
+                 button_settings: "AbstractButtonSettings",
                  text: str = "", action: Optional[Callable[[], Any]] = None):
         """
         Инициализация кнопки
@@ -31,7 +34,7 @@ class Button:
         :param width: Ширина в пикселях
         :param height: Высота в пикселях
         :param outline: Цвет контура
-        :param settings: Настройка цветов
+        :param button_settings: Настройка цветов
         :param text: Текст
         :param action: Функция вызывающаяся при нажатии
         """
@@ -40,7 +43,8 @@ class Button:
         self.width = width
         self.height = height
         self.text = text
-        self.settings = settings
+        self.scale = settings.WINDOW_SCALE
+        self.settings = button_settings
         self.action = action
         self.outline = outline
 
@@ -52,17 +56,17 @@ class Button:
         """
         if self.outline:
             pygame.draw.rect(screen, self.outline, (self.x - 2,
-                             self.y - 2, self.width + 4, self.height + 4), 0)
+                                                    self.y - 2, self.width + 4, self.height + 4), 0)
 
         color = self.settings.button_color if not self.is_over(
             pygame.mouse.get_pos()) else self.settings.button_color_hover
         pygame.draw.rect(screen, color, (self.x, self.y,
-                         self.width, self.height), 0)
+                                         self.width, self.height), 0)
 
         if self.text != "":
             pygame.font.init()
             font = pygame.font.Font(
-                "fonts/ConsolateElf.ttf", self.settings.text_size)
+                "fonts/ConsolateElf.ttf", int(self.settings.text_size * self.scale))
             lines = self.text.split('\n')
             text_height = 0
             for index, line in enumerate(lines):

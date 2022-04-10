@@ -53,5 +53,5 @@ class ProgressBarMenu(GameStrategy):
             return State(GameState.FLIP)
         return None
 
-    def music(self):
+    def on_init(self):
         pass
