@@ -291,6 +291,59 @@ class Write:
         matrix[rule_object.y][rule_object.x].append(rule_object)
 
 
+class Fear:
+    def apply(self, matrix, rule_object, rule_noun, level_rules, **__):
+        fear_top = False
+        print(rule_object.name)
+        if rule_object.check_valid_range(0, -1):
+            for level_object in matrix[rule_object.y - 1][rule_object.x]:
+                if not level_object.is_text and level_object.name == rule_noun:
+                    fear_top = True
+        fear_bottom = False
+        if rule_object.check_valid_range(0, 1):
+            for level_object in matrix[rule_object.y + 1][rule_object.x]:
+                if not level_object.is_text and level_object.name == rule_noun:
+                    fear_bottom = True
+        fear_left = False
+        if rule_object.check_valid_range(-1, 0):
+            for level_object in matrix[rule_object.y][rule_object.x - 1]:
+                if not level_object.is_text and level_object.name == rule_noun:
+                    fear_left = True
+        fear_right = False
+        if rule_object.check_valid_range(1, 0):
+            for level_object in matrix[rule_object.y][rule_object.x + 1]:
+                if not level_object.is_text and level_object.name == rule_noun:
+                    fear_right = True
+        turning_side = self.find_side_move(fear_top, fear_bottom, fear_left, fear_right, rule_object.find_side)
+        if turning_side == 0:
+            rule_object.motion(1, 0, matrix, level_rules)
+        elif turning_side == 1:
+            rule_object.motion(0, -1, matrix, level_rules)
+        elif turning_side == 2:
+            rule_object.motion(-1, 0, matrix, level_rules)
+        elif turning_side == 3:
+            rule_object.motion(0, 1, matrix, level_rules)
+
+    def find_side_move(self, fear_top, fear_bottom, fear_left, fear_right, side):
+        if (fear_top and fear_bottom and not fear_left and not fear_right) or \
+                (not fear_top and not fear_bottom and fear_left and fear_right):
+            return side
+
+        if (fear_top and not fear_left and not fear_right and not fear_bottom) or\
+                (fear_top and not fear_bottom and fear_left and fear_right):
+            return 3
+        if (not fear_top and fear_left and not fear_right and not fear_bottom) or\
+                (fear_top and fear_bottom and fear_left and not fear_right):
+            return 0
+        if (not fear_top and not fear_left and fear_right and not fear_bottom) or\
+                (fear_top and fear_bottom and not fear_left and fear_right):
+            return 2
+        if (not fear_top and not fear_left and not fear_right and fear_bottom) or\
+                (not fear_top and fear_bottom and fear_left and fear_right):
+            return 1
+        return -1
+
+
 class Tele:
     @staticmethod
     def apply(matrix, rule_object, *_, **__):
@@ -304,13 +357,13 @@ class Tele:
                 for second_object_tp in cell:
                     if not second_object_tp.is_text:
                         if second_object_tp.name == first_tp.name \
-                                and (second_object_tp.x != first_tp.x or second_object_tp.y != first_tp.y)\
+                                and (second_object_tp.x != first_tp.x or second_object_tp.y != first_tp.y) \
                                 and len(matrix[i][j]) > 1:
                             status = True
                             teleports.append(copy(second_object_tp))
         if not status:
             return False
-        second_tp = teleports[random.randint(0, len(teleports)-1)]
+        second_tp = teleports[random.randint(0, len(teleports) - 1)]
         x2 = second_tp.x
         y2 = second_tp.y
         for objects in matrix[y1][x1]:
@@ -356,7 +409,8 @@ class RuleProcessor:
             'sink': Sink(),
             'win': Win(),
             'make': Make(),
-            'write': Write()
+            'write': Write(),
+            'fear': Fear()
         }
 
     def update_lists(self, level_processor, matrix, events):

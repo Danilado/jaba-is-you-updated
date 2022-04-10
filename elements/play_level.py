@@ -800,6 +800,9 @@ class PlayLevel(GameStrategy):
             self.win_animation()
 
         if self.moved:
+            print('--------')
+            for rule in self.level_rules:
+                print(rule.text_rule)
             self.moved = False
 
         if self.state is None:
