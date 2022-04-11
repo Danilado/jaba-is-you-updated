@@ -707,8 +707,42 @@ class PlayLevel(GameStrategy):
             for j in range(len(self.matrix[i])):
                 self.scan_rules(i, j, 0, 1)
                 self.scan_rules(i, j, 1, 0)
+        self.mimic_rules()
         self.level_rules = self.remove_copied_rules(
             self.level_rules)
+
+    def mimic_rules(self):
+        new_rules = []
+        for mimic_rule in self.level_rules:
+            if 'mimic' in mimic_rule.text_rule:
+                old_object_name = mimic_rule.text_rule.split()[-1]
+                new_object_name = mimic_rule.text_rule.split()[-3]
+                for rule in self.level_rules:
+                    if f'{old_object_name} is you' in rule.text_rule:
+                        new_rule = copy(rule)
+                        objects = new_rule.text_rule.split()
+                        objects[-3] = new_object_name
+                        text = ''
+                        for obj in objects:
+                            text += obj
+                            text += ' '
+                        new_rule.text_rule = text[0:-1]
+                        new_rules.append(new_rule)
+
+                for rule in self.level_rules:
+                    for verb in OPERATORS:
+                        if f'{old_object_name} {verb}' in rule.text_rule:
+                            new_rule = copy(rule)
+                            objects = new_rule.text_rule.split()
+                            objects[-3] = new_object_name
+                            text = ''
+                            for obj in objects:
+                                text += obj
+                                text += ' '
+                            new_rule.text_rule = text[0:-1]
+                            new_rules.append(new_rule)
+        for rule in new_rules:
+            self.level_rules.append(rule)
 
     def update_sticky_neighbours(self, game_object: Object):
         game_object.neighbours = self.get_neighbours(
@@ -830,9 +864,6 @@ class PlayLevel(GameStrategy):
             self.win_animation()
 
         if self.moved:
-            print('--------')
-            for rule in self.level_rules:
-                print(rule.text_rule)
             self.moved = False
 
         if self.state is None:

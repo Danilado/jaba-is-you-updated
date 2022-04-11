@@ -334,28 +334,31 @@ class Fear:
                 (fear_top and fear_left and not fear_right and not fear_bottom and side == 2) or\
                 (fear_top and not fear_left and fear_right and not fear_bottom and side == 0):
             return 3
+
         if (not fear_top and fear_left and not fear_right and not fear_bottom) or\
                 (fear_top and fear_bottom and fear_left and not fear_right) or \
                 (fear_left and fear_top and not fear_right and not fear_bottom and side == 1) or\
                 (fear_left and not fear_top and not fear_right and fear_bottom and side == 3):
             return 0
+
         if (not fear_top and not fear_left and fear_right and not fear_bottom) or\
                 (fear_top and fear_bottom and not fear_left and fear_right) or \
                 (fear_right and fear_top and not fear_left and not fear_bottom and side == 1) or\
                 (fear_right and not fear_top and not fear_left and fear_bottom and side == 3):
             return 2
+
         if (not fear_top and not fear_left and not fear_right and fear_bottom) or\
                 (not fear_top and fear_bottom and fear_left and fear_right) or \
                 (fear_bottom and fear_left and not fear_right and not fear_top and side == 2) or\
                 (fear_bottom and not fear_left and fear_right and not fear_top and side == 0):
             return 1
+
         return -1
 
 
 class Eat:
     @staticmethod
     def apply(matrix, rule_object, rule_noun, *_, **__):
-        print('хуй')
         for level_object in matrix[rule_object.y][rule_object.x]:
             if level_object.name == rule_noun and not level_object.is_text:
                 if rule_object.name != rule_noun:
@@ -365,6 +368,33 @@ class Eat:
                     if level_object.get_index(matrix) != rule_object.get_index(matrix):
                         matrix[level_object.y][level_object.x].pop(
                             level_object.get_index(matrix))
+
+
+class Follow:
+    def apply(self, matrix, rule_object, rule_noun, **__):
+        delta_i = 0
+        delta_j = 0
+        while rule_object.check_valid_range(delta_j, delta_i):
+            for level_object in matrix[rule_object.y + delta_i][rule_object + delta_j]:
+                if level_object.name == rule_noun:
+                    if abs(delta_i) <= abs(delta_j):
+                        if delta_i < 0:
+                            rule_object.direction = 0
+                            rule_object.turning_side = 1
+                            rule_object.animation = rule_object.animation_init()
+                        if delta_i >= 0:
+                            rule_object.direction = 2
+                            rule_object.turning_side = 3
+                            rule_object.animation = rule_object.animation_init()
+                    if abs(delta_i) > abs(delta_j):
+                        if delta_j < 0:
+                            rule_object.direction = 3
+                            rule_object.turning_side = 2
+                            rule_object.animation = rule_object.animation_init()
+                        if delta_j >= 0:
+                            rule_object.direction = 1
+                            rule_object.turning_side = 0
+                            rule_object.animation = rule_object.animation_init()
 
 
 class Tele:

@@ -1,0 +1,12 @@
+default
+18 0 1 bird True
+19 0 1 is False
+20 0 1 defeat False
+18 1 1 baba True
+19 1 1 is False
+20 1 1 you False
+18 2 1 bird True
+19 2 1 is False
+20 2 1 stop False
+19 6 1 baba False
+20 6 1 bird False
