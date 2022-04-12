@@ -111,7 +111,8 @@ class ParticleStrategy:
 
 
 class Particle:
-    def __init__(self, screen: SURFACE, name: str = None, strategy: Union[ParticleStrategy, str] = None, color: COLOR = 'white'):
+    def __init__(self, screen: SURFACE, name: str = None,
+                 strategy: Union[ParticleStrategy, str] = None, color: COLOR = 'white'):
         self.screen = screen
         self.sprite_name = name
         self.color = color
@@ -140,10 +141,8 @@ class Particle:
                 self.sprite_index += 1
                 self.sprite_index %= self.sprites_count
                 self.animation_timestamp = pygame.time.get_ticks()
-
             return True
-        else:
-            return False
+        return False
 
     def draw(self, screen):
         if self.update():

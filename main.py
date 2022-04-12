@@ -2,7 +2,7 @@ import argparse
 
 import settings
 from classes.game_context import GameContext
-from elements.global_classes import sprite_manager, sound_manager
+from elements.global_classes import sound_manager
 from elements.progressbar_menu import ProgressBarMenu
 
 

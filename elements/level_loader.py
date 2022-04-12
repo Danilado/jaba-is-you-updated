@@ -9,10 +9,10 @@ import settings
 from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
-from classes.objects import Object
 from classes.state import State
 from elements.play_level import PlayLevel
-from elements.global_classes import GuiSettings, palette_manager
+from elements.global_classes import GuiSettings
+from elements.loader_util import parse_file
 from global_types import SURFACE
 from utils import language_words
 
@@ -26,7 +26,7 @@ class Loader(GameStrategy):
     def on_init(self):
         pass
 
-    def __init__(self, screen: SURFACE, from_editor_overlay=None, plug=None):
+    def __init__(self, screen: SURFACE, from_editor_overlay=None, _=None):
         """Инициализация загрузчика
 
         :param screen: На какую поверхность отрисовываться
@@ -86,16 +86,26 @@ class Loader(GameStrategy):
         :param level_name: Название желаемого уровня
         """
         self.overlay.loaded_flag = True
+<<<<<<< HEAD
         pallete_name, level_size, self.overlay.editor.current_state = self.parse_file(
             level_name)
 
         self.overlay.editor.size = level_size
         self.overlay.editor.current_palette = palette_manager.get_palette(
             pallete_name)
+=======
+        pallete_name, level_size, self.overlay.editor.current_state = parse_file(
+            level_name)
+
+        self.overlay.editor.size = level_size
+        self.overlay.editor.current_palette = pallete_name
+>>>>>>> 62164d159ed044f708bdead50fc232313bb21497
 
         self.overlay.editor.level_name = level_name
+        self.overlay.editor.define_border_and_scale()
         self._state = State(GameState.BACK)
 
+<<<<<<< HEAD
     def parse_file(self, level_name: str) -> List[List[List[Object]]]:
         """
         Преобразует записанную в файле уровня информацию в матрицу
@@ -147,6 +157,8 @@ class Loader(GameStrategy):
 
         return pallete, resolution, matrix
 
+=======
+>>>>>>> 62164d159ed044f708bdead50fc232313bb21497
     @staticmethod
     def find_levels() -> List[str]:
         """

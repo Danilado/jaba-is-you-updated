@@ -1,5 +1,3 @@
-from typing import List
-
 import pygame
 import settings
 
@@ -40,7 +38,8 @@ class MoveCursor:
                         matrix[i - 1][j].append(element)
                         matrix[i - 1][j][-1].y -= 1
                         matrix[i - 1][j][-1].animation.position = (
-                            matrix[i - 1][j][-1].x * 50 * settings.WINDOW_SCALE,
+                            matrix[i - 1][j][-1].x * 50 *
+                            settings.WINDOW_SCALE,
                             matrix[i - 1][j][-1].y * 50 * settings.WINDOW_SCALE)
                         cell.pop(k)
 
@@ -82,7 +81,8 @@ class MoveCursor:
                         matrix[i][j - 1].append(element)
                         matrix[i][j - 1][-1].x -= 1
                         matrix[i][j - 1][-1].animation.position = (
-                            matrix[i][j - 1][-1].x * 50 * settings.WINDOW_SCALE,
+                            matrix[i][j - 1][-1].x * 50 *
+                            settings.WINDOW_SCALE,
                             matrix[i][j - 1][-1].y * 50 * settings.WINDOW_SCALE)
                         cell.pop(k)
 
