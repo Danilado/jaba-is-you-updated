@@ -44,49 +44,61 @@ class MainMenu(GameStrategy):
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int):
         buttons = [
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 - int(120 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[0]}",
+                   settings.RESOLUTION[1] // 2 - int(
+                       120 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0,
+                                                     0), GuiSettings(), f"{language_words()[0]}",
                    self._start_the_game),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 - int(60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
+                   settings.RESOLUTION[1] // 2 - int(
+                       60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
                    int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[1]}"),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE), settings.RESOLUTION[1] // 2,
-                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   int(400 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
                    f"{language_words()[2]}", self._go_to_editor),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 + int(60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[3]}",
+                   settings.RESOLUTION[1] // 2 + int(
+                       60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0,
+                                                     0), GuiSettings(), f"{language_words()[3]}",
                    self._go_to_loader),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 + int(120 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[4]}",
+                   settings.RESOLUTION[1] // 2 + int(
+                       120 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0,
+                                                     0), GuiSettings(), f"{language_words()[4]}",
                    self._go_to_options),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 + int(180 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[5]}",
+                   settings.RESOLUTION[1] // 2 + int(
+                       180 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0,
+                                                     0), GuiSettings(), f"{language_words()[5]}",
                    self._exit_the_game),
         ]
         self._state = None
-        if events:
-            self.screen.fill("black")
 
-            for event in events:
-                if event.type == pygame.QUIT:
-                    self._exit_the_game()
-                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
-                    self._exit_the_game()
-            for button in buttons:
-                button.draw(self.screen)
-                button.update(events)
-            if self._state is None:
-                self._state = State(GameState.FLIP, None)
-            else:
-                pygame.event.set_allowed(None)
+        self.screen.fill("black")
+
+        for event in events:
+            if event.type == pygame.QUIT:
+                self._exit_the_game()
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self._exit_the_game()
+        for button in buttons:
+            button.draw(self.screen)
+            button.update(events)
+        if self._state is None:
+            self._state = State(GameState.FLIP, None)
+        else:
+            pygame.event.set_allowed(None)
+
         return self._state
 
     def on_init(self):
         sound_manager.load_music("sounds/Music/menu")
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play()
-        pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONUP])
+        pygame.event.set_allowed(
+            [pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONUP])
         print("QUIT, KEYDOWN, MOUSEBUTTONUP")
