@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 class Input:
     """Поле ввода текста"""
 
-    def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR", text_settings: "AbstractButtonSettings",
-                 placeholder: str = ""):
+    def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR",
+                 text_settings: "AbstractButtonSettings", placeholder: str = ""):
         """Инициализация поля ввода
 
         :param x: Положение поля на экране по оси x

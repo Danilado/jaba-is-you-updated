@@ -1,0 +1,9 @@
+default 31 10
+0 0 1 frog True
+1 0 1 is False
+2 0 1 you False
+3 0 1 worm True
+4 0 1 is False
+5 0 1 push False
+0 1 1 frog False
+3 1 1 worm False

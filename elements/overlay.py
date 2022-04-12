@@ -52,15 +52,15 @@ class EditorOverlay(GameStrategy):
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
                    int(120 * settings.WINDOW_SCALE),
-                   int(400 * settings.WINDOW_SCALE), int(50 *
-                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
                    f"{self.lang_words[10]}",
                    self.cancel),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
                    int(60 * settings.WINDOW_SCALE),
-                   int(400 * settings.WINDOW_SCALE), int(50 *
-                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
                    f"{self.lang_words[11]}",
                    self.load),
             Input(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE), settings.RESOLUTION[1] // 2,
@@ -69,36 +69,72 @@ class EditorOverlay(GameStrategy):
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 +
                    int(60 * settings.WINDOW_SCALE),
-                   int(400 * settings.WINDOW_SCALE), int(50 *
-                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
                    f"{self.lang_words[13]}",
                    self.save),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 +
                    int(120 * settings.WINDOW_SCALE),
-                   int(400 * settings.WINDOW_SCALE), int(50 *
-                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
                    f"{self.lang_words[14]}",
                    self.force_exit),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 +
                    int(180 * settings.WINDOW_SCALE),
-                   int(400 * settings.WINDOW_SCALE), int(50 *
-                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
                    f"{self.lang_words[15]}",
                    self.hard_force_exit),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
                    int(230 * settings.WINDOW_SCALE),
-                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), EuiSettings()),
+                   int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), EuiSettings()),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
                    int(180 * settings.WINDOW_SCALE),
-                   int(400 * settings.WINDOW_SCALE), int(50 *
-                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
                    f"{self.lang_words[9]}",
                    self.switch_to_palette_choose),
+            Button(settings.RESOLUTION[0] - 150,
+                   int(100 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   "<",
+                   partial(self.resize, 0, -1)),
+            Button(settings.RESOLUTION[0] - 150,
+                   int(175 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   "<",
+                   partial(self.resize, 1, -1)),
+            Button(settings.RESOLUTION[0] - 50,
+                   int(100 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   ">",
+                   partial(self.resize, 0, 1)),
+            Button(settings.RESOLUTION[0] - 50,
+                   int(175 * settings.WINDOW_SCALE), int(50 *
+                                                         settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+                   ">",
+                   partial(self.resize, 1, 1)),
         ]
+
+    def resize(self, axe, amount):
+        if not axe:
+            if self.editor.size[0] + amount in range(4, 33):
+                self.editor.size = (
+                    self.editor.size[0] + amount, self.editor.size[1])
+        else:
+            if self.editor.size[1] + amount in range(4, 19):
+                self.editor.size = (
+                    self.editor.size[0], self.editor.size[1] + amount)
+        self.editor.define_border_and_scale()
 
     def save(self):
         """Сохраняет матрицу редактора
@@ -154,6 +190,7 @@ class EditorOverlay(GameStrategy):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.editor.level_name = str(self.buttons[3])
+                    self.editor.define_border_and_scale()
                     self.state = State(GameState.BACK)
             if event.type == pygame.KEYUP:
                 if str(self.buttons[3]):
@@ -168,6 +205,19 @@ class EditorOverlay(GameStrategy):
         for button in self.buttons:
             button.update(events)
             button.draw(self.screen)
+
+        axis = [Button(settings.RESOLUTION[0] - 100,
+                       int(100 * settings.WINDOW_SCALE), int(50 *
+                                                             settings.WINDOW_SCALE),
+                       int(50 * settings.WINDOW_SCALE), (0, 0, 0), EuiSettings(),
+                       f"{self.editor.size[0]}"),
+                Button(settings.RESOLUTION[0] - 100,
+                       int(175 * settings.WINDOW_SCALE), int(50 *
+                                                             settings.WINDOW_SCALE),
+                       int(50 * settings.WINDOW_SCALE), (0, 0, 0), EuiSettings(),
+                       f"{self.editor.size[1]}"), ]
+        for axe in axis:
+            axe.draw(self.screen)
 
         if self.state is not None:
             if str(self.buttons[3]) != '':
