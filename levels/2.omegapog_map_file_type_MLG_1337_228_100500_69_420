@@ -11,7 +11,7 @@ default 32 18
 20 0 1 rose True
 21 0 1 is False
 22 0 1 stop False
-28 0 1 rock True
+28 0 1 water True
 29 0 1 is False
 30 0 1 sink False
 0 1 1 rose False
@@ -135,7 +135,7 @@ default 32 18
 11 12 1 rose False
 13 12 1 rose False
 14 12 1 flag False
-17 12 1 rock False
+17 12 1 water False
 27 12 1 rose False
 12 13 1 rose False
 13 13 1 rose False

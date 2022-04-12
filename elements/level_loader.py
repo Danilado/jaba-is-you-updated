@@ -86,79 +86,16 @@ class Loader(GameStrategy):
         :param level_name: Название желаемого уровня
         """
         self.overlay.loaded_flag = True
-<<<<<<< HEAD
-        pallete_name, level_size, self.overlay.editor.current_state = self.parse_file(
-            level_name)
-
-        self.overlay.editor.size = level_size
-        self.overlay.editor.current_palette = palette_manager.get_palette(
-            pallete_name)
-=======
         pallete_name, level_size, self.overlay.editor.current_state = parse_file(
             level_name)
 
         self.overlay.editor.size = level_size
         self.overlay.editor.current_palette = pallete_name
->>>>>>> 62164d159ed044f708bdead50fc232313bb21497
 
         self.overlay.editor.level_name = level_name
         self.overlay.editor.define_border_and_scale()
         self._state = State(GameState.BACK)
 
-<<<<<<< HEAD
-    def parse_file(self, level_name: str) -> List[List[List[Object]]]:
-        """
-        Преобразует записанную в файле уровня информацию в матрицу
-
-        :param level_name: Название желаемого уровня
-        :return: Возвращает преобразованную из файла матрицу
-        """
-        level_file = open(file=f'./levels/{str(level_name)}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
-                          mode='r', encoding='utf-8')
-
-        lines = level_file.read().split('\n')
-        meta = lines[0].split()
-
-        if len(meta) > 3:
-            new_file = open(file=f'./levels/{str(level_name)}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
-                            mode='w', encoding='utf-8')
-            new_file.write('default 32 18\n' + level_file.read())
-
-            return self.parse_file(level_name)
-        elif len(meta) == 1:
-            new_file = open(file=f'./levels/{str(level_name)}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
-                            mode='w', encoding='utf-8')
-            new_file.write(level_file.read().replace(
-                lines[0], lines[0] + ' 32 18'))
-
-            return self.parse_file(level_name)
-
-        pallete = meta[0]
-        resolution = meta[1], meta[2]
-
-        lines.pop(0)
-
-        matrix: List[List[List[Object]]] = [[[]
-                                             for _ in range(32)] for _ in range(18)]
-
-        for line_index, line in enumerate(lines):
-            parameters = line.strip().split(' ')
-            if len(parameters) > 1:
-                matrix[int(parameters[1])][int(parameters[0])].append(Object(
-                    int(parameters[0]),
-                    int(parameters[1]),
-                    int(parameters[2]),
-                    parameters[3],
-                    False if parameters[4] == 'False' else True,
-                ))
-            elif line_index == 0:
-                self.overlay.editor.current_palette = palette_manager.get_palette(
-                    parameters[0])
-
-        return pallete, resolution, matrix
-
-=======
->>>>>>> 62164d159ed044f708bdead50fc232313bb21497
     @staticmethod
     def find_levels() -> List[str]:
         """
