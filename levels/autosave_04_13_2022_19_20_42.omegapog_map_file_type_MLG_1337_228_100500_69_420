@@ -1,8 +1,14 @@
-default
+default 32 18
 15 3 1 bird True
 16 3 1 on False
 17 3 1 bird True
 18 3 1 and False
-19 3 1 banana False
-20 3 1 is False
-21 3 1 you False
+19 3 1 banana True
+20 3 1 and True
+21 3 1 bottle True
+22 3 1 and True
+23 3 1 book True
+24 3 1 and True
+25 3 1 bolt True
+26 3 1 is False
+27 3 1 you True

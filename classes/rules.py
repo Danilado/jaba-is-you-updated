@@ -251,9 +251,10 @@ class ShutOpen:
                 if not rule_object.is_safe and rule_object.can_interact(level_rules, level_rules):
                     matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
                     return False
-        for level_object in matrix[rule_object.y][rule_object.x] and rule_object.can_interact(level_rules, level_rules):
-            rule_object.check_shut_open(
-                0, 0, matrix, level_rules, level_object)
+        for level_object in matrix[rule_object.y][rule_object.x]:
+            if rule_object.can_interact(level_object, level_rules):
+                rule_object.check_shut_open(
+                    0, 0, matrix, level_rules, level_object)
 
 
 class Sink:

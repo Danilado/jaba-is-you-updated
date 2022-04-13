@@ -106,8 +106,12 @@ class Editor(GameStrategy):
                                                         settings.WINDOW_SCALE), (0, 0, 0), IuiSettings(),
                    ">", partial(self.page_turn, 1)),
         ]
-        # quswadress' palette logic
+        # metadata
         self._current_palette: Palette = palette_manager.get_palette("default")
+        self.size = (32, 18)
+        self.scale = 1
+        self.window_offset: List[int] = [0, 0]
+        self.border_screen: pygame.Surface = None
         # features
         self.screen = pygame.display.set_mode(
             (1800 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
@@ -115,21 +119,67 @@ class Editor(GameStrategy):
         self.empty_object = Object(-1, -1, 0, 'empty',
                                    is_text=False, palette=self.current_palette)
 
+    def define_border_and_scale(self):
+        if self.size != (32, 18):
+            borders: List[pygame.Rect] = [None for _ in range(4)]
+            if self.size[1] * 16 / 9 >= self.size[0]:
+                if self.size[1] % 2:
+                    borders[0] = pygame.Rect(0, 0, 1600, 25)
+                    borders[2] = pygame.Rect(0, 875, 1600, 25)
+                    self.window_offset[0] = 25
+                else:
+                    borders[0] = pygame.Rect(0, 0, 1600, 50)
+                    borders[2] = pygame.Rect(0, 850, 1600, 50)
+                    self.window_offset[0] = 50
+                self.scale = (
+                    900 - self.window_offset[0] * 2) / (self.size[1] * 50)
+                self.window_offset[1] = (1600 - self.size[0]*50*self.scale)/2
+                borders[1] = pygame.Rect(0, 0, int(self.window_offset[1]), 900)
+                borders[3] = pygame.Rect(
+                    int(1600 - self.window_offset[1]), 0, int(self.window_offset[1]), 900)
+            else:
+                if self.size[0] % 2:
+                    borders[1] = pygame.Rect(0, 0, 25, 900)
+                    borders[3] = pygame.Rect(1575, 0, 25, 900)
+                    self.window_offset[1] = 25
+                else:
+                    borders[1] = pygame.Rect(0, 0, 50, 900)
+                    borders[3] = pygame.Rect(1550, 0, 50, 900)
+                    self.window_offset[1] = 50
+                self.scale = (
+                    1600 - self.window_offset[1] * 2) / (self.size[0] * 50)
+                self.window_offset[0] = (900 - self.size[1]*50*self.scale)/2
+                borders[0] = pygame.Rect(
+                    0, 0, 1600, int(self.window_offset[0]))
+                borders[2] = pygame.Rect(
+                    0, int(900 - self.window_offset[0]), 1600, int(self.window_offset[0]))
+            self.border_screen = pygame.Surface(
+                (1600, 900), pygame.SRCALPHA, 32)
+
+            for border in borders:
+                pygame.draw.rect(self.border_screen,
+                                 self.current_palette.pixels[3][6], border)
+
+            self.border_screen = pygame.transform.scale(
+                self.border_screen, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
+            self.border_screen = self.border_screen.convert_alpha()
+
     def save(self, state, name=None):
         """Сохранение трёхмерного массива в память
 
         :param state: Трёхмерный массив состояния сетки
         :type state: list
         """
-        string = f"{self.current_palette.name}\n"
+        string = f"{self.current_palette.name} {self.size[0]} {self.size[1]}\n"
         string_state, counter = unparse_all(state)
-        string += string_state
-        print(name)
-        if name is None:
-            name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
-        with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
-                  encoding='utf-8') as file:
-            file.write(string)
+        if counter > 0:
+            string += string_state
+            print(name)
+            if name is None:
+                name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
+            with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
+                      encoding='utf-8') as file:
+                file.write(string)
 
     def page_turn(self, number: int):
         """Меняет страницу списка объектов
@@ -324,7 +374,6 @@ class Editor(GameStrategy):
                     for rule_object in cell:
                         rule_object.palette = value
                         rule_object.animation = rule_object.animation_init()
-                        print(rule_object.name, "aaaaaaaa", value.name)
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает редактор (включая все его элементы) и обрабатывает все действия пользователя
@@ -388,14 +437,13 @@ class Editor(GameStrategy):
                 if event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
                     self.undo()
             if event.type == pygame.MOUSEMOTION:
-                if event.pos[0] <= 1600 * settings.WINDOW_SCALE:
-                    self.focus = ((int(event.pos[0] // int(50 * settings.WINDOW_SCALE)) if int(
-                        event.pos[0] // int(50 * settings.WINDOW_SCALE)) <= settings.RESOLUTION[0] else
-                        int(event.pos[0] // int(50 * settings.WINDOW_SCALE)) - 1), (
-                        int(event.pos[1] // int(50 * settings.WINDOW_SCALE)) if int(
-                            event.pos[1] // int(50 * settings.WINDOW_SCALE)) <= settings.RESOLUTION[
-                            1] else
-                        int(event.pos[1] // int(50 * settings.WINDOW_SCALE)) - 1))
+                if event.pos[0] - self.window_offset[1] <= self.size[0]*50*self.scale*settings.WINDOW_SCALE:
+                    if event.pos[1] - self.window_offset[0] <= self.size[1]*50*self.scale*settings.WINDOW_SCALE:
+                        self.focus = (int((event.pos[0] - self.window_offset[1]) //
+                                      (50*settings.WINDOW_SCALE*self.scale)),
+                                      int((event.pos[1] - self.window_offset[0]) //
+                                      (50*settings.WINDOW_SCALE*self.scale)))
+                        # NOTE ВОЗМОЖНО СТОИТ ДЕЛИТ НА scale
                 else:
                     self.focus = (-1, -1)
             if event.type == pygame.MOUSEBUTTONDOWN:
@@ -432,22 +480,30 @@ class Editor(GameStrategy):
                    partial(self.turn, -1)),
         ]
 
-        pygame.draw.rect(self.screen, (44, 44, 44),
-                         (self.focus[0] * 50 * settings.WINDOW_SCALE,
-                          self.focus[1] * 50 * settings.WINDOW_SCALE,
-                          50 * settings.WINDOW_SCALE,
-                          50 * settings.WINDOW_SCALE))
+        matrix_screen = pygame.Surface((self.size[0]*50, self.size[1]*50))
+
+        pygame.draw.rect(matrix_screen, (44, 44, 44),
+                         (self.focus[0] * 50, self.focus[1] * 50, 50, 50))
 
         if self.show_grid:
-            # Отрисовать сетку
-            for i in range(int(settings.RESOLUTION[0]) // int(50 * settings.WINDOW_SCALE) + 1):
-                pygame.draw.line(self.screen, (255, 255, 255), (i * 50 * settings.WINDOW_SCALE, 0),
-                                 (i * 50 * settings.WINDOW_SCALE, settings.RESOLUTION[1]), 1)
-            for i in range(int(settings.RESOLUTION[1]) // int(50 * settings.WINDOW_SCALE) + 1):
-                pygame.draw.line(self.screen, (255, 255, 255),
-                                 (0, i * 50 * settings.WINDOW_SCALE -
-                                  (1 if i == 18 else 0)),
-                                 (settings.RESOLUTION[0], i * 50 * settings.WINDOW_SCALE - (1 if i == 18 else 0)), 1)
+            for x in range(0, self.size[0] * 50, 50):
+                for y in range(0, self.size[1] * 50, 50):
+                    pygame.draw.rect(
+                        matrix_screen, (255, 255, 255), (x, y, 50, 50), 1)
+
+        for line in self.current_state:
+            for cell in line:
+                for game_object in cell:
+                    game_object.draw(matrix_screen)
+
+        self.screen.blit(pygame.transform.scale(
+            matrix_screen, (self.size[0] * 50 * self.scale * settings.WINDOW_SCALE,
+                            self.size[1] * 50 * self.scale * settings.WINDOW_SCALE)),
+                         (self.window_offset[1] * settings.WINDOW_SCALE,
+                             self.window_offset[0] * settings.WINDOW_SCALE))
+        if self.border_screen:
+            self.screen.blit(self.border_screen, (0, 0))
+
         for button in self.buttons:
             if self.state is None and button.update(events) and button.action is exit:
                 break
@@ -460,11 +516,6 @@ class Editor(GameStrategy):
         for indicator in indicators:
             indicator.update(events)
             indicator.draw(self.screen)
-
-        for line in self.current_state:
-            for cell in line:
-                for object in cell:
-                    object.draw(self.screen)
 
         if self.state is None:
             self.state = State(GameState.FLIP)
