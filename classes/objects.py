@@ -127,6 +127,7 @@ class Object:
         self.is_3d = is_3d
         self.level_processor = None
         self.is_fall = False
+        self.is_word = False
         self.status_switch_name = 0
         self.has_objects = []
 
@@ -890,6 +891,12 @@ class Object:
             return True
         return False
 
+    def check_word(self, level_rules):
+        for rule in level_rules:
+            if f'{self.name} is word' in rule.text_rule:
+                return True
+        return False
+
     def check_events(self, events: List[pygame.event.Event], number):
         """Метод обработки событий
 
@@ -899,6 +906,7 @@ class Object:
         :type number: int
         """
         self.turning_side = get_pressed_direction(number == 2)
+
 
     @property
     def is_operator(self) -> bool:

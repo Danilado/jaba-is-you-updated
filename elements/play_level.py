@@ -24,6 +24,7 @@ from utils import my_deepcopy, settings_saves
 class PlayLevel(GameStrategy):
     def __init__(self, level_name: str, screen: SURFACE):
         super().__init__(screen)
+        self.old_rules = []
         self.state: Optional[State] = None
         self.show_grid = settings_saves()[0]
 
@@ -186,7 +187,7 @@ class PlayLevel(GameStrategy):
         noun_objects = []
         if self.check_valid_range(j, i, 0, 0):
             for first_object in self.matrix[i][j]:
-                if first_object.is_noun:
+                if first_object.is_noun or first_object.check_word(self.old_rules):
                     cant_be_main = True
                     for second_object in self.matrix[i - delta_i][j - delta_j]:
                         if second_object.name in INFIX and status == 'main':
@@ -306,11 +307,11 @@ class PlayLevel(GameStrategy):
                 if first_object.name in INFIX \
                         and self.check_valid_range(j, i, delta_j, delta_i):
                     nouns = self.check_noun(
-                        i + delta_i, j + delta_j, delta_i, delta_j)
-                    if not nouns:
+                        i + delta_i, j + delta_j, delta_i, delta_j, 'property')
+                    if len(nouns) == 0:
                         return False
                     else:
-                        return [first_object, nouns[0][1]]
+                        return [first_object, nouns]
         return False
 
     def check_prefix(self, i, j, delta_i, delta_j):
@@ -429,6 +430,8 @@ class PlayLevel(GameStrategy):
 
             for rule in rules:
                 self.level_rules.append(rule)
+
+
 
     @staticmethod
     def copy_matrix(matrix):
@@ -703,6 +706,7 @@ class PlayLevel(GameStrategy):
 
     def find_rules(self):
         self.level_rules.clear()
+        self.old_rules = self.level_rules
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 self.scan_rules(i, j, 0, 1)

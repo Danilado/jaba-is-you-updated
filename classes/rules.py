@@ -1,3 +1,4 @@
+import math
 from copy import copy
 import random
 
@@ -9,8 +10,8 @@ class Broken:
     def apply(rule_object, level_rules, *_, **__):
         object_name = rule_object.name
         for sec_rule in level_rules:
-            if f'{object_name}' in sec_rule.text_rule and \
-                    sec_rule.text_rule != f'{object_name} is broken':
+            if f'{object_name}' == sec_rule.text_rule.split()[-3] or f'{object_name}' == sec_rule.text_rule.split()[-4]\
+                    and sec_rule.text_rule != f'{object_name} is broken':
                 level_rules.remove(sec_rule)
 
 
@@ -204,7 +205,7 @@ class Shift:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
-            if level_object.name != rule_object.name:
+            if level_object.name != rule_object.name and rule_object.can_iteract(level_rules, level_rules):
                 if rule_object.direction == 0:
                     level_object.motion(0, -1, matrix, level_rules, 'push')
                 elif rule_object.direction == 1:
@@ -247,10 +248,10 @@ class ShutOpen:
     def apply(matrix, rule_object, level_rules, *_, **__):
         for rule in level_rules:
             if f'{rule_object.name} is open' in rule.text_rule and not rule_object.is_text:
-                if not rule_object.is_safe:
+                if not rule_object.is_safe and rule_object.can_iteract(level_rules, level_rules):
                     matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
                     return False
-        for level_object in matrix[rule_object.y][rule_object.x]:
+        for level_object in matrix[rule_object.y][rule_object.x] and rule_object.can_iteract(level_rules, level_rules):
             rule_object.check_shut_open(
                 0, 0, matrix, level_rules, level_object)
 
@@ -371,35 +372,45 @@ class Eat:
 
 
 class Follow:
-    def apply(self, matrix, rule_object, rule_noun, **__):
-        delta_i = 0
-        delta_j = 0
-        while rule_object.check_valid_range(delta_j, delta_i):
-            for level_object in matrix[rule_object.y + delta_i][rule_object + delta_j]:
-                if level_object.name == rule_noun:
-                    if abs(delta_i) <= abs(delta_j):
-                        if delta_i < 0:
-                            rule_object.direction = 0
-                            rule_object.turning_side = 1
-                            rule_object.animation = rule_object.animation_init()
-                        if delta_i >= 0:
-                            rule_object.direction = 2
-                            rule_object.turning_side = 3
-                            rule_object.animation = rule_object.animation_init()
-                    if abs(delta_i) > abs(delta_j):
-                        if delta_j < 0:
-                            rule_object.direction = 3
-                            rule_object.turning_side = 2
-                            rule_object.animation = rule_object.animation_init()
-                        if delta_j >= 0:
-                            rule_object.direction = 1
-                            rule_object.turning_side = 0
-                            rule_object.animation = rule_object.animation_init()
+    @staticmethod
+    def apply(matrix, rule_object, rule_noun, **__):
+        min_delta_y = 100
+        min_delta_x = 100
+        for i in matrix:
+            for j in i:
+                for level_object in j:
+                    if level_object.name == rule_noun and not rule_object.is_text:
+                        new_delta_x = rule_object.x - level_object.x
+                        new_delta_y = rule_object.y - level_object.y
+                        if (min_delta_x ** 2 + min_delta_y ** 2) ** 0.5 > (new_delta_x ** 2 + new_delta_y ** 2) ** 0.5:
+                            min_delta_x = new_delta_x
+                            min_delta_y = new_delta_y
+        vector2 = math.atan2(min_delta_y, min_delta_x)
+        angle = vector2 * (180.0 / math.pi)
+        angle = 180 - angle
+        if 315 <= angle < 360 or 0 <= angle < 45:
+            rule_object.turning_side = 0
+            rule_object.direction = 1
+        elif 45 <= angle < 135:
+            rule_object.turning_side = 1
+            rule_object.direction = 0
+        elif 225 <= angle < 315:
+            rule_object.turning_side = 3
+            rule_object.direction = 2
+        elif 135 <= angle < 225:
+            rule_object.turning_side = 2
+            rule_object.direction = 3
+        matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+        rule_object.animation = rule_object.animation_init()
+        matrix[rule_object.y][rule_object.x].append(rule_object)
+
+
+
 
 
 class Tele:
     @staticmethod
-    def apply(matrix, rule_object, *_, **__):
+    def apply(matrix, rule_object, level_rules, **__):
         first_tp = rule_object
         status = False
         teleports = []
@@ -420,11 +431,11 @@ class Tele:
         x2 = second_tp.x
         y2 = second_tp.y
         for objects in matrix[y1][x1]:
-            if objects.name != first_tp.name:
+            if objects.name != first_tp.name and rule_object.can_iteract(objects, level_rules):
                 matrix[y1][x1].pop(objects.get_index(matrix))
                 objects.update_parameters(x2 - x1, y2 - y1, matrix)
         for objects in matrix[y2][x2]:
-            if objects.name != second_tp.name:
+            if objects.name != second_tp.name and rule_object.can_iteract(objects, level_rules):
                 matrix[y2][x2].pop(objects.get_index(matrix))
                 objects.update_parameters(-(x2 - x1), -(y2 - y1), matrix)
 
@@ -458,13 +469,13 @@ class RuleProcessor:
             'text': Text(),
             'melt': Melt(),
             'shut': ShutOpen(),
-            'defeat': Defeat(),
             'sink': Sink(),
             'win': Win(),
             'make': Make(),
             'write': Write(),
             'fear': Fear(),
-            'eat': Eat()
+            'eat': Eat(),
+            'follow': Follow()
         }
 
     def update_lists(self, level_processor, matrix, events):
