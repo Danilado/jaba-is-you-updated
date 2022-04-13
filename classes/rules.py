@@ -248,10 +248,10 @@ class ShutOpen:
     def apply(matrix, rule_object, level_rules, *_, **__):
         for rule in level_rules:
             if f'{rule_object.name} is open' in rule.text_rule and not rule_object.is_text:
-                if not rule_object.is_safe and rule_object.can_iteract(level_rules, level_rules):
+                if not rule_object.is_safe and rule_object.can_interact(level_rules, level_rules):
                     matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
                     return False
-        for level_object in matrix[rule_object.y][rule_object.x] and rule_object.can_iteract(level_rules, level_rules):
+        for level_object in matrix[rule_object.y][rule_object.x] and rule_object.can_interact(level_rules, level_rules):
             rule_object.check_shut_open(
                 0, 0, matrix, level_rules, level_object)
 

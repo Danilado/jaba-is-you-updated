@@ -308,10 +308,11 @@ class PlayLevel(GameStrategy):
                         and self.check_valid_range(j, i, delta_j, delta_i):
                     nouns = self.check_noun(
                         i + delta_i, j + delta_j, delta_i, delta_j, 'property')
+                    print(nouns, 'nouns')
                     if len(nouns) == 0:
                         return False
                     else:
-                        return [first_object, nouns]
+                        return [first_object, nouns[0]]
         return False
 
     def check_prefix(self, i, j, delta_i, delta_j):
@@ -342,8 +343,7 @@ class PlayLevel(GameStrategy):
             return False
         else:
             if not self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j):
-                arguments = self.check_verb(
-                    i + delta_i, j + delta_j, delta_i, delta_j)
+                arguments = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)
                 if not arguments:
                     status = False
                 else:
@@ -355,10 +355,10 @@ class PlayLevel(GameStrategy):
                         object_not = arguments[1]
                         properties = arguments[2]
             else:
-                infix = self.check_infix(
-                    i + delta_i, j + delta_j, delta_i, delta_j)
-                arguments = self.check_verb(
-                    i + delta_i * 3, j + delta_j * 3, delta_i, delta_j)
+                infix = self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j)
+                print(infix)
+                arguments = self.check_verb(i + delta_i * (((len(infix) - 1) * 2) + 1), j + delta_j * (((len(infix) - 1) * 2) + 1), delta_i, delta_j)
+                print(arguments)
                 if not arguments:
                     status = False
                 else:
@@ -382,51 +382,45 @@ class PlayLevel(GameStrategy):
                                     rules.append(TextRule(text, objects))
                                 else:
                                     text = f'{noun[1].name} {verb.name} {object_not.name} {property[1].name}'
-                                    objects = [noun[1], verb,
-                                               object_not, property]
+                                    objects = [noun[1], verb, object_not, property]
                                     rules.append(TextRule(text, objects))
                             else:
                                 if object_not is None:
                                     text = f'{noun[0].name} {noun[1].name} {verb.name} {property[1].name}'
-                                    objects = [
-                                        noun[0], noun[1], verb, property]
+                                    objects = [noun[0], noun[1], verb, property]
                                     rules.append(TextRule(text, objects))
                                 else:
                                     text = f'{noun[0].name} {noun[1].name} {verb.name} ' \
                                            f'{object_not.name} {property[1].name}'
-                                    objects = [noun[0], noun[1],
-                                               verb, object_not, property]
+                                    objects = [noun[0], noun[1], verb, object_not, property]
                                     rules.append(TextRule(text, objects))
 
             elif len(infix) != 0:
                 for noun in nouns:
-                    for verb in verbs:
-                        for property in properties:
-                            if noun[0] is None:
-                                if object_not is None:
-                                    text = f'{noun[1].name} {infix[0].name} {infix[1].name} {verb.name} {property.name}'
-                                    objects = [noun[1], infix[1],
-                                               infix[0], verb, property]
-                                    rules.append(TextRule(text, objects))
+                    for inf in infix[1:]:
+                        for verb in verbs:
+                            for property in properties:
+                                if noun[0] is None:
+                                    if object_not is None:
+                                        text = f'{noun[1].name} {infix[0].name} {inf[1].name} {verb.name} {12}'
+                                        objects = [noun[1], infix[1], infix[0], verb, property]
+                                        rules.append(TextRule(text, objects))
+                                    else:
+                                        text = f'{noun[1].name} {infix[0].name} {infix[1].name}' \
+                                               f' {verb.name} {object_not.name} {property.name}'
+                                        objects = [noun[1], infix[1], infix[0], verb, object_not, property]
+                                        rules.append(TextRule(text, objects))
                                 else:
-                                    text = f'{noun[1].name} {infix[0].name} {infix[1].name}' \
-                                           f' {verb.name} {object_not.name} {property.name}'
-                                    objects = [
-                                        noun[1], infix[1], infix[0], verb, object_not, property]
-                                    rules.append(TextRule(text, objects))
-                            else:
-                                if object_not is None:
-                                    text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                           f' {infix[1].name} {verb.name} {property.name}'
-                                    objects = [noun[0], noun[1],
-                                               infix[1], infix[0], verb, property]
-                                    rules.append(TextRule(text, objects))
-                                else:
-                                    text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                           f' {infix[1].name} {verb.name} {object_not.name} {property.name}'
-                                    objects = [noun[0], noun[1], infix[1],
-                                               infix[0], verb, object_not, property]
-                                    rules.append(TextRule(text, objects))
+                                    if object_not is None:
+                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
+                                               f' {infix[1].name} {verb.name} {property.name}'
+                                        objects = [noun[0], noun[1], infix[1], infix[0], verb, property]
+                                        rules.append(TextRule(text, objects))
+                                    else:
+                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
+                                               f' {infix[1].name} {verb.name} {object_not.name} {property.name}'
+                                        objects = [noun[0], noun[1], infix[1], infix[0], verb, object_not, property]
+                                        rules.append(TextRule(text, objects))
 
             for rule in rules:
                 self.level_rules.append(rule)
@@ -868,6 +862,8 @@ class PlayLevel(GameStrategy):
             self.win_animation()
 
         if self.moved:
+            for rule in self.level_rules:
+                print(rule.text_rule)
             self.moved = False
 
         if self.state is None:
