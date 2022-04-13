@@ -528,6 +528,21 @@ class Object:
 
         return True
 
+    def die(self, delta_j, delta_i, matrix):
+        for new_object_name in self.has_objects:
+            new_object = Object(
+                x=self.x + delta_j,
+                y=self.y + delta_i,
+                direction=self.direction,
+                name=new_object_name,
+                is_text=False,
+                palette=Palette(self.palette.name, self.palette.pixels.copy())
+            )
+            new_object.animation = new_object.animation_init()
+            matrix[self.y + delta_i][self.x + delta_j].append(new_object)
+
+
+
     def check_defeat(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
         """Проверяет правило defeat у объекта и сразу
         выполняет действие, если возможно
@@ -828,6 +843,7 @@ class Object:
                 self.check_rules(delta_x, delta_y, matrix,
                                  level_rules, rule_object)
             if self.status == 'dead':
+                self.die(delta_x, delta_y, matrix)
                 return True
             if self.status == 'moved_swap':
                 return False

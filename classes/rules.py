@@ -95,7 +95,12 @@ class Chill:
 class Boom:
     @staticmethod
     def apply(matrix, rule_object, *_, **__):
-        matrix[rule_object.y][rule_object.x].clear()
+        boom_objects = []
+        for object in matrix[rule_object.y][rule_object.x]:
+            boom_objects.append(object)
+            matrix[rule_object.y][rule_object.x].pop(object.get_index(matrix))
+        for object in boom_objects:
+            object.die(0, 0, matrix)
 
 
 class Auto:
@@ -220,7 +225,7 @@ class Melt:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
-            rule_object.check_melt(0, 0, matrix, level_rules, level_object)
+            level_object.check_melt(0, 0, matrix, rule_object, level_object)
 
 
 class Win:
