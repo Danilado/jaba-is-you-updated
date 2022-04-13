@@ -1,8 +1,8 @@
 from copy import copy
 from typing import Final, Literal, Dict
 
-import pygame
 import os
+import pygame
 
 
 def my_deepcopy(arr):
