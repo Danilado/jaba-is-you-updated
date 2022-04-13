@@ -15,16 +15,15 @@ from classes.particle import Particle, ParticleStrategy
 from classes.ray_casting import raycasting
 from classes.state import State
 from classes.text_rule import TextRule
-from elements.global_classes import sound_manager, palette_manager
+from elements.global_classes import sound_manager
 from global_types import SURFACE
-from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, DEBUG, OPERATORS
+from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY
 from utils import my_deepcopy, settings_saves
 
 
 class PlayLevel(GameStrategy):
     def __init__(self, level_name: str, screen: SURFACE):
         super().__init__(screen)
-        self.old_rules = []
         self.state: Optional[State] = None
         self.show_grid = settings_saves()[0]
 
@@ -33,10 +32,15 @@ class PlayLevel(GameStrategy):
         self.start_matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
         self.history_of_matrix = []
+        self.level_rules = []
         self.delta_cancel = 0
 
+        self.size = (32, 18)
         self.parse_file(level_name)
-        self.level_rules = []
+        self.scale = 1
+        self.window_offset: List[int] = [0, 0]
+        self.border_screen: pygame.Surface = None
+        self.define_border_and_scale()
 
         self.empty_object = Object(-1, -1, 0, 'empty',
                                    False, self.current_palette)
@@ -78,7 +82,55 @@ class PlayLevel(GameStrategy):
                                    self.current_palette.pixels[3][6]) for _ in range(40)]
 
         self.apply_rules_cache: Dict[Object, Tuple[bool, bool, bool, bool, bool, bool, bool, bool,
-                                                bool, bool, bool, bool, bool, List[str], List[str]]] = {}
+                                                   bool, bool, bool, bool, bool, List[str], List[str]]] = {}
+
+    def define_border_and_scale(self):
+        if self.size != (32, 18):
+            borders: List[pygame.Rect] = [None for _ in range(4)]
+            if self.size[1] * 16 / 9 >= self.size[0]:
+                if self.size[1] % 2:
+                    borders[0] = pygame.Rect(0, 0, 1600, 25)
+                    borders[2] = pygame.Rect(0, 875, 1600, 25)
+                    self.window_offset[0] = 25
+                else:
+                    borders[0] = pygame.Rect(0, 0, 1600, 50)
+                    borders[2] = pygame.Rect(0, 850, 1600, 50)
+                    self.window_offset[0] = 50
+                self.scale = (
+                    900 - self.window_offset[0] * 2) / (self.size[1] * 50)
+                self.window_offset[1] = (1600 - self.size[0]*50*self.scale)/2
+                borders[1] = pygame.Rect(0, 0, int(self.window_offset[1]), 900)
+                borders[3] = pygame.Rect(
+                    int(1600 - self.window_offset[1]), 0, int(self.window_offset[1]), 900)
+            else:
+                if self.size[0] % 2:
+                    borders[1] = pygame.Rect(0, 0, 25, 900)
+                    borders[3] = pygame.Rect(1575, 0, 25, 900)
+                    self.window_offset[1] = 25
+                else:
+                    borders[1] = pygame.Rect(0, 0, 50, 900)
+                    borders[3] = pygame.Rect(1550, 0, 50, 900)
+                    self.window_offset[1] = 50
+                self.scale = (
+                    1600 - self.window_offset[1] * 2) / (self.size[0] * 50)
+                self.window_offset[0] = (900 - self.size[1]*50*self.scale)/2
+                borders[0] = pygame.Rect(
+                    0, 0, 1600, int(self.window_offset[0]))
+                borders[2] = pygame.Rect(
+                    0, int(900 - self.window_offset[0]), 1600, int(self.window_offset[0]))
+            self.border_screen = pygame.Surface(
+                (1600, 900), pygame.SRCALPHA, 32)
+
+            for border in borders:
+                pygame.draw.rect(self.border_screen,
+                                 self.current_palette.pixels[3][6], border)
+
+            self.border_screen = pygame.transform.scale(
+                self.border_screen, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
+            self.border_screen = self.border_screen.convert_alpha()
+        else:
+            self.border_screen = None
+            self.window_offset = [0, 0]
 
     def parse_file(self, level_name: str):
         """
@@ -90,34 +142,9 @@ class PlayLevel(GameStrategy):
         :param level_name: Название уровня в папке levels
         :raises OSError: Если какая либо проблема с открытием файла.
         """
-        path_to_file = f'./levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
-
-        with open(path_to_file, mode='r', encoding='utf-8') as level_file:
-            for line_index, line in enumerate(level_file.readlines()):
-                parameters = line.strip().split(' ')
-
-                if len(parameters) > 1 and line_index > 0:
-                    x, y, direction, name = parameters[:-1]
-                    self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
-                        int(x),
-                        int(y),
-                        int(direction),
-                        name,
-                        parameters[4].lower() == 'true',
-                        self.current_palette
-                    ))
-                else:
-                    self.current_palette = palette_manager.get_palette(
-                        parameters[0])
-
-            self.start_matrix = self.matrix
-        if DEBUG:
-            print("\n".join((
-                "-" * 100,
-                f"Level {level_name} successfully parsed!",
-                f"palette: {self.current_palette.name}",
-                f"palette size: {len(self.current_palette.pixels[0])}x{len(self.current_palette.pixels)}"
-            )))
+        self.current_palette, self.size, self.start_matrix = parse_file(
+            level_name)
+        self.matrix = my_deepcopy(self.start_matrix)
 
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -136,12 +163,12 @@ class PlayLevel(GameStrategy):
 
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1:
+        elif x == self.size[0] - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1:
+        elif y == self.size[1] - 1:
             neighbours[1] = [self.empty_object]
         for index, offset in enumerate(offsets):
             if not neighbours[index]:
@@ -168,8 +195,7 @@ class PlayLevel(GameStrategy):
         ))
         return len(self.level_rules)
 
-    @staticmethod
-    def check_valid_range(x, y, delta_x, delta_y) -> bool:
+    def check_valid_range(self, x, y, delta_x, delta_y) -> bool:
         """Проверяет выход за границы матрицы
         в процессе движения
 
@@ -180,14 +206,14 @@ class PlayLevel(GameStrategy):
         :return: Можно ли двигаться в данном направлении
         :rtype: bool
         """
-        return settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1 >= x + delta_x >= 0 \
-               and settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1 >= y + delta_y >= 0
+        return self.size[0] - 1 >= x + delta_x >= 0 \
+            and self.size[1] - 1 >= y + delta_y >= 0
 
     def check_noun(self, i, j, delta_i, delta_j, status=None):
         noun_objects = []
         if self.check_valid_range(j, i, 0, 0):
             for first_object in self.matrix[i][j]:
-                if first_object.is_noun or first_object.check_word(self.old_rules):
+                if first_object.is_noun:
                     cant_be_main = True
                     for second_object in self.matrix[i - delta_i][j - delta_j]:
                         if second_object.name in INFIX and status == 'main':
@@ -246,8 +272,9 @@ class PlayLevel(GameStrategy):
                                 properties = self.check_property(
                                     i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
                                 if properties:
-                                    for property in properties:
-                                        property_objects.append(['', property])
+                                    for object_property in properties:
+                                        property_objects.append(
+                                            ['', object_property])
                     return property_objects
         return False
 
@@ -267,11 +294,10 @@ class PlayLevel(GameStrategy):
                         i + delta_i, j + delta_j, delta_i, delta_j, 'property')
                     if not nouns:
                         return False
-                    else:
-                        if object_not is None:
-                            return [[first_object], nouns]
-                        else:
-                            return [[first_object], object_not, nouns]
+                    if object_not is None:
+                        return [[first_object], nouns]
+                    return [[first_object], object_not, nouns]
+
                 if first_object.name == 'is' \
                         and self.check_valid_range(j, i, delta_j, delta_i):
                     object_not = None
@@ -289,16 +315,12 @@ class PlayLevel(GameStrategy):
                             i + delta_i, j + delta_j, delta_i, delta_j)
                         if not properties:
                             return False
-                        else:
-                            if object_not is None:
-                                return [[first_object], properties]
-                            else:
-                                return [[first_object], object_not, properties]
-                    else:
                         if object_not is None:
-                            return [[first_object], nouns]
-                        else:
-                            return [[first_object], object_not, nouns]
+                            return [[first_object], properties]
+                        return [[first_object], object_not, properties]
+                    if object_not is None:
+                        return [[first_object], nouns]
+                    return [[first_object], object_not, nouns]
         return False
 
     def check_infix(self, i, j, delta_i, delta_j):
@@ -307,12 +329,10 @@ class PlayLevel(GameStrategy):
                 if first_object.name in INFIX \
                         and self.check_valid_range(j, i, delta_j, delta_i):
                     nouns = self.check_noun(
-                        i + delta_i, j + delta_j, delta_i, delta_j, 'property')
-                    print(nouns, 'nouns')
-                    if len(nouns) == 0:
+                        i + delta_i, j + delta_j, delta_i, delta_j)
+                    if not nouns:
                         return False
-                    else:
-                        return [first_object, nouns[0]]
+                    return [first_object, nouns[0][1]]
         return False
 
     def check_prefix(self, i, j, delta_i, delta_j):
@@ -324,7 +344,8 @@ class PlayLevel(GameStrategy):
                     if self.check_valid_range(j, i, delta_j * -2, delta_i * -2):
                         for second_objects in self.matrix[i + delta_i][j + delta_j]:
                             if second_objects.name == 'and':
-                                prefix = self.check_prefix(i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
+                                prefix = self.check_prefix(
+                                    i + delta_i * 2, j + delta_j * 2, delta_i, delta_j)
                                 if isinstance(prefix, list):
                                     for prefix_object in prefix:
                                         prefix_objects.append(prefix_object)
@@ -341,91 +362,95 @@ class PlayLevel(GameStrategy):
         nouns = self.check_noun(i, j, delta_i, delta_j, 'main')
         if not nouns:
             return False
-        else:
-            if not self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j):
-                arguments = self.check_verb(i + delta_i, j + delta_j, delta_i, delta_j)
-                if not arguments:
-                    status = False
-                else:
-                    if len(arguments) == 2:
-                        verbs = arguments[0]
-                        properties = arguments[1]
-                    if len(arguments) == 3:
-                        verbs = arguments[0]
-                        object_not = arguments[1]
-                        properties = arguments[2]
+        if not self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j):
+            arguments = self.check_verb(
+                i + delta_i, j + delta_j, delta_i, delta_j)
+            if not arguments:
+                status = False
             else:
-                infix = self.check_infix(i + delta_i, j + delta_j, delta_i, delta_j)
-                print(infix)
-                arguments = self.check_verb(i + delta_i * (((len(infix) - 1) * 2) + 1), j + delta_j * (((len(infix) - 1) * 2) + 1), delta_i, delta_j)
-                print(arguments)
-                if not arguments:
-                    status = False
-                else:
-                    if len(arguments) == 2:
-                        verbs = arguments[0]
-                        properties = arguments[1]
-                    if len(arguments) == 3:
-                        verbs = arguments[0]
-                        object_not = arguments[1]
-                        properties = arguments[2]
+                if len(arguments) == 2:
+                    verbs = arguments[0]
+                    properties = arguments[1]
+                if len(arguments) == 3:
+                    verbs = arguments[0]
+                    object_not = arguments[1]
+                    properties = arguments[2]
+        else:
+            infix = self.check_infix(
+                i + delta_i, j + delta_j, delta_i, delta_j)
+            arguments = self.check_verb(
+                i + delta_i * 3, j + delta_j * 3, delta_i, delta_j)
+            if not arguments:
+                status = False
+            else:
+                if len(arguments) == 2:
+                    verbs = arguments[0]
+                    properties = arguments[1]
+                if len(arguments) == 3:
+                    verbs = arguments[0]
+                    object_not = arguments[1]
+                    properties = arguments[2]
 
         if status:
             if len(infix) == 0:
                 for noun in nouns:
                     for verb in verbs:
-                        for property in properties:
+                        for object_property in properties:
                             if noun[0] is None:
                                 if object_not is None:
-                                    text = f'{noun[1].name} {verb.name} {property[1].name}'
-                                    objects = [noun[1], verb, property]
+                                    text = f'{noun[1].name} {verb.name} {object_property[1].name}'
+                                    objects = [noun[1], verb, object_property]
                                     rules.append(TextRule(text, objects))
                                 else:
-                                    text = f'{noun[1].name} {verb.name} {object_not.name} {property[1].name}'
-                                    objects = [noun[1], verb, object_not, property]
+                                    text = f'{noun[1].name} {verb.name} {object_not.name} {object_property[1].name}'
+                                    objects = [noun[1], verb,
+                                               object_not, object_property]
                                     rules.append(TextRule(text, objects))
                             else:
                                 if object_not is None:
-                                    text = f'{noun[0].name} {noun[1].name} {verb.name} {property[1].name}'
-                                    objects = [noun[0], noun[1], verb, property]
+                                    text = f'{noun[0].name} {noun[1].name} {verb.name} {object_property[1].name}'
+                                    objects = [
+                                        noun[0], noun[1], verb, object_property]
                                     rules.append(TextRule(text, objects))
                                 else:
                                     text = f'{noun[0].name} {noun[1].name} {verb.name} ' \
-                                           f'{object_not.name} {property[1].name}'
-                                    objects = [noun[0], noun[1], verb, object_not, property]
+                                           f'{object_not.name} {object_property[1].name}'
+                                    objects = [noun[0], noun[1],
+                                               verb, object_not, object_property]
                                     rules.append(TextRule(text, objects))
 
             elif len(infix) != 0:
                 for noun in nouns:
-                    for inf in infix[1:]:
-                        for verb in verbs:
-                            for property in properties:
-                                if noun[0] is None:
-                                    if object_not is None:
-                                        text = f'{noun[1].name} {infix[0].name} {inf[1].name} {verb.name} {12}'
-                                        objects = [noun[1], infix[1], infix[0], verb, property]
-                                        rules.append(TextRule(text, objects))
-                                    else:
-                                        text = f'{noun[1].name} {infix[0].name} {infix[1].name}' \
-                                               f' {verb.name} {object_not.name} {property.name}'
-                                        objects = [noun[1], infix[1], infix[0], verb, object_not, property]
-                                        rules.append(TextRule(text, objects))
+                    for verb in verbs:
+                        for object_property in properties:
+                            if noun[0] is None:
+                                if object_not is None:
+                                    text = f'{noun[1].name} {infix[0].name} {infix[1].name} {verb.name} {object_property.name}'
+                                    objects = [noun[1], infix[1],
+                                               infix[0], verb, object_property]
+                                    rules.append(TextRule(text, objects))
                                 else:
-                                    if object_not is None:
-                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                               f' {infix[1].name} {verb.name} {property.name}'
-                                        objects = [noun[0], noun[1], infix[1], infix[0], verb, property]
-                                        rules.append(TextRule(text, objects))
-                                    else:
-                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                               f' {infix[1].name} {verb.name} {object_not.name} {property.name}'
-                                        objects = [noun[0], noun[1], infix[1], infix[0], verb, object_not, property]
-                                        rules.append(TextRule(text, objects))
+                                    text = f'{noun[1].name} {infix[0].name} {infix[1].name}' \
+                                           f' {verb.name} {object_not.name} {object_property.name}'
+                                    objects = [
+                                        noun[1], infix[1], infix[0], verb, object_not, object_property]
+                                    rules.append(TextRule(text, objects))
+                            else:
+                                if object_not is None:
+                                    text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
+                                           f' {infix[1].name} {verb.name} {object_property.name}'
+                                    objects = [noun[0], noun[1],
+                                               infix[1], infix[0], verb, object_property]
+                                    rules.append(TextRule(text, objects))
+                                else:
+                                    text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
+                                           f' {infix[1].name} {verb.name} {object_not.name} {object_property.name}'
+                                    objects = [noun[0], noun[1], infix[1],
+                                               infix[0], verb, object_not, object_property]
+                                    rules.append(TextRule(text, objects))
 
             for rule in rules:
                 self.level_rules.append(rule)
-
-
 
     @staticmethod
     def copy_matrix(matrix):
@@ -441,7 +466,7 @@ class PlayLevel(GameStrategy):
         return copy_matrix
 
     def on_init(self):
-        # TODO by Gospodin: add music and theme choice in editor
+        # TODO by Gospodin: add music choice in editor
         # Issue created.
         sound_manager.load_music("sounds/Music/ruin")
 
@@ -477,9 +502,16 @@ class PlayLevel(GameStrategy):
         for offset in offsets:
             pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
                                offset, self.circle_radius)
+
+        text_surface = pygame.Surface(
+            (1600, 900), pygame.SRCALPHA, 32)
         if pygame.time.get_ticks() - self.delay <= 3000:
             for character_object in self.level_name_object_text:
-                character_object.draw(self.screen)
+                character_object.draw(text_surface)
+        text_surface = pygame.transform.scale(
+            text_surface, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
+        text_surface = text_surface.convert_alpha()
+        self.screen.blit(text_surface, (0, 0))
         if pygame.time.get_ticks() - self.delay > 3000:
             self.circle_radius -= 8
         if self.circle_radius <= 0:
@@ -487,23 +519,23 @@ class PlayLevel(GameStrategy):
             self.flag_to_level_start_animation = False
 
     def win_animation(self):
-        boarder_offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),
-                           (1000 * settings.WINDOW_SCALE, 0),
-                           (1600 * settings.WINDOW_SCALE,
-                            0), (0, 900 * settings.WINDOW_SCALE),
-                           (300 * settings.WINDOW_SCALE,
-                            900 * settings.WINDOW_SCALE),
-                           (800 * settings.WINDOW_SCALE,
-                            900 * settings.WINDOW_SCALE),
-                           (1200 * settings.WINDOW_SCALE,
-                            900 * settings.WINDOW_SCALE),
-                           (0, 300 * settings.WINDOW_SCALE),
-                           (0, 600 * settings.WINDOW_SCALE),
-                           (1600 * settings.WINDOW_SCALE,
-                            100 * settings.WINDOW_SCALE),
-                           (1600 * settings.WINDOW_SCALE,
-                            500 * settings.WINDOW_SCALE),
-                           (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
+        border_offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),
+                          (1000 * settings.WINDOW_SCALE, 0),
+                          (1600 * settings.WINDOW_SCALE,
+                           0), (0, 900 * settings.WINDOW_SCALE),
+                          (300 * settings.WINDOW_SCALE,
+                           900 * settings.WINDOW_SCALE),
+                          (800 * settings.WINDOW_SCALE,
+                           900 * settings.WINDOW_SCALE),
+                          (1200 * settings.WINDOW_SCALE,
+                           900 * settings.WINDOW_SCALE),
+                          (0, 300 * settings.WINDOW_SCALE),
+                          (0, 600 * settings.WINDOW_SCALE),
+                          (1600 * settings.WINDOW_SCALE,
+                           100 * settings.WINDOW_SCALE),
+                          (1600 * settings.WINDOW_SCALE,
+                           500 * settings.WINDOW_SCALE),
+                          (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
         max_radius = 100 * settings.WINDOW_SCALE
         if not self.flag_to_level_start_animation and self.flag_to_win_animation:
             for offset, radius in self.win_offsets:
@@ -513,20 +545,26 @@ class PlayLevel(GameStrategy):
                 self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
                 for index in range(1, len(self.win_offsets), 2):
                     self.win_offsets[index][1] += 0.1 * \
-                                                  (len(self.win_offsets) - index)
+                        (len(self.win_offsets) - index)
                     self.win_offsets[index + 1][1] += 0.1 * \
-                                                      (len(self.win_offsets) - index)
+                        (len(self.win_offsets) - index)
 
             if self.win_offsets[0][1] >= max_radius and not self.flag_to_delay:
                 self.flag_to_delay = True
                 self.delay = pygame.time.get_ticks()
 
-            if self.win_offsets[0][1] >= max_radius:
+            if self.win_offsets[0][1] >= max_radius / 2:
+                text_surface = pygame.Surface(
+                    (1600, 900), pygame.SRCALPHA, 32)
                 for character_object in self.win_text:
-                    character_object.draw(self.screen)
+                    character_object.draw(text_surface)
+                text_surface = pygame.transform.scale(
+                    text_surface, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
+                text_surface = text_surface.convert_alpha()
+                self.screen.blit(text_surface, (0, 0))
 
             if self.win_offsets[0][1] >= max_radius and pygame.time.get_ticks() - self.delay >= 1000:
-                for offset1 in boarder_offsets:
+                for offset1 in border_offsets:
                     pygame.draw.circle(
                         self.screen, self.current_palette.pixels[3][6], offset1, self.circle_radius)
                 self.circle_radius += 8 * settings.WINDOW_SCALE
@@ -664,7 +702,8 @@ class PlayLevel(GameStrategy):
             rule_cache_key: Object = rule_object
 
             if rule_cache_key not in self.apply_rules_cache:
-                self._create_in_cache_rules_thing(matrix, rule_object, i, j, rule_cache_key)
+                self._create_in_cache_rules_thing(
+                    matrix, rule_object, i, j, rule_cache_key)
             is_hot, is_hide, is_safe, is_open, is_shut, is_phantom, is_text, is_still, is_sleep, \
                 is_weak, is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:13]
             locked_sides: List[str] = self.apply_rules_cache[rule_cache_key][13]
@@ -687,60 +726,18 @@ class PlayLevel(GameStrategy):
             rule_object.has_objects = has_objects
 
             for rule in self.level_rules:
-                if f'{rule_object.name} is you' in rule.text_rule:
+                if rule_object.name in rule.text_rule:
                     rules.processor.update_object(rule_object)
                     rules.processor.process(rule.text_rule)
 
-            for rule in self.level_rules:
-                for verb in OPERATORS:
-                    if f'{rule_object.name} {verb}' in rule.text_rule\
-                            and f'{rule_object.name} is you' not in rule.text_rule:
-                        rules.processor.update_object(rule_object)
-                        rules.processor.process(rule.text_rule)
-
     def find_rules(self):
         self.level_rules.clear()
-        self.old_rules = self.level_rules
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 self.scan_rules(i, j, 0, 1)
                 self.scan_rules(i, j, 1, 0)
-        self.mimic_rules()
         self.level_rules = self.remove_copied_rules(
             self.level_rules)
-
-    def mimic_rules(self):
-        new_rules = []
-        for mimic_rule in self.level_rules:
-            if 'mimic' in mimic_rule.text_rule:
-                old_object_name = mimic_rule.text_rule.split()[-1]
-                new_object_name = mimic_rule.text_rule.split()[-3]
-                for rule in self.level_rules:
-                    if f'{old_object_name} is you' in rule.text_rule:
-                        new_rule = copy(rule)
-                        objects = new_rule.text_rule.split()
-                        objects[-3] = new_object_name
-                        text = ''
-                        for obj in objects:
-                            text += obj
-                            text += ' '
-                        new_rule.text_rule = text[0:-1]
-                        new_rules.append(new_rule)
-
-                for rule in self.level_rules:
-                    for verb in OPERATORS:
-                        if f'{old_object_name} {verb}' in rule.text_rule:
-                            new_rule = copy(rule)
-                            objects = new_rule.text_rule.split()
-                            objects[-3] = new_object_name
-                            text = ''
-                            for obj in objects:
-                                text += obj
-                                text += ' '
-                            new_rule.text_rule = text[0:-1]
-                            new_rules.append(new_rule)
-        for rule in new_rules:
-            self.level_rules.append(rule)
 
     def update_sticky_neighbours(self, game_object: Object):
         game_object.neighbours = self.get_neighbours(
@@ -774,12 +771,8 @@ class PlayLevel(GameStrategy):
         level_3d = False
         count_3d_obj = 0
 
-        for particle in self.particles:
-            particle.draw(self.screen)
-
         self.functional_event_check(events)
         if self.status_cancel:
-            self.check_matrix()
             new_time = pygame.time.get_ticks()
             if new_time > self.delta_cancel + 200:
                 if len(self.history_of_matrix) > 0:
@@ -833,7 +826,12 @@ class PlayLevel(GameStrategy):
             if count_3d_obj != 0:
                 self.num_obj_3d %= self.count_3d_obj
         else:
-            self.check_matrix()
+            level_surface = pygame.Surface(
+                (self.size[0]*50, self.size[1]*50))
+
+            for particle in self.particles:
+                particle.draw(level_surface)
+
             for line in self.matrix:
                 for cell in line:
                     for game_object in cell:
@@ -841,14 +839,22 @@ class PlayLevel(GameStrategy):
                             if game_object.name in STICKY and not game_object.is_text and \
                                     (game_object.moved or self.first_iteration):
                                 self.update_sticky_neighbours(game_object)
-                        game_object.draw(self.screen)
+                        game_object.draw(level_surface)
 
             if self.show_grid:
-                for x in range(0, settings.RESOLUTION[0], int(50 * settings.WINDOW_SCALE)):
-                    for y in range(0, settings.RESOLUTION[1], int(50 * settings.WINDOW_SCALE)):
+                for x in range(0, self.size[0] * 50, 50):
+                    for y in range(0, self.size[1] * 50, 50):
                         pygame.draw.rect(
-                            self.screen, (255, 255, 255),
-                            (x, y, 50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE), 1)
+                            level_surface, (255, 255, 255), (x, y, 50, 50), 1)
+
+            self.screen.blit(pygame.transform.scale(
+                level_surface, (self.size[0] * 50 * self.scale * settings.WINDOW_SCALE,
+                                self.size[1] * 50 * self.scale * settings.WINDOW_SCALE)),
+                             (self.window_offset[1] * settings.WINDOW_SCALE,
+                             self.window_offset[0] * settings.WINDOW_SCALE))
+
+            if self.border_screen:
+                self.screen.blit(self.border_screen, (0, 0))
 
         if self.first_iteration:
             self.find_rules()
@@ -862,8 +868,6 @@ class PlayLevel(GameStrategy):
             self.win_animation()
 
         if self.moved:
-            for rule in self.level_rules:
-                print(rule.text_rule)
             self.moved = False
 
         if self.state is None:
