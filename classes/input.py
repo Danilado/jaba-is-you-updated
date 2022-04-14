@@ -2,6 +2,8 @@ from typing import Union, TYPE_CHECKING, List, Sequence
 
 import pygame
 
+import settings
+
 if TYPE_CHECKING:
     from elements.global_classes import AbstractButtonSettings
     from global_types import COLOR, SURFACE
@@ -10,8 +12,8 @@ if TYPE_CHECKING:
 class Input:
     """Поле ввода текста"""
 
-    def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR", settings: "AbstractButtonSettings",
-                 placeholder: str = ""):
+    def __init__(self, x: int, y: int, width: int, height: int, outline: "COLOR",
+                 text_settings: "AbstractButtonSettings", placeholder: str = ""):
         """Инициализация поля ввода
 
         :param x: Положение поля на экране по оси x
@@ -24,8 +26,8 @@ class Input:
         :type height: int
         :param outline: Цвет обводки поля
         :type outline: COLOR
-        :param settings: Настройки отрисовки и оформления поля ввода
-        :type settings: AbstractButtonSettings
+        :param text_settings: Настройки отрисовки и оформления поля ввода
+        :type text_settings: AbstractButtonSettings
         :param placeholder:
             Содержимое поля ввода до ввода со стороны игрока, defaults to empty string
         :type placeholder: str, optional
@@ -37,10 +39,10 @@ class Input:
         self.text = ''
         # Это слово пишется слитно, здесь не нужны подчёркивания
         self.placeholder = placeholder
-        self.settings = settings
+        self.text_settings = text_settings
         self.outline = outline
         self.font = pygame.font.Font(
-            "fonts/ConsolateElf.ttf", self.settings.text_size)
+            "fonts/ConsolateElf.ttf", int(self.text_settings.text_size * settings.WINDOW_SCALE))
         self.focused = False
         self.pressed = False
 
@@ -56,7 +58,7 @@ class Input:
 
         self.focused = self.is_over(pygame.mouse.get_pos()) or self.pressed
 
-        color = self.settings.button_color if not self.focused else self.settings.button_color_hover
+        color = self.text_settings.button_color if not self.focused else self.text_settings.button_color_hover
         pygame.draw.rect(screen, color, (self.x, self.y,
                          self.width, self.height), 0)
 

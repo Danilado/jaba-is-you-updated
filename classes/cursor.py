@@ -1,6 +1,7 @@
-from typing import List
-
 import pygame
+import settings
+
+from utils import get_pressed_direction
 
 
 class MoveCursor:
@@ -30,15 +31,16 @@ class MoveCursor:
                 for k, element in enumerate(cell):
 
                     if k < len(cell) and i > 0 and \
-                       element.name == 'cursor' and not element.is_text and \
-                       len(matrix[i - 1][j]) != 0 and \
-                       (matrix[i - 1][j][0].name.split("_")[0] == 'line' or
-                            matrix[i - 1][j][0].name.split("_")[0] in self.blocks):
-
+                            element.name == 'cursor' and not element.is_text and \
+                            len(matrix[i - 1][j]) != 0 and \
+                            (matrix[i - 1][j][0].name.split("_")[0] == 'line' or
+                             matrix[i - 1][j][0].name.split("_")[0] in self.blocks):
                         matrix[i - 1][j].append(element)
                         matrix[i - 1][j][-1].y -= 1
                         matrix[i - 1][j][-1].animation.position = (
-                            matrix[i - 1][j][-1].x * 50, matrix[i - 1][j][-1].y * 50)
+                            matrix[i - 1][j][-1].x * 50 *
+                            settings.WINDOW_SCALE,
+                            matrix[i - 1][j][-1].y * 50 * settings.WINDOW_SCALE)
                         cell.pop(k)
 
     def move_down(self, matrix):
@@ -50,21 +52,20 @@ class MoveCursor:
                 for k, element in enumerate(cell):
 
                     if k < len(cell) and i < 17 and \
-                       element.name == 'cursor' and not element.is_text and \
-                       len(matrix[i + 1][j]) != 0 and \
-                       (matrix[i + 1][j][0].name.split("_")[0] == 'line' or
-                            matrix[i + 1][j][0].name.split("_")[0] in self.blocks):
-
+                            element.name == 'cursor' and not element.is_text and \
+                            len(matrix[i + 1][j]) != 0 and \
+                            (matrix[i + 1][j][0].name.split("_")[0] == 'line' or
+                             matrix[i + 1][j][0].name.split("_")[0] in self.blocks):
                         num_el = k
                         x = i
                         y = j
 
         if num_el is not None and x is not None and y is not None:
-
             matrix[x + 1][y].append(matrix[x][y][num_el])
             matrix[x + 1][y][-1].y += 1
             matrix[x + 1][y][-1].animation.position = (
-                matrix[x + 1][y][-1].x * 50, matrix[x + 1][y][-1].y * 50)
+                matrix[x + 1][y][-1].x * 50 * settings.WINDOW_SCALE,
+                matrix[x + 1][y][-1].y * 50 * settings.WINDOW_SCALE)
             matrix[x][y].pop(num_el)
 
     def move_left(self, matrix):
@@ -73,15 +74,16 @@ class MoveCursor:
                 for k, element in enumerate(cell):
 
                     if k < len(cell) and j > 0 and \
-                       element.name == 'cursor' and not element.is_text and \
-                       len(matrix[i][j - 1]) != 0 and \
-                       (matrix[i][j - 1][0].name.split("_")[0] == 'line' or
-                            matrix[i][j - 1][0].name.split("_")[0] in self.blocks):
-
+                            element.name == 'cursor' and not element.is_text and \
+                            len(matrix[i][j - 1]) != 0 and \
+                            (matrix[i][j - 1][0].name.split("_")[0] == 'line' or
+                             matrix[i][j - 1][0].name.split("_")[0] in self.blocks):
                         matrix[i][j - 1].append(element)
                         matrix[i][j - 1][-1].x -= 1
                         matrix[i][j - 1][-1].animation.position = (
-                            matrix[i][j - 1][-1].x * 50, matrix[i][j - 1][-1].y * 50)
+                            matrix[i][j - 1][-1].x * 50 *
+                            settings.WINDOW_SCALE,
+                            matrix[i][j - 1][-1].y * 50 * settings.WINDOW_SCALE)
                         cell.pop(k)
 
     def move_right(self, matrix):
@@ -94,11 +96,10 @@ class MoveCursor:
                 for k, element in enumerate(cell):
 
                     if k < len(cell) and j < 31 and \
-                       element.name == 'cursor' and not element.is_text and \
-                       len(matrix[i][j + 1]) != 0 and \
-                       (matrix[i][j + 1][0].name.split("_")[0] == 'line' or
-                            matrix[i][j + 1][0].name.split("_")[0] in self.blocks):
-
+                            element.name == 'cursor' and not element.is_text and \
+                            len(matrix[i][j + 1]) != 0 and \
+                            (matrix[i][j + 1][0].name.split("_")[0] == 'line' or
+                             matrix[i][j + 1][0].name.split("_")[0] in self.blocks):
                         num_el = k
                         x = i
                         y = j
@@ -107,25 +108,10 @@ class MoveCursor:
             matrix[x][y + 1].append(matrix[x][y][num_el])
             matrix[x][y + 1][-1].x += 1
             matrix[x][y + 1][-1].animation.position = (
-                matrix[x][y + 1][-1].x * 50, matrix[x][y + 1][-1].y * 50)
+                matrix[x][y + 1][-1].x * 50 * settings.WINDOW_SCALE,
+                matrix[x][y + 1][-1].y * 50 * settings.WINDOW_SCALE)
             matrix[x][y].pop(num_el)
 
-    def check_events(self, events: List[pygame.event.Event]):
+    def check_events(self):
         """Метод обработки событий"""
-        for event in events:
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_d:
-                    self.turning_side = 0
-
-                if event.key == pygame.K_w:
-                    self.turning_side = 1
-
-                if event.key == pygame.K_a:
-                    self.turning_side = 2
-
-                if event.key == pygame.K_s:
-                    self.turning_side = 3
-
-            if event.type == pygame.KEYUP:
-                if event.key in [pygame.K_w, pygame.K_s, pygame.K_d, pygame.K_a]:
-                    self.turning_side = -1
+        self.turning_side = get_pressed_direction()
