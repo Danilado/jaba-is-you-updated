@@ -223,7 +223,7 @@ class Melt:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
-            if not level_object.check_melt(0, 0, matrix, rule_object, level_object):
+            if not level_object.check_melt(0, 0, matrix, level_rules, rule_object):
                 level_object.die(0, 0, matrix, level_rules)
 
 
