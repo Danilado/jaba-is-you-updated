@@ -18,7 +18,7 @@ from classes.text_rule import TextRule
 from elements.global_classes import sound_manager
 from elements.loader_util import parse_file
 from global_types import SURFACE
-from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
+from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY
 from utils import my_deepcopy, settings_saves
 
 
@@ -35,7 +35,6 @@ class PlayLevel(GameStrategy):
         self.history_of_matrix = []
         self.level_rules = []
         self.delta_cancel = 0
-        self.old_rules =[]
 
         self.size = (32, 18)
         self.parse_file(level_name)
@@ -211,37 +210,14 @@ class PlayLevel(GameStrategy):
         return self.size[0] - 1 >= x + delta_x >= 0 \
             and self.size[1] - 1 >= y + delta_y >= 0
 
-    def check_not_infix(self, i, j, delta_i, delta_j):
-        start_delta_i = delta_i
-        start_delta_j = delta_j
-        last = None
-        while len(self.matrix[i - delta_i][j - delta_j]) != 0:
-            for rule_object in self.matrix[i - delta_i][j - delta_j]:
-                if last == 'and':
-                    if rule_object.is_noun or rule_object.check_word(self.old_rules):
-                        last = None
-                        delta_j += start_delta_j
-                        delta_i += start_delta_i
-                elif rule_object.name in INFIX:
-                    return True
-                elif rule_object.name == 'and':
-                    last = 'and'
-                    delta_j += start_delta_j
-                    delta_i += start_delta_i
-                    break
-                else:
-                    return False
-        return False
-
-
     def check_noun(self, i, j, delta_i, delta_j, status=None):
         noun_objects = []
         if self.check_valid_range(j, i, 0, 0):
             for first_object in self.matrix[i][j]:
-                if first_object.is_noun or first_object.check_word(self.old_rules):
+                if first_object.is_noun:
                     cant_be_main = True
                     for second_object in self.matrix[i - delta_i][j - delta_j]:
-                        if self.check_not_infix(i, j, delta_i, delta_j) and status == 'main':
+                        if second_object.name in INFIX and status == 'main':
                             cant_be_main = False
                     if cant_be_main:
                         noun_objects.append([None, first_object])
@@ -254,7 +230,6 @@ class PlayLevel(GameStrategy):
                                         for noun in nouns:
                                             noun_objects.append(noun)
                         elif self.check_valid_range(j, i, delta_j * -2, delta_i * -2) and status == 'main':
-
                             status = None
                             for second_objects in self.matrix[i - delta_i][j - delta_j]:
                                 if second_objects.name == 'and':
@@ -355,10 +330,10 @@ class PlayLevel(GameStrategy):
                 if first_object.name in INFIX \
                         and self.check_valid_range(j, i, delta_j, delta_i):
                     nouns = self.check_noun(
-                        i + delta_i, j + delta_j, delta_i, delta_j, 'property')
+                        i + delta_i, j + delta_j, delta_i, delta_j)
                     if not nouns:
                         return False
-                    return [first_object, nouns]
+                    return [first_object, nouns[0][1]]
         return False
 
     def check_prefix(self, i, j, delta_i, delta_j):
@@ -405,8 +380,7 @@ class PlayLevel(GameStrategy):
             infix = self.check_infix(
                 i + delta_i, j + delta_j, delta_i, delta_j)
             arguments = self.check_verb(
-                i + delta_i * (len(infix[1]) * 2 + 1), j + delta_j * (len(infix[1]) * 2 + 1), delta_i, delta_j)
-
+                i + delta_i * 3, j + delta_j * 3, delta_i, delta_j)
             if not arguments:
                 status = False
             else:
@@ -447,36 +421,34 @@ class PlayLevel(GameStrategy):
                                     rules.append(TextRule(text, objects))
 
             elif len(infix) != 0:
-                for inf in infix[1]:
-                    for noun in nouns:
-                        for verb in verbs:
-                            for object_property in properties:
-                                if noun[0] is None:
-                                    if object_not is None:
-                                        text = f'{noun[1].name} {infix[0].name} {inf[1].name}' \
-                                               f' {verb.name} {object_property[1].name}'
-                                        objects = [noun[1], infix[0],
-                                                   inf[1], verb, object_property[1]]
-                                        rules.append(TextRule(text, objects))
-                                    else:
-                                        text = f'{noun[1].name} {infix[0].name} {inf[1].name}' \
-                                               f' {verb.name} {object_not.name} {object_property[1].name}'
-                                        objects = [
-                                            noun[1], infix[0], inf[1], verb, object_not, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                for noun in nouns:
+                    for verb in verbs:
+                        for object_property in properties:
+                            if noun[0] is None:
+                                if object_not is None:
+                                    text = f'{noun[1].name} {infix[0].name} {infix[1].name} {verb.name} {object_property.name}'
+                                    objects = [noun[1], infix[1],
+                                               infix[0], verb, object_property]
+                                    rules.append(TextRule(text, objects))
                                 else:
-                                    if object_not is None:
-                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                               f' {inf[1].name} {verb.name} {object_property[1].name}'
-                                        objects = [noun[0], noun[1],
-                                                   infix[0], inf[1], verb, object_property[1]]
-                                        rules.append(TextRule(text, objects))
-                                    else:
-                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                               f' {inf[1].name} {verb.name} {object_not.name} {object_property[1].name}'
-                                        objects = [noun[0], noun[1], infix[0],
-                                                   inf[1], verb, object_not, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                                    text = f'{noun[1].name} {infix[0].name} {infix[1].name}' \
+                                           f' {verb.name} {object_not.name} {object_property.name}'
+                                    objects = [
+                                        noun[1], infix[1], infix[0], verb, object_not, object_property]
+                                    rules.append(TextRule(text, objects))
+                            else:
+                                if object_not is None:
+                                    text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
+                                           f' {infix[1].name} {verb.name} {object_property.name}'
+                                    objects = [noun[0], noun[1],
+                                               infix[1], infix[0], verb, object_property]
+                                    rules.append(TextRule(text, objects))
+                                else:
+                                    text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
+                                           f' {infix[1].name} {verb.name} {object_not.name} {object_property.name}'
+                                    objects = [noun[0], noun[1], infix[1],
+                                               infix[0], verb, object_not, object_property]
+                                    rules.append(TextRule(text, objects))
 
             for rule in rules:
                 self.level_rules.append(rule)
@@ -761,47 +733,12 @@ class PlayLevel(GameStrategy):
 
     def find_rules(self):
         self.level_rules.clear()
-        self.old_rules = self.level_rules
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 self.scan_rules(i, j, 0, 1)
                 self.scan_rules(i, j, 1, 0)
-        self.mimic_rules()
         self.level_rules = self.remove_copied_rules(
             self.level_rules)
-
-    def mimic_rules(self):
-        new_rules = []
-        for mimic_rule in self.level_rules:
-            if 'mimic' in mimic_rule.text_rule:
-                old_object_name = mimic_rule.text_rule.split()[-1]
-                new_object_name = mimic_rule.text_rule.split()[-3]
-                for rule in self.level_rules:
-                    if f'{old_object_name} is you' in rule.text_rule:
-                        new_rule = copy(rule)
-                        objects = new_rule.text_rule.split()
-                        objects[-3] = new_object_name
-                        text = ''
-                        for obj in objects:
-                            text += obj
-                            text += ' '
-                        new_rule.text_rule = text[0:-1]
-                        new_rules.append(new_rule)
-
-                for rule in self.level_rules:
-                    for verb in OPERATORS:
-                        if f'{old_object_name} {verb}' in rule.text_rule:
-                            new_rule = copy(rule)
-                            objects = new_rule.text_rule.split()
-                            objects[-3] = new_object_name
-                            text = ''
-                            for obj in objects:
-                                text += obj
-                                text += ' '
-                            new_rule.text_rule = text[0:-1]
-                            new_rules.append(new_rule)
-        for rule in new_rules:
-            self.level_rules.append(rule)
 
     def update_sticky_neighbours(self, game_object: Object):
         game_object.neighbours = self.get_neighbours(
@@ -890,20 +827,20 @@ class PlayLevel(GameStrategy):
             if count_3d_obj != 0:
                 self.num_obj_3d %= self.count_3d_obj
         else:
-            self.check_matrix()
             level_surface = pygame.Surface(
                 (self.size[0]*50, self.size[1]*50))
 
             for particle in self.particles:
+                particle.draw(level_surface)
 
-                for line in self.matrix:
-                    for cell in line:
-                        for game_object in cell:
-                            if self.first_iteration or self.moved:
-                                if game_object.name in STICKY and not game_object.is_text and \
-                                        (game_object.moved or self.first_iteration):
-                                    self.update_sticky_neighbours(game_object)
-                            game_object.draw(level_surface)
+            for line in self.matrix:
+                for cell in line:
+                    for game_object in cell:
+                        if self.first_iteration or self.moved:
+                            if game_object.name in STICKY and not game_object.is_text and \
+                                    (game_object.moved or self.first_iteration):
+                                self.update_sticky_neighbours(game_object)
+                        game_object.draw(level_surface)
 
             if self.show_grid:
                 for x in range(0, self.size[0] * 50, 50):
