@@ -5,14 +5,15 @@ from elements.global_classes import palette_manager
 from settings import DEBUG
 
 
-def parse_file(level_name: str) -> List[List[List[Object]]]:
+def parse_file(level_name: str, path_to_level: str) -> List[List[List[Object]]]:
     """
     Преобразует записанную в файле уровня информацию в матрицу
 
     :param level_name: Название желаемого уровня
+    :param path_to_level: Путь к желаемому уровню
     :return: Возвращает преобразованную из файла матрицу
     """
-    level_file = open(file=f'./levels/{str(level_name)}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
+    level_file = open(file=f'./{str(path_to_level)}/{str(level_name)}.omegapog_map_file_type_MLG_1337_228_100500_69_420',
                       mode='r', encoding='utf-8')
 
     level_text = level_file.read()

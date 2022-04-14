@@ -71,7 +71,7 @@ class Loader(GameStrategy):
         :type level_name: str
         """
         # Gospodin: Надеюсь, когда-нибудь это будет игрой.
-        self._state = State(GameState.SWITCH, partial(PlayLevel, level_name))
+        self._state = State(GameState.SWITCH, partial(PlayLevel, level_name, 'levels'))
 
     def go_back(self):
         """Простая отмена (выход в предыдущее меню)"""
@@ -87,7 +87,7 @@ class Loader(GameStrategy):
         """
         self.overlay.loaded_flag = True
         pallete_name, level_size, self.overlay.editor.current_state = parse_file(
-            level_name)
+            level_name, "levels")
 
         self.overlay.editor.size = level_size
         self.overlay.editor.current_palette = pallete_name
