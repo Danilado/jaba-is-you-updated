@@ -124,6 +124,7 @@ class Object:
         self.is_3d = is_3d
         self.level_processor = None
         self.is_fall = False
+        self.is_word = False
         self.status_switch_name = 0
         self.has_objects = []
 
@@ -445,17 +446,19 @@ class Object:
         :return: True если объект выжил иначе False
         :rtype: bool
         """
-        if not self.is_safe:
+        if not self.object_can_stop(rule_object, level_rules, True):
+            if not self.is_safe:
+                for rule in level_rules:
+                    if f'{self.name} is melt' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if not rule_object.is_text and f'{rule_object.name} is hot' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(
+                                    self.get_index(matrix))
+                                return False
             for rule in level_rules:
-                if f'{self.name} is melt' in rule.text_rule:
-                    for sec_rule in level_rules:
-                        if not rule_object.is_text and f'{rule_object.name} is hot' in sec_rule.text_rule:
-                            matrix[self.y][self.x].pop(self.get_index(matrix))
-                            return False
-        for rule in level_rules:
-            if not rule_object.is_text and self.is_hot and f'{rule_object.name} is melt' in rule.text_rule:
-                matrix[self.y + delta_y][self.x +
-                                         delta_x].pop(rule_object.get_index(matrix))
+                if not rule_object.is_text and self.is_hot and f'{rule_object.name} is melt' in rule.text_rule:
+                    matrix[self.y + delta_y][self.x +
+                                             delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_weak(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
@@ -526,6 +529,23 @@ class Object:
 
         return True
 
+    def die(self, delta_j, delta_i, matrix, level_rules):
+        self.has_objects = []
+        for rule in level_rules:
+            if f'{self.name} has' in rule.text_rule:
+                self.has_objects.append(rule.text_rule.split()[-1])
+        for new_object_name in self.has_objects:
+            new_object = Object(
+                x=self.x + delta_j,
+                y=self.y + delta_i,
+                direction=self.direction,
+                name=new_object_name,
+                is_text=False,
+                palette=Palette(self.palette.name, self.palette.pixels.copy())
+            )
+            new_object.animation = new_object.animation_init()
+            matrix[self.y + delta_i][self.x + delta_j].append(new_object)
+
     def check_defeat(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
         """Проверяет правило defeat у объекта и сразу
         выполняет действие, если возможно
@@ -544,27 +564,30 @@ class Object:
         :return: True если объект выжил иначе False
         :rtype: bool
         """
-        if not self.is_safe:
+        if not self.object_can_stop(rule_object, level_rules, True):
+            if not self.is_safe:
+                for rule in level_rules:
+                    if not rule_object.is_text and f'{rule_object.name} is defeat' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{self.name} is you' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(
+                                    self.get_index(matrix))
+                                return False
+
+                            if f'{self.name} is 3d' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(
+                                    self.get_index(matrix))
+                                return False
+
             for rule in level_rules:
-                if not rule_object.is_text and f'{rule_object.name} is defeat' in rule.text_rule:
+                if f'{self.name} is defeat' in rule.text_rule:
                     for sec_rule in level_rules:
-                        if f'{self.name} is you' in sec_rule.text_rule:
-                            matrix[self.y][self.x].pop(self.get_index(matrix))
-                            return False
-
-                        if f'{self.name} is 3d' in sec_rule.text_rule:
-                            matrix[self.y][self.x].pop(self.get_index(matrix))
-                            return False
-
-        for rule in level_rules:
-            if f'{self.name} is defeat' in rule.text_rule:
-                for sec_rule in level_rules:
-                    if not rule_object.is_text and f'{rule_object.name} is you' in sec_rule.text_rule:
-                        matrix[self.y + delta_y][self.x +
-                                                 delta_x].pop(rule_object.get_index(matrix))
-                    elif not rule_object.is_text and f'{rule_object.name} is 3d' in sec_rule.text_rule:
-                        matrix[self.y + delta_y][self.x +
-                                                 delta_x].pop(rule_object.get_index(matrix))
+                        if not rule_object.is_text and f'{rule_object.name} is you' in sec_rule.text_rule:
+                            matrix[self.y + delta_y][self.x +
+                                                     delta_x].pop(rule_object.get_index(matrix))
+                        elif not rule_object.is_text and f'{rule_object.name} is 3d' in sec_rule.text_rule:
+                            matrix[self.y + delta_y][self.x +
+                                                     delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_sink(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
@@ -585,17 +608,18 @@ class Object:
         :return: True если объект выжил иначе False
         :rtype: bool
         """
-        if not self.is_safe:
+        if not self.object_can_stop(rule_object, level_rules, True):
+            if not self.is_safe:
+                for rule in level_rules:
+                    if not rule_object.is_text and f'{rule_object.name} is sink' in rule.text_rule:
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        matrix[self.y + delta_y][self.x +
+                                                 delta_x].pop(rule_object.get_index(matrix))
+                        return False
             for rule in level_rules:
-                if not rule_object.is_text and f'{rule_object.name} is sink' in rule.text_rule:
-                    matrix[self.y][self.x].pop(self.get_index(matrix))
+                if f'{self.name} is sink' in rule.text_rule:
                     matrix[self.y + delta_y][self.x +
                                              delta_x].pop(rule_object.get_index(matrix))
-                    return False
-        for rule in level_rules:
-            if f'{self.name} is sink' in rule.text_rule:
-                matrix[self.y + delta_y][self.x +
-                                         delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_win(self, level_rules, rule_object) -> bool:
@@ -611,15 +635,16 @@ class Object:
         :return: True если победа достигнута иначе False
         :rtype: bool
         """
-        for rule in level_rules:
-            if f'{rule_object.name} is win' in rule.text_rule \
-                    and not rule_object.is_text:
-                for sec_rule in level_rules:
+        if not self.object_can_stop(rule_object, level_rules, True):
+            for rule in level_rules:
+                if f'{rule_object.name} is win' in rule.text_rule \
+                        and not rule_object.is_text:
+                    for sec_rule in level_rules:
 
-                    if f'{self.name} is you' in sec_rule.text_rule or f'{self.name} is 3d' in sec_rule.text_rule:
-                        if not self.level_processor.flag_to_win_animation \
-                                and not self.level_processor.flag_to_level_start_animation:
-                            self.level_processor.flag_to_win_animation = True
+                        if f'{self.name} is you' in sec_rule.text_rule or f'{self.name} is 3d' in sec_rule.text_rule:
+                            if not self.level_processor.flag_to_win_animation \
+                                    and not self.level_processor.flag_to_level_start_animation:
+                                self.level_processor.flag_to_win_animation = True
         return False
 
     def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object) -> Literal[True]:
@@ -822,6 +847,7 @@ class Object:
                 self.check_rules(delta_x, delta_y, matrix,
                                  level_rules, rule_object)
             if self.status == 'dead':
+                self.die(delta_x, delta_y, matrix, level_rules)
                 return True
             if self.status == 'moved_swap':
                 return False
@@ -880,6 +906,12 @@ class Object:
                     self.update_parameters(delta_x, delta_y, matrix)
 
             return True
+        return False
+
+    def check_word(self, level_rules):
+        for rule in level_rules:
+            if f'{self.name} is word' in rule.text_rule:
+                return True
         return False
 
     def check_events(self, events: List[pygame.event.Event], number):
