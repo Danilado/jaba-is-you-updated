@@ -25,6 +25,7 @@ from utils import my_deepcopy, settings_saves
 class PlayLevel(GameStrategy):
     def __init__(self, level_name: str, screen: SURFACE):
         super().__init__(screen)
+        self.old_rules = []
         self.state: Optional[State] = None
         self.show_grid = settings_saves()[0]
 
@@ -35,7 +36,6 @@ class PlayLevel(GameStrategy):
         self.history_of_matrix = []
         self.level_rules = []
         self.delta_cancel = 0
-        self.old_rules =[]
 
         self.size = (32, 18)
         self.parse_file(level_name)
@@ -232,7 +232,6 @@ class PlayLevel(GameStrategy):
                 else:
                     return False
         return False
-
 
     def check_noun(self, i, j, delta_i, delta_j, status=None):
         noun_objects = []
@@ -890,20 +889,20 @@ class PlayLevel(GameStrategy):
             if count_3d_obj != 0:
                 self.num_obj_3d %= self.count_3d_obj
         else:
-            self.check_matrix()
             level_surface = pygame.Surface(
                 (self.size[0]*50, self.size[1]*50))
 
             for particle in self.particles:
+                particle.draw(level_surface)
 
-                for line in self.matrix:
-                    for cell in line:
-                        for game_object in cell:
-                            if self.first_iteration or self.moved:
-                                if game_object.name in STICKY and not game_object.is_text and \
-                                        (game_object.moved or self.first_iteration):
-                                    self.update_sticky_neighbours(game_object)
-                            game_object.draw(level_surface)
+            for line in self.matrix:
+                for cell in line:
+                    for game_object in cell:
+                        if self.first_iteration or self.moved:
+                            if game_object.name in STICKY and not game_object.is_text and \
+                                    (game_object.moved or self.first_iteration):
+                                self.update_sticky_neighbours(game_object)
+                        game_object.draw(level_surface)
 
             if self.show_grid:
                 for x in range(0, self.size[0] * 50, 50):
