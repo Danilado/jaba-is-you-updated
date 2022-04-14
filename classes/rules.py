@@ -10,7 +10,7 @@ class Broken:
     def apply(rule_object, level_rules, *_, **__):
         object_name = rule_object.name
         for sec_rule in level_rules:
-            if f'{object_name}' == sec_rule.text_rule.split()[-3] or f'{object_name}' == sec_rule.text_rule.split()[-4]\
+            if f'{object_name}' == sec_rule.text_rule.split()[-3] or f'{object_name}' == sec_rule.text_rule.split()[-4] \
                     and sec_rule.text_rule != f'{object_name} is broken':
                 level_rules.remove(sec_rule)
 
@@ -160,8 +160,6 @@ class Direction:
 class Fall:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
-        # FIXME by Gospodin
-        # Падающий объект не толкает на пути другие
         while rule_object.motion(0, 1, matrix, level_rules):
             ...
 
@@ -225,7 +223,8 @@ class Melt:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
-            level_object.check_melt(0, 0, matrix, rule_object, level_object)
+            if not level_object.check_melt(0, 0, matrix, rule_object, level_object):
+                level_object.die(0, 0, matrix, level_rules)
 
 
 class Win:
@@ -243,9 +242,11 @@ class Defeat:
             if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text:
                 if not rule_object.is_safe:
                     matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+                    rule_object.die(0, 0, matrix)
                     return False
         for level_object in matrix[rule_object.y][rule_object.x]:
-            level_object.check_defeat(0, 0, matrix, level_rules, rule_object)
+            if not level_object.check_defeat(0, 0, matrix, level_rules, rule_object):
+                level_object.die(0, 0, matrix, level_rules)
 
 
 class ShutOpen:
@@ -258,8 +259,10 @@ class ShutOpen:
                     return False
         for level_object in matrix[rule_object.y][rule_object.x]:
             if rule_object.can_interact(level_object, level_rules):
-                rule_object.check_shut_open(
-                    0, 0, matrix, level_rules, level_object)
+                if not rule_object.check_shut_open(
+                        0, 0, matrix, level_rules, level_object):
+                    level_object.die(0, 0, matrix, level_rules)
+                    rule_object.die(0, 0, matrix, level_rules)
 
 
 class Sink:
@@ -267,7 +270,9 @@ class Sink:
     def apply(matrix, rule_object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
             if len(matrix[rule_object.y][rule_object.x]) > 1:
-                rule_object.check_sink(0, 0, matrix, level_rules, level_object)
+                if not rule_object.check_sink(0, 0, matrix, level_rules, level_object):
+                    level_object.die(0, 0, matrix, level_rules)
+                    rule_object.die(0, 0, matrix, level_rules)
 
 
 class Make:
@@ -336,27 +341,27 @@ class Fear:
                 (not fear_top and not fear_bottom and fear_left and fear_right):
             return side
 
-        if (fear_top and not fear_left and not fear_right and not fear_bottom) or\
-                (fear_top and not fear_bottom and fear_left and fear_right) or\
-                (fear_top and fear_left and not fear_right and not fear_bottom and side == 2) or\
+        if (fear_top and not fear_left and not fear_right and not fear_bottom) or \
+                (fear_top and not fear_bottom and fear_left and fear_right) or \
+                (fear_top and fear_left and not fear_right and not fear_bottom and side == 2) or \
                 (fear_top and not fear_left and fear_right and not fear_bottom and side == 0):
             return 3
 
-        if (not fear_top and fear_left and not fear_right and not fear_bottom) or\
+        if (not fear_top and fear_left and not fear_right and not fear_bottom) or \
                 (fear_top and fear_bottom and fear_left and not fear_right) or \
-                (fear_left and fear_top and not fear_right and not fear_bottom and side == 1) or\
+                (fear_left and fear_top and not fear_right and not fear_bottom and side == 1) or \
                 (fear_left and not fear_top and not fear_right and fear_bottom and side == 3):
             return 0
 
-        if (not fear_top and not fear_left and fear_right and not fear_bottom) or\
+        if (not fear_top and not fear_left and fear_right and not fear_bottom) or \
                 (fear_top and fear_bottom and not fear_left and fear_right) or \
-                (fear_right and fear_top and not fear_left and not fear_bottom and side == 1) or\
+                (fear_right and fear_top and not fear_left and not fear_bottom and side == 1) or \
                 (fear_right and not fear_top and not fear_left and fear_bottom and side == 3):
             return 2
 
-        if (not fear_top and not fear_left and not fear_right and fear_bottom) or\
+        if (not fear_top and not fear_left and not fear_right and fear_bottom) or \
                 (not fear_top and fear_bottom and fear_left and fear_right) or \
-                (fear_bottom and fear_left and not fear_right and not fear_top and side == 2) or\
+                (fear_bottom and fear_left and not fear_right and not fear_top and side == 2) or \
                 (fear_bottom and not fear_left and fear_right and not fear_top and side == 0):
             return 1
 
@@ -411,9 +416,6 @@ class Follow:
         matrix[rule_object.y][rule_object.x].append(rule_object)
 
 
-
-
-
 class Tele:
     @staticmethod
     def apply(matrix, rule_object, level_rules, **__):
@@ -464,6 +466,7 @@ class RuleProcessor:
             'chill': Chill(),
             'boom': Boom(),
             'auto': Auto(),
+            'defeat': Defeat(),
             'direction': Direction(),
             'fall': Fall(),
             'more': More(),
