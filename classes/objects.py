@@ -528,7 +528,11 @@ class Object:
 
         return True
 
-    def die(self, delta_j, delta_i, matrix):
+    def die(self, delta_j, delta_i, matrix, level_rules):
+        self.has_objects = []
+        for rule in level_rules:
+            if f'{self.name} has' in rule.text_rule:
+                self.has_objects.append(rule.text_rule.split()[-1])
         for new_object_name in self.has_objects:
             new_object = Object(
                 x=self.x + delta_j,
@@ -804,7 +808,6 @@ class Object:
         """
         status_float_rule_object = False
         status_push_rule_object = False
-        print(rule_object)
         for rule in level_rules:
             if f'{rule_object.name} is float' in rule.text_rule \
                     and not (rule_object.name in OPERATORS or rule_object.name in PROPERTIES or (
@@ -843,7 +846,7 @@ class Object:
                 self.check_rules(delta_x, delta_y, matrix,
                                  level_rules, rule_object)
             if self.status == 'dead':
-                self.die(delta_x, delta_y, matrix)
+                self.die(delta_x, delta_y, matrix, level_ruleslevel_object.die(0, 0, matrix, level_rules))
                 return True
             if self.status == 'moved_swap':
                 return False
