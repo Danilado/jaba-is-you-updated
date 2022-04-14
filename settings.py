@@ -96,7 +96,7 @@ INFIX = ['on', 'never', 'facing', 'without', 'above',
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver',
-    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right', 'end', 'fall', 'float', 'hide', 'hold', 'white',
+    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right', 'end', 'fall', 'float', 'hide', 'white',
     'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt', 'more', 'move', 'nudgeup', 'nudgeleft', 'hot',
     'nudgedown', 'nudgeright', 'open', 'shut', 'phantom', 'party', 'pet', 'power', 'pull', 'push', 'reverse',
     'sad', 'safe', 'scary', 'shift', 'sink', 'sleep', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win',
