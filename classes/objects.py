@@ -846,7 +846,7 @@ class Object:
                 self.check_rules(delta_x, delta_y, matrix,
                                  level_rules, rule_object)
             if self.status == 'dead':
-                self.die(delta_x, delta_y, matrix, level_ruleslevel_object.die(0, 0, matrix, level_rules))
+                self.die(delta_x, delta_y, matrix, level_rules)
                 return True
             if self.status == 'moved_swap':
                 return False
