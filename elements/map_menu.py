@@ -74,7 +74,7 @@ class MapMenu(GameStrategy):
                   'r', encoding='utf-8') as level_file:
             for line in level_file.readlines():
                 parameters = line.strip().split(' ')
-                if len(parameters) > 3:
+                if len(parameters) > 1:
                     self.matrix[int(parameters[1])][int(parameters[0])].append(Object(
                         int(parameters[0]),
                         int(parameters[1]),
