@@ -23,7 +23,7 @@ from utils import my_deepcopy, settings_saves
 
 
 class PlayLevel(GameStrategy):
-    def __init__(self, level_name: str, screen: SURFACE):
+    def __init__(self, level_name: str, path_to_level: str, screen: SURFACE):
         super().__init__(screen)
         self.state: Optional[State] = None
         self.show_grid = settings_saves()[0]
@@ -37,7 +37,7 @@ class PlayLevel(GameStrategy):
         self.delta_cancel = 0
 
         self.size = (32, 18)
-        self.parse_file(level_name)
+        self.parse_file(level_name, path_to_level)
         self.scale = 1
         self.window_offset: List[int] = [0, 0]
         self.border_screen: pygame.Surface = None
@@ -133,7 +133,7 @@ class PlayLevel(GameStrategy):
             self.border_screen = None
             self.window_offset = [0, 0]
 
-    def parse_file(self, level_name: str):
+    def parse_file(self, level_name: str, path_to_level: str):
         """
         Парсинг уровней. Добавляет объекты в :attr:`~.Draw.matrix`.
 
@@ -144,7 +144,7 @@ class PlayLevel(GameStrategy):
         :raises OSError: Если какая либо проблема с открытием файла.
         """
         self.current_palette, self.size, self.start_matrix = parse_file(
-            level_name)
+            level_name, path_to_level)
         self.matrix = my_deepcopy(self.start_matrix)
 
     def get_neighbours(self, y, x) -> List:

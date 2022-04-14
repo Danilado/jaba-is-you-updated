@@ -34,7 +34,7 @@ class SpriteManager(BaseDownloadManager):
                       'potato': (6, 1), 'pumpkin': (2, 3), 'reed': (6, 2), 'ring': (2, 3), 'road': (0, 1),
                       'robot': (0, 1), 'rock': (6, 2), 'rocket': (0, 1), 'rose': (2, 2), 'rubble': (6, 1),
                       'sax': (3, 4), 'seed': (6, 2), 'shell': (4, 2), 'shirt': (2, 1), 'shovel': (3, 1), 'sign': (6, 1),
-                      'skull': (2, 1), 'spike': (1, 1), 'sprout': (5, 3), 'square': (4, 1), 'star': (2, 4),
+                      'skull': (2, 1), 'spike': (1, 1), 'sprout': (5, 3), 'square': (0, 0), 'star': (2, 4),
                       'statue': (0, 1), 'stick': (6, 1), 'stump': (6, 1), 'sun': (2, 4), 'sword': (1, 4),
                       'table': (6, 1), 'teeth': (0, 3), 'text/algae': (5, 1), 'text/arrow': (5, 2), 'text/baba': (4, 1),
                       'text/badbad': (1, 4), 'text/banana': (2, 4), 'text/bat': (3, 1), 'text/bed': (0, 3),

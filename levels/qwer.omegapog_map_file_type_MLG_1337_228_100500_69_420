@@ -1,0 +1,10 @@
+contrast 32 18
+29 0 1 cat True
+30 0 1 is False
+31 0 1 you False
+29 1 1 chair True
+30 1 1 is False
+31 1 1 win False
+25 4 1 cat False
+19 5 1 cat False
+17 9 1 chair False

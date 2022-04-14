@@ -1,14 +1,11 @@
-import os
 from typing import List, Optional
 from functools import partial
 
 import pygame
 import settings
-from classes.animation import Animation
-from elements.global_classes import sound_manager, palette_manager, sprite_manager
+from elements.global_classes import sound_manager, palette_manager
 from elements.loader_util import parse_file
 from elements.play_level import PlayLevel
-from elements.reference_point import ReferencePoint
 
 from settings import SHOW_GRID, STICKY
 from global_types import SURFACE
@@ -20,31 +17,27 @@ from classes.objects import Object
 from classes.state import State
 
 
-class MapMenu(GameStrategy):
-    def __init__(self, screen: SURFACE):
+class ReferencePoint(GameStrategy):
+    def __init__(self, name: str, screen: SURFACE):
         super().__init__(screen)
         self.levels_passed = 0
         self.matrix: List[List[List[Object]]] = [[[]
                                                   for _ in range(32)] for _ in range(18)]
         self.cursor = MoveCursor()
+        self.ref_point_name = f'map_levels/{name}'
         self._state: Optional[State] = None
         self.first_iteration = True
-        self.current_palette = palette_manager.get_palette('default')
-        self.parse_file('map', 'map_levels')
+        self.parse_file(name, 'map_levels')
         self.empty_object = Object(-1, -1, 0, 'empty', False)
         self.radius = 0
         self.flag_anime = False
         self.delay = 0
+        self.current_palette = palette_manager.get_palette('default')
         self.scale = 1
         self.size = (32, 18)
-        self.animation = Animation([], 200, (-30, -30))
-        path = os.path.join('./', 'sprites', 'map')
-        self.animation.sprites = [pygame.transform.scale(sprite_manager.get(
-            os.path.join(path, f'map_0_{index}'), default=True),
-            (1700, 925)) for index in range(1, 4)]
 
     def set_pallete(self, level_name: str):
-        path_to_file = f'./map_levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
+        path_to_file = f'./{self.ref_point_name}/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
         with open(path_to_file, mode='r', encoding='utf-8') as level_file:
             for line in level_file.readlines():
                 parameters = line.strip().split(' ')
@@ -78,7 +71,7 @@ class MapMenu(GameStrategy):
         :param level_name: Название уровня в папке
         :raises OSError: Если какая либо проблема с открытием файла.
         """
-        _, self.size, self.matrix = parse_file(level_name, path_to_file)
+        palette, self.size, self.matrix = parse_file(level_name, path_to_file)
 
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -118,23 +111,20 @@ class MapMenu(GameStrategy):
             for j, cell in enumerate(line):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
-                        if rule_object.name == 'cursor' and not rule_object.is_text:
-                            if self.matrix[i][j][1].name in (*self.cursor.levels, *self.cursor.reference_point):
-                                return self.matrix[i][j][1].name
+                        if rule_object.name == 'cursor' and not rule_object.is_text and \
+                                self.matrix[i][j][1].name in self.cursor.levels:
+                            return self.matrix[i][j][1].name
 
     def go_to_game(self):
         for i, line in enumerate(self.matrix):
             for j, cell in enumerate(line):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
-                        if rule_object.name == 'cursor' and not rule_object.is_text:
-                            if self.matrix[i][j][1].name in self.cursor.levels:
-                                self._state = State(GameState.SWITCH, partial(PlayLevel,
-                                                                              self.matrix[i][j][1].name.split("/")[0],
-                                                                              'map_levels'))
-                            if self.matrix[i][j][1].name in self.cursor.reference_point:
-                                self._state = State(GameState.SWITCH, partial(ReferencePoint,
-                                                                              self.matrix[i][j][1].name.split("/")[0]))
+                        if rule_object.name == 'cursor' and not rule_object.is_text and \
+                                self.matrix[i][j][1].name in self.cursor.levels:
+                            self._state = State(GameState.SWITCH,
+                                                partial(PlayLevel, self.matrix[i][j][1].name.split("/")[0],
+                                                        self.ref_point_name))
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает интерфейс загрузчика и обрабатывает все события
@@ -156,8 +146,7 @@ class MapMenu(GameStrategy):
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_ESCAPE:
                         self._state = State(GameState.BACK)
-                    if event.key == pygame.K_RETURN and self.level_name() in (
-                            *self.cursor.levels, *self.cursor.reference_point):
+                    if event.key == pygame.K_RETURN and self.level_name() in self.cursor.levels:
                         self.delay = pygame.time.get_ticks()
                         self.set_pallete(self.level_name())
                         self.flag_anime = True
@@ -180,8 +169,6 @@ class MapMenu(GameStrategy):
                         needed_to_redraw_objects = True
         if needed_to_redraw_objects:
             self.screen.fill("black")
-            self.animation.update()
-            self.animation.draw(map_surface)
             if self._state is None:
                 self._state = State(GameState.FLIP)
             self.cursor.move(self.matrix)
@@ -203,6 +190,6 @@ class MapMenu(GameStrategy):
         return self._state
 
     def on_init(self):
-        sound_manager.load_music("sounds/Music/burn")
+        sound_manager.load_music("sounds/Music/rain")
         if not pygame.mixer.music.get_busy():
             pygame.mixer.music.play()
