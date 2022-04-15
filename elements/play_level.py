@@ -481,7 +481,7 @@ class PlayLevel(GameStrategy):
                 self.level_rules.append(rule)
 
     @staticmethod
-    def copy_matrix(matrix):
+    def copy_matrix(matrix: List[List[List[Object]]]) -> List[List[List[Object]]]:
         copy_matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
 
@@ -642,6 +642,7 @@ class PlayLevel(GameStrategy):
                 for j, cell in enumerate(line):
                     for rule_object in cell:
                         self.apply_rules(matrix, rule_object, i, j)
+                        rule_object.reset_movement()
         elif any(pressed[key] for key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]):
             rules.processor.update_lists(level_processor=self,
                                          matrix=matrix,
@@ -650,6 +651,7 @@ class PlayLevel(GameStrategy):
                 for j in range(len(self.matrix[i]) - 1, -1, -1):
                     for rule_object in self.matrix[i][j]:
                         self.apply_rules(matrix, rule_object, i, j)
+                        rule_object.reset_movement()
 
     def _create_in_cache_rules_thing(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int,
                                      rule_cache_key: Object):
@@ -819,9 +821,8 @@ class PlayLevel(GameStrategy):
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 for obj in self.matrix[i][j]:
+                    obj.reset_movement()
                     if obj.x != j or obj.y != i:
-                        obj.x = j
-                        obj.y = i
                         obj.animation = obj.animation_init()
                         self.matrix[i][j].pop(obj.get_index(self.matrix))
                         obj.animation = obj.animation_init()
