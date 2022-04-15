@@ -2,11 +2,15 @@
 from copy import copy
 import os
 import os.path
+from copy import copy
 from typing import List, Literal, Optional
 
 import pygame
 
+import settings
+from classes.animation import Animation
 from classes.palette import Palette
+from classes.smooth_movement import SmoothMove
 from classes.animation import Animation
 from elements.global_classes import sprite_manager, palette_manager
 from global_types import SURFACE
@@ -71,7 +75,7 @@ class Object:
                  movement_state: int = 0, neighbours=None,
                  turning_side: Literal[0, 1, 2, 3, -1] = -1, animation=None,
                  safe=False, angle_3d: int = 90, is_3d=False, moved=False,
-                 num_3d: int = 0, level_size=(32, 18)):
+                 num_3d: int = 0, level_size=(32, 18), smooth_movement: Optional[SmoothMove] = None):
 
         self.status = ''
         self.name: str = name
@@ -134,6 +138,54 @@ class Object:
         self.level_size = level_size
         if self.name != 'empty' and self.animation is None:
             self.animation = self.animation_init()
+
+        if smooth_movement is None:
+            smooth_movement = SmoothMove(self.xpx, self.ypx, 0, 0, 1)
+        self._movement: SmoothMove = smooth_movement
+
+    @property
+    def movement(self) -> SmoothMove:
+        return self._movement
+
+    def reset_movement(self):
+        # TODO by quswadress: Add EmptySmoothMove instead of 0, 0, 1
+        self._movement = SmoothMove(self.xpx, self.ypx, 0, 0, 1)
+
+    @property
+    def x(self) -> int:
+        return self._x
+
+    @x.setter
+    def x(self, value: int):
+        self._x = value
+        self._xpx = int(value * 50 * settings.WINDOW_SCALE)
+
+    @property
+    def y(self) -> int:
+        return self._y
+
+    @y.setter
+    def y(self, value: int):
+        self._y = value
+        self._ypx = int(value * 50 * settings.WINDOW_SCALE)
+
+    @property
+    def xpx(self) -> int:
+        return self._xpx
+
+    @xpx.setter
+    def xpx(self, value: int):
+        self._xpx = value
+        self._x = int(value / 50 * settings.WINDOW_SCALE)
+
+    @property
+    def ypx(self) -> int:
+        return self._ypx
+
+    @ypx.setter
+    def ypx(self, value: int):
+        self._ypx = value
+        self._y = int(value / 50 * settings.WINDOW_SCALE)
 
     def investigate_neighbours(self):
         """Исследует соседей объекта и возвращает правильный ключ к спрайту
@@ -247,6 +299,8 @@ class Object:
         """
         Метод отрисовки объекта
         """
+        new_x_and_y = self._movement.update_x_and_y()
+        self.animation.position = self.xpx, self.ypx = new_x_and_y
         if not self.is_hide:
             self.animation.update()
             self.animation.draw(screen)
@@ -377,11 +431,11 @@ class Object:
         :param matrix: Матрица, на которой расположен объект
         :type matrix: List[List[List[Object]]]
         """
+        self._movement.start_x_pixel = self._xpx
+        self._movement.start_y_pixel = self._ypx
         if not self.is_still:
             self.x += delta_x
             self.y += delta_y
-            self.ypx -= delta_y * 50
-            self.xpx -= delta_x * 50
         self.animation = None
         self.movement_state += 1
         self.moved = True
@@ -399,8 +453,11 @@ class Object:
             self.status_of_rotate = 2
             self.direction = 3
         matrix[self.y][self.x].append(copy(self))
+        self._movement.x_pixel_delta = self._xpx - self._movement.start_x_pixel
+        self._movement.y_pixel_delta = self._ypx - self._movement.start_y_pixel
+        self._movement.rerun(0.05)
 
-    def check_swap(self, delta_x, delta_y, matrix, level_rules, rule_object) -> Literal[True]:
+    def check_swap(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
         """Проверяет правило swap у объекта и сразу
         выполняет действие, если возможно
 
@@ -415,7 +472,7 @@ class Object:
         :param rule_object: Объект, с которым движущийся объект
         потенциально может свапаться
         :type rule_object: Object
-        :return: True\n"Так нужно" (c)Vlastelin
+        :return: неизвестную фигню
         :rtype: bool
         """
         for rule in level_rules:
@@ -982,6 +1039,13 @@ class Object:
             is_3d=self.is_3d,
             moved=self.moved,
             num_3d=self.num_3d,
-            level_size=self.level_size
+            level_size=self.level_size,
+            smooth_movement=self._movement
         )
         return copied_object
+
+    def __repr__(self):
+        result = "text " if self.is_text else ""
+        result += self.name
+        result += f" {self.x};{self.y}"
+        return result

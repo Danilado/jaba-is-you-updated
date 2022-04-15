@@ -3,10 +3,7 @@ from typing import Optional
 import pygame
 
 from global_types import COLOR, SURFACE
-
-
-def map_value(x, in_min, in_max, out_min, out_max):
-    return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
+from utils import map_value
 
 
 class ProgressBar:
