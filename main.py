@@ -1,0 +1,23 @@
+import argparse
+
+import settings
+from classes.game_context import GameContext
+from elements.global_classes import sound_manager
+from elements.progressbar_menu import ProgressBarMenu
+
+
+def main():
+    parser = argparse.ArgumentParser(description='Jaba')
+    parser.add_argument("-d", "--debug",
+                        help='Shows ghosts target position',    action="store_true")
+    args = parser.parse_args()
+    if args.debug:
+        settings.DEBUG = True
+        print("Debug on")
+
+    sound_manager.start_download()
+
+
+if __name__ == '__main__':
+    main()
+    GameContext(ProgressBarMenu).run()

@@ -1,0 +1,6 @@
+default 7 5
+2 0 1 bird True
+3 0 1 is False
+4 0 1 3d False
+3 2 1 bird False
+
