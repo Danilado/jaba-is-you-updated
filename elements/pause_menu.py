@@ -10,7 +10,6 @@ from elements.main_menu import MainMenu
 from elements.map_menu import MapMenu
 from global_types import SURFACE
 from typing import List, Optional
-
 from utils import language_words
 
 
@@ -79,4 +78,3 @@ class PauseMenu(GameStrategy):
             pygame.mixer.music.play()
         pygame.event.set_allowed(
             [pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONUP])
-        print("QUIT, KEYDOWN, MOUSEBUTTONUP")
