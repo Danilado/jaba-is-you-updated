@@ -1,4 +1,4 @@
-mono
+mono 32 18
 1 0 1 frog True
 2 0 1 is False
 3 0 1 you False
@@ -51,12 +51,7 @@ mono
 20 11 1 rose False
 17 12 1 rose False
 20 12 1 rose False
-2 13 1 d False
-3 13 1 u False
-4 13 1 d False
-5 13 1 a False
 17 13 1 rose False
 18 13 1 rose False
 19 13 1 rose False
 20 13 1 rose False
-3 15 3 trumpet False

@@ -2,18 +2,19 @@
 from copy import copy
 import os
 import os.path
+from copy import copy
 from typing import List, Literal, Optional
 
 import pygame
 
 import settings
+from classes.animation import Animation
 from classes.palette import Palette
+from classes.smooth_movement import SmoothMove
+from classes.animation import Animation
 from elements.global_classes import sprite_manager, palette_manager
 from global_types import SURFACE
 from settings import TEXT_ONLY, SPRITE_ONLY, NOUNS, OPERATORS, PROPERTIES
-from classes.animation import Animation
-from classes.game_state import GameState
-from classes.state import State
 from utils import get_pressed_direction
 
 pygame.font.init()
@@ -74,7 +75,7 @@ class Object:
                  movement_state: int = 0, neighbours=None,
                  turning_side: Literal[0, 1, 2, 3, -1] = -1, animation=None,
                  safe=False, angle_3d: int = 90, is_3d=False, moved=False,
-                 num_3d: int = 0):
+                 num_3d: int = 0, level_size=(32, 18), smooth_movement: Optional[SmoothMove] = None):
 
         self.status = ''
         self.name: str = name
@@ -98,14 +99,14 @@ class Object:
 
         self.x = x
         self.y = y
-        self.xpx = x * 50 * settings.WINDOW_SCALE
-        self.ypx = y * 50 * settings.WINDOW_SCALE
+        self.xpx = x * 50
+        self.ypx = y * 50
 
         self.angle_3d = angle_3d
         self.num_3d = num_3d
 
-        self.width = 50 * settings.WINDOW_SCALE
-        self.height = 50 * settings.WINDOW_SCALE
+        self.width = 50
+        self.height = 50
 
         self.animation: Animation
         self.movement_state = movement_state
@@ -127,14 +128,64 @@ class Object:
         self.is_3d = is_3d
         self.level_processor = None
         self.is_fall = False
+        self.is_word = False
         self.status_switch_name = 0
         self.has_objects = []
 
         self.moved = moved
         self.recursively_used = False
 
+        self.level_size = level_size
         if self.name != 'empty' and self.animation is None:
             self.animation = self.animation_init()
+
+        if smooth_movement is None:
+            smooth_movement = SmoothMove(self.xpx, self.ypx, 0, 0, 1)
+        self._movement: SmoothMove = smooth_movement
+
+    @property
+    def movement(self) -> SmoothMove:
+        return self._movement
+
+    def reset_movement(self):
+        # TODO by quswadress: Add EmptySmoothMove instead of 0, 0, 1
+        self._movement = SmoothMove(self.xpx, self.ypx, 0, 0, 1)
+
+    @property
+    def x(self) -> int:
+        return self._x
+
+    @x.setter
+    def x(self, value: int):
+        self._x = value
+        self._xpx = int(value * 50 * settings.WINDOW_SCALE)
+
+    @property
+    def y(self) -> int:
+        return self._y
+
+    @y.setter
+    def y(self, value: int):
+        self._y = value
+        self._ypx = int(value * 50 * settings.WINDOW_SCALE)
+
+    @property
+    def xpx(self) -> int:
+        return self._xpx
+
+    @xpx.setter
+    def xpx(self, value: int):
+        self._xpx = value
+        self._x = int(value / 50 * settings.WINDOW_SCALE)
+
+    @property
+    def ypx(self) -> int:
+        return self._ypx
+
+    @ypx.setter
+    def ypx(self, value: int):
+        self._ypx = value
+        self._y = int(value / 50 * settings.WINDOW_SCALE)
 
     def investigate_neighbours(self):
         """Исследует соседей объекта и возвращает правильный ключ к спрайту
@@ -178,7 +229,7 @@ class Object:
             path = os.path.join('./', 'sprites', 'text')
             animation.sprites = [pygame.transform.scale(sprite_manager.get(
                 os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}"), default=True, palette=self.palette),
-                (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)]
+                (50, 50)) for index in range(0, 3)]
         else:
             path = os.path.join('./', 'sprites', self.name)
             try:
@@ -200,32 +251,32 @@ class Object:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_0_{index}'), default=True, palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
+                        (50, 50)) for index in range(1, 4)]
                 elif state_max == 15:
                     frame = self.investigate_neighbours()
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{frame}_{index}'), default=True, palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
+                        (50, 50)) for index in range(1, 4)]
                 elif state_max == 3:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{self.movement_state % 4}_{index}'), default=True,
                         palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
+                        (50, 50)) for index in range(1, 4)]
                 elif state_max == 24:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{self.direction_key_map[self.direction] * 8}_{index}'), default=True,
                         palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
+                        (50, 50)) for index in range(1, 4)]
                 elif state_max == 27:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_'
                                      f'{self.movement_state % 4 + self.direction_key_map[self.direction] * 8}_'
                                      f'{index}'), default=True, palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
+                        (50, 50)) for index in range(1, 4)]
                 elif state_max == 31:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(
@@ -233,7 +284,7 @@ class Object:
                             f'{self.name}_'
                             f'{self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0)}_'
                             f'{index}'), default=True, palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(1, 4)]
+                        (50, 50)) for index in range(1, 4)]
                 else:
                     print(f'{self.name} somehow fucked up while setting animation')
             except FileNotFoundError:
@@ -248,6 +299,8 @@ class Object:
         """
         Метод отрисовки объекта
         """
+        new_x_and_y = self._movement.update_x_and_y()
+        self.animation.position = self.xpx, self.ypx = new_x_and_y
         if not self.is_hide:
             self.animation.update()
             self.animation.draw(screen)
@@ -378,11 +431,11 @@ class Object:
         :param matrix: Матрица, на которой расположен объект
         :type matrix: List[List[List[Object]]]
         """
+        self._movement.start_x_pixel = self._xpx
+        self._movement.start_y_pixel = self._ypx
         if not self.is_still:
             self.x += delta_x
             self.y += delta_y
-            self.ypx -= delta_y * int((50 * settings.WINDOW_SCALE))
-            self.xpx -= delta_x * int((50 * settings.WINDOW_SCALE))
         self.animation = None
         self.movement_state += 1
         self.moved = True
@@ -400,8 +453,11 @@ class Object:
             self.status_of_rotate = 2
             self.direction = 3
         matrix[self.y][self.x].append(copy(self))
+        self._movement.x_pixel_delta = self._xpx - self._movement.start_x_pixel
+        self._movement.y_pixel_delta = self._ypx - self._movement.start_y_pixel
+        self._movement.rerun(0.05)
 
-    def check_swap(self, delta_x, delta_y, matrix, level_rules, rule_object) -> Literal[True]:
+    def check_swap(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
         """Проверяет правило swap у объекта и сразу
         выполняет действие, если возможно
 
@@ -416,7 +472,7 @@ class Object:
         :param rule_object: Объект, с которым движущийся объект
         потенциально может свапаться
         :type rule_object: Object
-        :return: True\n"Так нужно" (c)Vlastelin
+        :return: неизвестную фигню
         :rtype: bool
         """
         for rule in level_rules:
@@ -447,17 +503,19 @@ class Object:
         :return: True если объект выжил иначе False
         :rtype: bool
         """
-        if not self.is_safe:
+        if not self.object_can_stop(rule_object, level_rules, True):
+            if not self.is_safe:
+                for rule in level_rules:
+                    if f'{self.name} is melt' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if not rule_object.is_text and f'{rule_object.name} is hot' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(
+                                    self.get_index(matrix))
+                                return False
             for rule in level_rules:
-                if f'{self.name} is melt' in rule.text_rule:
-                    for sec_rule in level_rules:
-                        if not rule_object.is_text and f'{rule_object.name} is hot' in sec_rule.text_rule:
-                            matrix[self.y][self.x].pop(self.get_index(matrix))
-                            return False
-        for rule in level_rules:
-            if not rule_object.is_text and self.is_hot and f'{rule_object.name} is melt' in rule.text_rule:
-                matrix[self.y + delta_y][self.x +
-                                         delta_x].pop(rule_object.get_index(matrix))
+                if not rule_object.is_text and self.is_hot and f'{rule_object.name} is melt' in rule.text_rule:
+                    matrix[self.y + delta_y][self.x +
+                                             delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_weak(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
@@ -528,6 +586,23 @@ class Object:
 
         return True
 
+    def die(self, delta_j, delta_i, matrix, level_rules):
+        self.has_objects = []
+        for rule in level_rules:
+            if f'{self.name} has' in rule.text_rule:
+                self.has_objects.append(rule.text_rule.split()[-1])
+        for new_object_name in self.has_objects:
+            new_object = Object(
+                x=self.x + delta_j,
+                y=self.y + delta_i,
+                direction=self.direction,
+                name=new_object_name,
+                is_text=False,
+                palette=Palette(self.palette.name, self.palette.pixels.copy())
+            )
+            new_object.animation = new_object.animation_init()
+            matrix[self.y + delta_i][self.x + delta_j].append(new_object)
+
     def check_defeat(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
         """Проверяет правило defeat у объекта и сразу
         выполняет действие, если возможно
@@ -546,27 +621,30 @@ class Object:
         :return: True если объект выжил иначе False
         :rtype: bool
         """
-        if not self.is_safe:
+        if not self.object_can_stop(rule_object, level_rules, True):
+            if not self.is_safe:
+                for rule in level_rules:
+                    if not rule_object.is_text and f'{rule_object.name} is defeat' in rule.text_rule:
+                        for sec_rule in level_rules:
+                            if f'{self.name} is you' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(
+                                    self.get_index(matrix))
+                                return False
+
+                            if f'{self.name} is 3d' in sec_rule.text_rule:
+                                matrix[self.y][self.x].pop(
+                                    self.get_index(matrix))
+                                return False
+
             for rule in level_rules:
-                if not rule_object.is_text and f'{rule_object.name} is defeat' in rule.text_rule:
+                if f'{self.name} is defeat' in rule.text_rule:
                     for sec_rule in level_rules:
-                        if f'{self.name} is you' in sec_rule.text_rule:
-                            matrix[self.y][self.x].pop(self.get_index(matrix))
-                            return False
-
-                        if f'{self.name} is 3d' in sec_rule.text_rule:
-                            matrix[self.y][self.x].pop(self.get_index(matrix))
-                            return False
-
-        for rule in level_rules:
-            if f'{self.name} is defeat' in rule.text_rule:
-                for sec_rule in level_rules:
-                    if not rule_object.is_text and f'{rule_object.name} is you' in sec_rule.text_rule:
-                        matrix[self.y + delta_y][self.x +
-                                                 delta_x].pop(rule_object.get_index(matrix))
-                    elif not rule_object.is_text and f'{rule_object.name} is 3d' in sec_rule.text_rule:
-                        matrix[self.y + delta_y][self.x +
-                                                 delta_x].pop(rule_object.get_index(matrix))
+                        if not rule_object.is_text and f'{rule_object.name} is you' in sec_rule.text_rule:
+                            matrix[self.y + delta_y][self.x +
+                                                     delta_x].pop(rule_object.get_index(matrix))
+                        elif not rule_object.is_text and f'{rule_object.name} is 3d' in sec_rule.text_rule:
+                            matrix[self.y + delta_y][self.x +
+                                                     delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_sink(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
@@ -587,17 +665,18 @@ class Object:
         :return: True если объект выжил иначе False
         :rtype: bool
         """
-        if not self.is_safe:
+        if not self.object_can_stop(rule_object, level_rules, True):
+            if not self.is_safe:
+                for rule in level_rules:
+                    if not rule_object.is_text and f'{rule_object.name} is sink' in rule.text_rule:
+                        matrix[self.y][self.x].pop(self.get_index(matrix))
+                        matrix[self.y + delta_y][self.x +
+                                                 delta_x].pop(rule_object.get_index(matrix))
+                        return False
             for rule in level_rules:
-                if not rule_object.is_text and f'{rule_object.name} is sink' in rule.text_rule:
-                    matrix[self.y][self.x].pop(self.get_index(matrix))
+                if f'{self.name} is sink' in rule.text_rule:
                     matrix[self.y + delta_y][self.x +
                                              delta_x].pop(rule_object.get_index(matrix))
-                    return False
-        for rule in level_rules:
-            if f'{self.name} is sink' in rule.text_rule:
-                matrix[self.y + delta_y][self.x +
-                                         delta_x].pop(rule_object.get_index(matrix))
         return True
 
     def check_win(self, level_rules, rule_object) -> bool:
@@ -613,15 +692,16 @@ class Object:
         :return: True если победа достигнута иначе False
         :rtype: bool
         """
-        for rule in level_rules:
-            if f'{rule_object.name} is win' in rule.text_rule \
-                    and not rule_object.is_text:
-                for sec_rule in level_rules:
+        if not self.object_can_stop(rule_object, level_rules, True):
+            for rule in level_rules:
+                if f'{rule_object.name} is win' in rule.text_rule \
+                        and not rule_object.is_text:
+                    for sec_rule in level_rules:
 
-                    if f'{self.name} is you' in sec_rule.text_rule or f'{self.name} is 3d' in sec_rule.text_rule:
-                        if not self.level_processor.flag_to_win_animation \
-                                and not self.level_processor.flag_to_level_start_animation:
-                            self.level_processor.flag_to_win_animation = True
+                        if f'{self.name} is you' in sec_rule.text_rule or f'{self.name} is 3d' in sec_rule.text_rule:
+                            if not self.level_processor.flag_to_win_animation \
+                                    and not self.level_processor.flag_to_level_start_animation:
+                                self.level_processor.flag_to_win_animation = True
         return False
 
     def check_rules(self, delta_x, delta_y, matrix, level_rules, rule_object) -> Literal[True]:
@@ -724,8 +804,8 @@ class Object:
         :return: Можно ли двигаться в данном направлении
         :rtype: bool
         """
-        return settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1 >= self.x + delta_x >= 0 \
-            and settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1 >= self.y + delta_y >= 0
+        return self.level_size[0] - 1 >= self.x + delta_x >= 0 \
+            and self.level_size[1] - 1 >= self.y + delta_y >= 0
 
     def pull_objects(self, delta_x, delta_y, matrix, level_rules) -> None:
         """Тянет объекты с правилом pull
@@ -764,9 +844,9 @@ class Object:
             self.locked_sides.append('up')
         elif side == 'left' and self.x == 0:
             self.locked_sides.append('left')
-        elif side == 'right' and self.x == settings.RESOLUTION[0] // int(50 * settings.WINDOW_SCALE) - 1:
+        elif side == 'right' and self.x == self.level_size[0] - 1:
             self.locked_sides.append('right')
-        elif side == 'down' and self.y == settings.RESOLUTION[1] // int(50 * settings.WINDOW_SCALE) - 1:
+        elif side == 'down' and self.y == self.level_size[1] - 1:
             self.locked_sides.append('down')
         if side in self.locked_sides:
             return False
@@ -824,6 +904,7 @@ class Object:
                 self.check_rules(delta_x, delta_y, matrix,
                                  level_rules, rule_object)
             if self.status == 'dead':
+                self.die(delta_x, delta_y, matrix, level_rules)
                 return True
             if self.status == 'moved_swap':
                 return False
@@ -835,7 +916,7 @@ class Object:
             if self.status == 'alive':
                 for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
                     if (self.is_phantom or not rule_object.object_can_stop(rule_object, level_rules, True)
-                            or not self.can_interact(rule_object, level_rules)) and status_motion != False:
+                            or not self.can_interact(rule_object, level_rules)) and status_motion is not False:
                         if self.object_can_move(level_rules) and not self.is_still:
                             status_motion = True
 
@@ -844,11 +925,9 @@ class Object:
 
                     elif self.object_can_move(level_rules) \
                             and not self.is_still \
-                            and status_motion != False:
-                        if rule_object.motion(delta_x, delta_y, matrix, level_rules, 'push'):
-                            status_motion = True
-                        else:
-                            status_motion = False
+                            and status_motion is not False:
+                        status_motion = rule_object.motion(
+                            delta_x, delta_y, matrix, level_rules, 'push')
 
                 if status_motion is True:
                     matrix[self.y][self.x].pop(self.get_index(matrix))
@@ -856,7 +935,7 @@ class Object:
                                       matrix, level_rules)
                     self.update_parameters(delta_x, delta_y, matrix)
                     return True
-                elif status_motion == False:
+                if status_motion is False:
                     return False
 
             for rule in level_rules:
@@ -884,6 +963,12 @@ class Object:
                     self.update_parameters(delta_x, delta_y, matrix)
 
             return True
+        return False
+
+    def check_word(self, level_rules):
+        for rule in level_rules:
+            if f'{self.name} is word' in rule.text_rule:
+                return True
         return False
 
     def check_events(self, events: List[pygame.event.Event], number):
@@ -953,6 +1038,14 @@ class Object:
             angle_3d=self.angle_3d,
             is_3d=self.is_3d,
             moved=self.moved,
-            num_3d=self.num_3d
+            num_3d=self.num_3d,
+            level_size=self.level_size,
+            smooth_movement=self._movement
         )
         return copied_object
+
+    def __repr__(self):
+        result = "text " if self.is_text else ""
+        result += self.name
+        result += f" {self.x};{self.y}"
+        return result
