@@ -821,7 +821,6 @@ class PlayLevel(GameStrategy):
         for i in range(len(self.matrix)):
             for j in range(len(self.matrix[i])):
                 for obj in self.matrix[i][j]:
-                    obj.reset_movement()
                     if obj.x != j or obj.y != i:
                         obj.animation = obj.animation_init()
                         self.matrix[i][j].pop(obj.get_index(self.matrix))
@@ -848,6 +847,14 @@ class PlayLevel(GameStrategy):
                     self.matrix = self.copy_matrix(self.start_matrix)
                     self.check_matrix()
                     self.delta_cancel = new_time
+                for i in range(len(self.matrix)):
+                    for j in range(len(self.matrix[i])):
+                        for obj in self.matrix[i][j]:
+                            obj.x = j
+                            obj.y = i
+                            obj.movement.start_x_pixel = obj.xpx
+                            obj.movement.start_y_pixel = obj.ypx
+                            obj.movement.rerun(0.05)
 
         if self.moved and not self.flag_to_win_animation:
             copy_matrix = self.copy_matrix(self.matrix)
