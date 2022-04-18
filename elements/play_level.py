@@ -426,24 +426,24 @@ class PlayLevel(GameStrategy):
                                 if object_not is None:
                                     text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                     objects = [noun[1], verb, object_property]
-                                    rules.append(TextRule(text, objects))
+                                    rules.append(TextRule(text, objects, None, None))
                                 else:
                                     text = f'{noun[1].name} {verb.name} {object_not.name} {object_property[1].name}'
                                     objects = [noun[1], verb,
                                                object_not, object_property]
-                                    rules.append(TextRule(text, objects))
+                                    rules.append(TextRule(text, objects, None, None))
                             else:
                                 if object_not is None:
-                                    text = f'{noun[0].name} {noun[1].name} {verb.name} {object_property[1].name}'
+                                    text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                     objects = [
                                         noun[0], noun[1], verb, object_property]
-                                    rules.append(TextRule(text, objects))
+                                    rules.append(TextRule(text, objects, noun[0].name))
                                 else:
-                                    text = f'{noun[0].name} {noun[1].name} {verb.name} ' \
+                                    text = f'{noun[1].name} {verb.name} ' \
                                            f'{object_not.name} {object_property[1].name}'
                                     objects = [noun[0], noun[1],
                                                verb, object_not, object_property]
-                                    rules.append(TextRule(text, objects))
+                                    rules.append(TextRule(text, objects, noun[0].name))
 
             elif len(infix) != 0:
                 for inf in infix[1]:
@@ -452,30 +452,28 @@ class PlayLevel(GameStrategy):
                             for object_property in properties:
                                 if noun[0] is None:
                                     if object_not is None:
-                                        text = f'{noun[1].name} {infix[0].name} {inf[1].name}' \
+                                        text = f'{noun[1].name}' \
                                                f' {verb.name} {object_property[1].name}'
                                         objects = [noun[1], infix[0],
                                                    inf[1], verb, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                                        rules.append(TextRule(text, objects, None, [infix[0], infix[1]]))
                                     else:
-                                        text = f'{noun[1].name} {infix[0].name} {inf[1].name}' \
+                                        text = f'{noun[1].name}' \
                                                f' {verb.name} {object_not.name} {object_property[1].name}'
                                         objects = [
                                             noun[1], infix[0], inf[1], verb, object_not, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                                        rules.append(TextRule(text, objects, None, [infix[0], infix[1]]))
                                 else:
                                     if object_not is None:
-                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                               f' {inf[1].name} {verb.name} {object_property[1].name}'
+                                        text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                         objects = [noun[0], noun[1],
                                                    infix[0], inf[1], verb, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                                        rules.append(TextRule(text, objects, noun[0].name, [infix[0], infix[1]]))
                                     else:
-                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                               f' {inf[1].name} {verb.name} {object_not.name} {object_property[1].name}'
+                                        text = f'{noun[1].name} {verb.name} {object_not.name} {object_property[1].name}'
                                         objects = [noun[0], noun[1], infix[0],
                                                    inf[1], verb, object_not, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                                        rules.append(TextRule(text, objects, noun[0].name, [infix[0], infix[1]]))
 
             for rule in rules:
                 self.level_rules.append(rule)
@@ -765,9 +763,9 @@ class PlayLevel(GameStrategy):
             for j in range(len(self.matrix[i])):
                 self.scan_rules(i, j, 0, 1)
                 self.scan_rules(i, j, 1, 0)
-        self.mimic_rules()
-        self.level_rules = self.remove_copied_rules(
-            self.level_rules)
+        #self.mimic_rules()
+        #self.level_rules = self.remove_copied_rules(
+            #self.level_rules)
 
     def mimic_rules(self):
         new_rules = []
@@ -929,8 +927,10 @@ class PlayLevel(GameStrategy):
 
         if self.flag_to_win_animation:
             self.win_animation()
-
+        print('------------')
         if self.moved:
+            for rule in rules:
+                print(rule.text_rule, rule.prefix, rule.infix)
             self.moved = False
 
         if self.state is None:

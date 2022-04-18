@@ -88,7 +88,7 @@ OPERATORS = [
 
 VERBS = ['has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play']
 
-PREFIX = ['lonely', 'idle', 'powered']
+PREFIX = ['lonely', 'idle', 'powered', 'not']
 
 INFIX = ['on', 'never', 'facing', 'without', 'above',
          'below', 'seeing', 'nextto', 'feeling', 'near']
