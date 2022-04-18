@@ -670,69 +670,70 @@ class PlayLevel(GameStrategy):
         locked_sides: List[str] = []
         has_objects: List[str] = []
         for rule in self.level_rules:
-            for noun in NOUNS:
-                if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
-                    if rule_object.status_switch_name == 0:
-                        matrix[i][j].pop(rule_object.get_index(matrix))
-                        rule_object.name = noun
-                        rule_object.status_switch_name = 1
-                        rule_object.animation = rule_object.animation_init()
-                        matrix[i][j].append(copy(rule_object))
-                    elif rule_object.status_switch_name == 1:
-                        rule_object.status_switch_name = 2
-                    elif rule_object.status_switch_name == 2:
-                        rule_object.status_switch_name = 0
-                if f'{rule_object.name} has {noun}' in rule.text_rule and not rule_object.is_text:
-                    has_objects.append(noun)
+            if rule.check_fix(rule_object, matrix):
+                for noun in NOUNS:
+                    if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
+                        if rule_object.status_switch_name == 0:
+                            matrix[i][j].pop(rule_object.get_index(matrix))
+                            rule_object.name = noun
+                            rule_object.status_switch_name = 1
+                            rule_object.animation = rule_object.animation_init()
+                            matrix[i][j].append(copy(rule_object))
+                        elif rule_object.status_switch_name == 1:
+                            rule_object.status_switch_name = 2
+                        elif rule_object.status_switch_name == 2:
+                            rule_object.status_switch_name = 0
+                    if f'{rule_object.name} has {noun}' in rule.text_rule and not rule_object.is_text:
+                        has_objects.append(noun)
 
-            if f'{rule_object.name} is 3d' in rule.text_rule:
-                is_3d = True
+                if f'{rule_object.name} is 3d' in rule.text_rule:
+                    is_3d = True
 
-            elif f'{rule_object.name} is hide' in rule.text_rule:
-                is_hide = True
+                elif f'{rule_object.name} is hide' in rule.text_rule:
+                    is_hide = True
 
-            elif f'{rule_object.name} is fall' in rule.text_rule:
-                is_fall = True
+                elif f'{rule_object.name} is fall' in rule.text_rule:
+                    is_fall = True
 
-            elif f'{rule_object.name} is weak' in rule.text_rule:
-                is_weak = True
+                elif f'{rule_object.name} is weak' in rule.text_rule:
+                    is_weak = True
 
-            elif f'{rule_object.name} is hot' in rule.text_rule:
-                is_hot = True
+                elif f'{rule_object.name} is hot' in rule.text_rule:
+                    is_hot = True
 
-            elif f'{rule_object.name} is still' in rule.text_rule:
-                is_still = True
+                elif f'{rule_object.name} is still' in rule.text_rule:
+                    is_still = True
 
-            elif f'{rule_object.name} is locked' in rule.text_rule:
-                if f'{rule_object.name} is lockeddown' in rule.text_rule:
-                    locked_sides.append('down')
-                elif f'{rule_object.name} is lockedup' in rule.text_rule:
-                    locked_sides.append('up')
-                elif f'{rule_object.name} is lockedleft' in rule.text_rule:
-                    locked_sides.append('left')
-                elif f'{rule_object.name} is lockedright' in rule.text_rule:
-                    locked_sides.append('right')
+                elif f'{rule_object.name} is locked' in rule.text_rule:
+                    if f'{rule_object.name} is lockeddown' in rule.text_rule:
+                        locked_sides.append('down')
+                    elif f'{rule_object.name} is lockedup' in rule.text_rule:
+                        locked_sides.append('up')
+                    elif f'{rule_object.name} is lockedleft' in rule.text_rule:
+                        locked_sides.append('left')
+                    elif f'{rule_object.name} is lockedright' in rule.text_rule:
+                        locked_sides.append('right')
 
-            elif f'{rule_object.name} is safe' in rule.text_rule:
-                is_safe = True
+                elif f'{rule_object.name} is safe' in rule.text_rule:
+                    is_safe = True
 
-            elif f'{rule_object.name} is open' in rule.text_rule:
-                is_open = True
+                elif f'{rule_object.name} is open' in rule.text_rule:
+                    is_open = True
 
-            elif f'{rule_object.name} is phantom' in rule.text_rule:
-                is_phantom = True
+                elif f'{rule_object.name} is phantom' in rule.text_rule:
+                    is_phantom = True
 
-            elif f'{rule_object.name} is shut' in rule.text_rule:
-                is_shut = True
+                elif f'{rule_object.name} is shut' in rule.text_rule:
+                    is_shut = True
 
-            elif f'{rule_object.name} is text' in rule.text_rule:
-                is_text = True
+                elif f'{rule_object.name} is text' in rule.text_rule:
+                    is_text = True
 
-            elif f'{rule_object.name} is sleep' in rule.text_rule:
-                is_sleep = True
+                elif f'{rule_object.name} is sleep' in rule.text_rule:
+                    is_sleep = True
 
-            elif f'{rule_object.name} is float' in rule.text_rule:
-                is_float = True
+                elif f'{rule_object.name} is float' in rule.text_rule:
+                    is_float = True
         self.apply_rules_cache[rule_cache_key] = (is_hot, is_hide, is_safe, is_open, is_shut, is_phantom,
                                                   is_text, is_still, is_sleep, is_weak, is_float, is_3d, is_fall,
                                                   locked_sides, has_objects)
