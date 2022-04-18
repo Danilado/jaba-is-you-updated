@@ -935,8 +935,9 @@ class PlayLevel(GameStrategy):
 
         if self.flag_to_win_animation:
             self.win_animation()
-        print('------------')
+
         if self.moved:
+            print('------------')
             for rule in rules:
                 print(rule.text_rule, rule.prefix, rule.infix)
             self.moved = False
