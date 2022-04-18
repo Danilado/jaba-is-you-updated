@@ -242,7 +242,7 @@ class Defeat:
             if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text:
                 if not rule_object.is_safe:
                     matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
-                    rule_object.die(0, 0, matrix)
+                    rule_object.die(0, 0, matrix, level_rules)
                     return False
         for level_object in matrix[rule_object.y][rule_object.x]:
             if not level_object.check_defeat(0, 0, matrix, level_rules, rule_object):

@@ -185,8 +185,9 @@ class PlayLevel(GameStrategy):
             if rule.text_rule in text_arr:
                 for second_rule in new_arr:
                     if second_rule.text_rule == rule.text_rule:
-                        for pref in rule.prefix:
-                            second_rule.prefix.append(pref)
+                        if second_rule.prefix is not None:
+                            for pref in rule.prefix:
+                                second_rule.prefix.append(pref)
                         for inf in rule.infix:
                             second_rule.infix.append(inf)
             else:
@@ -195,7 +196,7 @@ class PlayLevel(GameStrategy):
         for rule in new_arr:
             if None in rule.infix:
                 rule.infix = None
-            if None in rule.prefix:
+            if rule.prefix is not None and None in rule.prefix:
                 rule.prefix = None
         return new_arr
 
@@ -778,9 +779,50 @@ class PlayLevel(GameStrategy):
             for j in range(len(self.matrix[i])):
                 self.scan_rules(i, j, 0, 1)
                 self.scan_rules(i, j, 1, 0)
+        self.not_prefix_rules()
         self.mimic_rules()
         self.level_rules = self.remove_copied_rules(
             self.level_rules)
+
+    def not_prefix_rules(self):
+        nouns = []
+        del_rules = []
+        for rule in self.level_rules:
+            if rule.prefix is not None:
+                if 'not' in rule.prefix:
+                    rule_noun = rule.text_rule.split()[0]
+                    if len(nouns) == 0:
+                        for i in self.matrix:
+                            for j in i:
+                                for rule_object in j:
+                                    if rule_object.name in NOUNS and rule_object.name != rule_noun:
+                                        nouns.append(rule_object.name)
+                    for noun in nouns:
+                        new_rule = copy(rule)
+                        text = rule.text_rule.split()
+                        text[0] = noun
+                        text = f'{text[0]} {text[1]} {text[2]}'
+                        new_rule.text_rule = text
+                        new_rule.prefix = None
+                        print(new_rule.infix, 0)
+                        if new_rule.infix is not None:
+                            for inf in new_rule.infix:
+                                print(inf, 3)
+                                if inf is None or None in inf:
+                                    new_rule.infix = [None]
+                        print(new_rule.infix, 1)
+                        self.level_rules.append(new_rule)
+                    del_rules.append(rule.text_rule)
+        new_arr = []
+        for rule in self.level_rules:
+            if rule.text_rule not in del_rules:
+                if rule.prefix is not None:
+                    if 'not' not in rule.prefix:
+                        new_arr.append(rule)
+                else:
+                    new_arr.append(rule)
+
+        self.level_rules = new_arr
 
     def mimic_rules(self):
         new_rules = []

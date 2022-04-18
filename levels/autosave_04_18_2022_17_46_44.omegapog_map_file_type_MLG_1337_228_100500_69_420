@@ -1,10 +1,12 @@
 marshmallow 32 18
-17 1 1 lonely True
 18 1 1 bird True
 19 1 1 is False
 20 1 1 defeat False
+17 2 1 not False
 18 2 1 ufo True
 19 2 1 is True
 20 2 1 you True
+26 3 1 sun False
 18 5 1 bird False
 17 7 1 ufo False
+26 10 1 tower False
