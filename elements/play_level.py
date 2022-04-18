@@ -180,11 +180,23 @@ class PlayLevel(GameStrategy):
     @staticmethod
     def remove_copied_rules(arr):
         new_arr = []
-        arr_text_rules = []
+        text_arr = []
         for rule in arr:
-            if rule.text_rule not in arr_text_rules:
+            if rule.text_rule in text_arr:
+                for second_rule in new_arr:
+                    if second_rule.text_rule == rule.text_rule:
+                        for pref in rule.prefix:
+                            second_rule.prefix.append(pref)
+                        for inf in rule.infix:
+                            second_rule.infix.append(inf)
+            else:
+                text_arr.append(rule.text_rule)
                 new_arr.append(rule)
-                arr_text_rules.append(rule.text_rule)
+        for rule in new_arr:
+            if None in rule.infix:
+                rule.infix = None
+            if None in rule.prefix:
+                rule.prefix = None
         return new_arr
 
     def form_rule(self, first_object: Object, operator_object: Object, *other_objects: List[Object]):
@@ -437,13 +449,13 @@ class PlayLevel(GameStrategy):
                                     text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                     objects = [
                                         noun[0], noun[1], verb, object_property]
-                                    rules.append(TextRule(text, objects, noun[0].name))
+                                    rules.append(TextRule(text, objects, noun[0].name, None))
                                 else:
                                     text = f'{noun[1].name} {verb.name} ' \
                                            f'{object_not.name} {object_property[1].name}'
                                     objects = [noun[0], noun[1],
                                                verb, object_not, object_property]
-                                    rules.append(TextRule(text, objects, noun[0].name))
+                                    rules.append(TextRule(text, objects, noun[0].name, None))
 
             elif len(infix) != 0:
                 for inf in infix[1]:
@@ -456,24 +468,24 @@ class PlayLevel(GameStrategy):
                                                f' {verb.name} {object_property[1].name}'
                                         objects = [noun[1], infix[0],
                                                    inf[1], verb, object_property[1]]
-                                        rules.append(TextRule(text, objects, None, [infix[0], infix[1]]))
+                                        rules.append(TextRule(text, objects, None, [infix[0].name, inf[1].name]))
                                     else:
                                         text = f'{noun[1].name}' \
                                                f' {verb.name} {object_not.name} {object_property[1].name}'
                                         objects = [
                                             noun[1], infix[0], inf[1], verb, object_not, object_property[1]]
-                                        rules.append(TextRule(text, objects, None, [infix[0], infix[1]]))
+                                        rules.append(TextRule(text, objects, None, [infix[0].name, inf[1].name]))
                                 else:
                                     if object_not is None:
                                         text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                         objects = [noun[0], noun[1],
                                                    infix[0], inf[1], verb, object_property[1]]
-                                        rules.append(TextRule(text, objects, noun[0].name, [infix[0], infix[1]]))
+                                        rules.append(TextRule(text, objects, noun[0].name, [infix[0].name, inf[1].name]))
                                     else:
                                         text = f'{noun[1].name} {verb.name} {object_not.name} {object_property[1].name}'
                                         objects = [noun[0], noun[1], infix[0],
                                                    inf[1], verb, object_not, object_property[1]]
-                                        rules.append(TextRule(text, objects, noun[0].name, [infix[0], infix[1]]))
+                                        rules.append(TextRule(text, objects, noun[0].name, [infix[0].name, inf[1].name]))
 
             for rule in rules:
                 self.level_rules.append(rule)
@@ -756,7 +768,7 @@ class PlayLevel(GameStrategy):
             for rule in self.level_rules:
                 if rule_object.name in rule.text_rule:
                     rules.processor.update_object(rule_object)
-                    rules.processor.process(rule.text_rule)
+                    rules.processor.process(rule)
 
     def find_rules(self):
         self.level_rules.clear()
@@ -765,9 +777,9 @@ class PlayLevel(GameStrategy):
             for j in range(len(self.matrix[i])):
                 self.scan_rules(i, j, 0, 1)
                 self.scan_rules(i, j, 1, 0)
-        #self.mimic_rules()
-        #self.level_rules = self.remove_copied_rules(
-            #self.level_rules)
+        self.mimic_rules()
+        self.level_rules = self.remove_copied_rules(
+            self.level_rules)
 
     def mimic_rules(self):
         new_rules = []
@@ -938,7 +950,7 @@ class PlayLevel(GameStrategy):
 
         if self.moved:
             print('------------')
-            for rule in rules:
+            for rule in self.level_rules:
                 print(rule.text_rule, rule.prefix, rule.infix)
             self.moved = False
 

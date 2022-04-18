@@ -499,29 +499,32 @@ class RuleProcessor:
         self.object = rule_object
 
     def process(self, rule) -> bool:
+        text_rule = rule.text_rule
         status_rule = None
-        if rule.split()[-1] in self.dictionary:
+        if text_rule.split()[-1] in self.dictionary:
             status_rule = 'property'
-        if rule.split()[-2] in self.dictionary:
+        if text_rule.split()[-2] in self.dictionary:
             status_rule = 'verb'
         try:
             if status_rule == 'property':
-                self.dictionary[rule.split()[-1]].apply(matrix=self.matrix,
-                                                        rule_object=self.object,
-                                                        events=self.events,
-                                                        level_rules=self.rules,
-                                                        objects_for_tp=self.objects_for_tp,
-                                                        num_obj_3d=self.num_obj_3d,
-                                                        level_processor=self.level_processor)
+                if rule.check_fix(self.object, self.matrix):
+                    self.dictionary[text_rule.split()[-1]].apply(matrix=self.matrix,
+                                                            rule_object=self.object,
+                                                            events=self.events,
+                                                            level_rules=self.rules,
+                                                            objects_for_tp=self.objects_for_tp,
+                                                            num_obj_3d=self.num_obj_3d,
+                                                            level_processor=self.level_processor)
             elif status_rule == 'verb':
-                self.dictionary[rule.split()[-2]].apply(matrix=self.matrix,
-                                                        rule_object=self.object,
-                                                        events=self.events,
-                                                        level_rules=self.rules,
-                                                        rule_noun=rule.split(
-                                                        )[-1],
-                                                        num_obj_3d=self.num_obj_3d,
-                                                        level_processor=self.level_processor)
+                if rule.check_fix(self.object, self.matrix):
+                    self.dictionary[text_rule.split()[-2]].apply(matrix=self.matrix,
+                                                            rule_object=self.object,
+                                                            events=self.events,
+                                                            level_rules=self.rules,
+                                                            rule_noun=text_rule.split(
+                                                            )[-1],
+                                                            num_obj_3d=self.num_obj_3d,
+                                                            level_processor=self.level_processor)
 
         except RecursionError:
             print(
