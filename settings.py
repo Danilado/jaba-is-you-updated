@@ -9,7 +9,7 @@ FRAMES_PER_SECOND: Final[int] = 60
 WINDOW_SCALE: float = 1
 
 TEXT_ONLY = [
-    '0', '1', '2', '3', '3d', '4', '5', '6', '7', '8', '9', 'a', 'ab', 'above',
+    '0', '1', '2', '3', '3d', '4', '5', '6', '7', '8', '9', '10',  'a', 'ab', 'above',
     'all', 'and', 'auto', 'b', 'ba', 'back', 'below', 'besideleft', 'besideright',
     'best', 'black', 'blue', 'bog', 'bonus', 'boom', 'broken', 'brown',
     'c', 'chill', 'cyan', 'd', 'defeat', 'deturn', 'done', 'down',

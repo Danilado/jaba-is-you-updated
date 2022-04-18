@@ -23,7 +23,7 @@ from utils import my_deepcopy, settings_saves
 
 
 class PlayLevel(GameStrategy):
-    def __init__(self, level_name: str, screen: SURFACE):
+    def __init__(self, level_name: str, path_to_level: str, screen: SURFACE):
         super().__init__(screen)
         self.old_rules = []
         self.state: Optional[State] = None
@@ -38,7 +38,7 @@ class PlayLevel(GameStrategy):
         self.delta_cancel = 0
 
         self.size = (32, 18)
-        self.parse_file(level_name)
+        self.parse_file(level_name, path_to_level)
         self.scale = 1
         self.window_offset: List[int] = [0, 0]
         self.border_screen: pygame.Surface = None
@@ -134,7 +134,7 @@ class PlayLevel(GameStrategy):
             self.border_screen = None
             self.window_offset = [0, 0]
 
-    def parse_file(self, level_name: str):
+    def parse_file(self, level_name: str, path_to_level: str):
         """
         Парсинг уровней. Добавляет объекты в :attr:`~.Draw.matrix`.
 
@@ -145,7 +145,7 @@ class PlayLevel(GameStrategy):
         :raises OSError: Если какая либо проблема с открытием файла.
         """
         self.current_palette, self.size, self.start_matrix = parse_file(
-            level_name)
+            level_name, path_to_level)
         self.matrix = my_deepcopy(self.start_matrix)
 
     def get_neighbours(self, y, x) -> List:
@@ -479,7 +479,7 @@ class PlayLevel(GameStrategy):
                 self.level_rules.append(rule)
 
     @staticmethod
-    def copy_matrix(matrix):
+    def copy_matrix(matrix: List[List[List[Object]]]) -> List[List[List[Object]]]:
         copy_matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
 
@@ -640,6 +640,7 @@ class PlayLevel(GameStrategy):
                 for j, cell in enumerate(line):
                     for rule_object in cell:
                         self.apply_rules(matrix, rule_object, i, j)
+                        rule_object.reset_movement()
         elif any(pressed[key] for key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]):
             rules.processor.update_lists(level_processor=self,
                                          matrix=matrix,
@@ -648,6 +649,7 @@ class PlayLevel(GameStrategy):
                 for j in range(len(self.matrix[i]) - 1, -1, -1):
                     for rule_object in self.matrix[i][j]:
                         self.apply_rules(matrix, rule_object, i, j)
+                        rule_object.reset_movement()
 
     def _create_in_cache_rules_thing(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int,
                                      rule_cache_key: Object):
@@ -818,8 +820,6 @@ class PlayLevel(GameStrategy):
             for j in range(len(self.matrix[i])):
                 for obj in self.matrix[i][j]:
                     if obj.x != j or obj.y != i:
-                        obj.x = j
-                        obj.y = i
                         obj.animation = obj.animation_init()
                         self.matrix[i][j].pop(obj.get_index(self.matrix))
                         obj.animation = obj.animation_init()
@@ -845,6 +845,14 @@ class PlayLevel(GameStrategy):
                     self.matrix = self.copy_matrix(self.start_matrix)
                     self.check_matrix()
                     self.delta_cancel = new_time
+                for i in range(len(self.matrix)):
+                    for j in range(len(self.matrix[i])):
+                        for obj in self.matrix[i][j]:
+                            obj.x = j
+                            obj.y = i
+                            obj.movement.start_x_pixel = obj.xpx
+                            obj.movement.start_y_pixel = obj.ypx
+                            obj.movement.rerun(0.05)
 
         if self.moved and not self.flag_to_win_animation:
             copy_matrix = self.copy_matrix(self.matrix)
