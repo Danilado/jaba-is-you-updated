@@ -232,7 +232,7 @@ class Win:
     def apply(matrix, rule_object, level_rules, level_processor, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
             rule_object.level_processor = level_processor
-            rule_object.check_win(level_rules, level_object)
+            rule_object.check_win(level_rules, level_object, matrix)
 
 
 class Defeat:
@@ -507,7 +507,7 @@ class RuleProcessor:
             status_rule = 'verb'
         try:
             if status_rule == 'property':
-                if rule.check_fix(self.object, self.matrix):
+                if rule.check_fix(self.object, self.matrix, self.rules):
                     self.dictionary[text_rule.split()[-1]].apply(matrix=self.matrix,
                                                             rule_object=self.object,
                                                             events=self.events,
@@ -516,7 +516,7 @@ class RuleProcessor:
                                                             num_obj_3d=self.num_obj_3d,
                                                             level_processor=self.level_processor)
             elif status_rule == 'verb':
-                if rule.check_fix(self.object, self.matrix):
+                if rule.check_fix(self.object, self.matrix, self.rules):
                     self.dictionary[text_rule.split()[-2]].apply(matrix=self.matrix,
                                                             rule_object=self.object,
                                                             events=self.events,
