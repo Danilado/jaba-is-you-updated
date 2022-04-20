@@ -99,8 +99,8 @@ class PlayLevel(GameStrategy):
                     borders[2] = pygame.Rect(0, 850, 1600, 50)
                     self.window_offset[0] = 50
                 self.scale = (
-                    900 - self.window_offset[0] * 2) / (self.size[1] * 50)
-                self.window_offset[1] = (1600 - self.size[0]*50*self.scale)/2
+                                     900 - self.window_offset[0] * 2) / (self.size[1] * 50)
+                self.window_offset[1] = (1600 - self.size[0] * 50 * self.scale) / 2
                 borders[1] = pygame.Rect(0, 0, int(self.window_offset[1]), 900)
                 borders[3] = pygame.Rect(
                     int(1600 - self.window_offset[1]), 0, int(self.window_offset[1]), 900)
@@ -114,8 +114,8 @@ class PlayLevel(GameStrategy):
                     borders[3] = pygame.Rect(1550, 0, 50, 900)
                     self.window_offset[1] = 50
                 self.scale = (
-                    1600 - self.window_offset[1] * 2) / (self.size[0] * 50)
-                self.window_offset[0] = (900 - self.size[1]*50*self.scale)/2
+                                     1600 - self.window_offset[1] * 2) / (self.size[0] * 50)
+                self.window_offset[0] = (900 - self.size[1] * 50 * self.scale) / 2
                 borders[0] = pygame.Rect(
                     0, 0, 1600, int(self.window_offset[0]))
                 borders[2] = pygame.Rect(
@@ -180,11 +180,24 @@ class PlayLevel(GameStrategy):
     @staticmethod
     def remove_copied_rules(arr):
         new_arr = []
-        arr_text_rules = []
+        text_arr = []
         for rule in arr:
-            if rule.text_rule not in arr_text_rules:
+            if rule.text_rule in text_arr:
+                for second_rule in new_arr:
+                    if second_rule.text_rule == rule.text_rule:
+                        if second_rule.prefix is not None:
+                            for pref in rule.prefix:
+                                second_rule.prefix.append(pref)
+                        for inf in rule.infix:
+                            second_rule.infix.append(inf)
+            else:
+                text_arr.append(rule.text_rule)
                 new_arr.append(rule)
-                arr_text_rules.append(rule.text_rule)
+        for rule in new_arr:
+            if None in rule.infix:
+                rule.infix = None
+            if rule.prefix is not None and None in rule.prefix:
+                rule.prefix = None
         return new_arr
 
     def form_rule(self, first_object: Object, operator_object: Object, *other_objects: List[Object]):
@@ -209,7 +222,7 @@ class PlayLevel(GameStrategy):
         :rtype: bool
         """
         return self.size[0] - 1 >= x + delta_x >= 0 \
-            and self.size[1] - 1 >= y + delta_y >= 0
+               and self.size[1] - 1 >= y + delta_y >= 0
 
     def check_not_infix(self, i, j, delta_i, delta_j):
         start_delta_i = delta_i
@@ -426,24 +439,24 @@ class PlayLevel(GameStrategy):
                                 if object_not is None:
                                     text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                     objects = [noun[1], verb, object_property]
-                                    rules.append(TextRule(text, objects))
+                                    rules.append(TextRule(text, objects, None, None))
                                 else:
                                     text = f'{noun[1].name} {verb.name} {object_not.name} {object_property[1].name}'
                                     objects = [noun[1], verb,
                                                object_not, object_property]
-                                    rules.append(TextRule(text, objects))
+                                    rules.append(TextRule(text, objects, None, None))
                             else:
                                 if object_not is None:
-                                    text = f'{noun[0].name} {noun[1].name} {verb.name} {object_property[1].name}'
+                                    text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                     objects = [
                                         noun[0], noun[1], verb, object_property]
-                                    rules.append(TextRule(text, objects))
+                                    rules.append(TextRule(text, objects, noun[0].name, None))
                                 else:
-                                    text = f'{noun[0].name} {noun[1].name} {verb.name} ' \
+                                    text = f'{noun[1].name} {verb.name} ' \
                                            f'{object_not.name} {object_property[1].name}'
                                     objects = [noun[0], noun[1],
                                                verb, object_not, object_property]
-                                    rules.append(TextRule(text, objects))
+                                    rules.append(TextRule(text, objects, noun[0].name, None))
 
             elif len(infix) != 0:
                 for inf in infix[1]:
@@ -452,30 +465,30 @@ class PlayLevel(GameStrategy):
                             for object_property in properties:
                                 if noun[0] is None:
                                     if object_not is None:
-                                        text = f'{noun[1].name} {infix[0].name} {inf[1].name}' \
+                                        text = f'{noun[1].name}' \
                                                f' {verb.name} {object_property[1].name}'
                                         objects = [noun[1], infix[0],
                                                    inf[1], verb, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                                        rules.append(TextRule(text, objects, None, [infix[0].name, inf[1].name]))
                                     else:
-                                        text = f'{noun[1].name} {infix[0].name} {inf[1].name}' \
+                                        text = f'{noun[1].name}' \
                                                f' {verb.name} {object_not.name} {object_property[1].name}'
                                         objects = [
                                             noun[1], infix[0], inf[1], verb, object_not, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                                        rules.append(TextRule(text, objects, None, [infix[0].name, inf[1].name]))
                                 else:
                                     if object_not is None:
-                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                               f' {inf[1].name} {verb.name} {object_property[1].name}'
+                                        text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                         objects = [noun[0], noun[1],
                                                    infix[0], inf[1], verb, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                                        rules.append(
+                                            TextRule(text, objects, noun[0].name, [infix[0].name, inf[1].name]))
                                     else:
-                                        text = f'{noun[0].name} {noun[1].name} {infix[0].name}' \
-                                               f' {inf[1].name} {verb.name} {object_not.name} {object_property[1].name}'
+                                        text = f'{noun[1].name} {verb.name} {object_not.name} {object_property[1].name}'
                                         objects = [noun[0], noun[1], infix[0],
                                                    inf[1], verb, object_not, object_property[1]]
-                                        rules.append(TextRule(text, objects))
+                                        rules.append(
+                                            TextRule(text, objects, noun[0].name, [infix[0].name, inf[1].name]))
 
             for rule in rules:
                 self.level_rules.append(rule)
@@ -573,9 +586,9 @@ class PlayLevel(GameStrategy):
                 self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
                 for index in range(1, len(self.win_offsets), 2):
                     self.win_offsets[index][1] += 0.1 * \
-                        (len(self.win_offsets) - index)
+                                                  (len(self.win_offsets) - index)
                     self.win_offsets[index + 1][1] += 0.1 * \
-                        (len(self.win_offsets) - index)
+                                                      (len(self.win_offsets) - index)
 
             if self.win_offsets[0][1] >= max_radius and not self.flag_to_delay:
                 self.flag_to_delay = True
@@ -656,76 +669,80 @@ class PlayLevel(GameStrategy):
     def _create_in_cache_rules_thing(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int,
                                      rule_cache_key: Object):
         is_hot = is_hide = is_safe = is_open = is_shut = is_phantom = \
-            is_text = is_still = is_sleep = is_weak = is_float = is_3d = is_fall = False
+            is_text = is_still = is_sleep = is_weak = is_float = is_3d = is_fall = is_power = False
         locked_sides: List[str] = []
         has_objects: List[str] = []
         for rule in self.level_rules:
-            for noun in NOUNS:
-                if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
-                    if rule_object.status_switch_name == 0:
-                        matrix[i][j].pop(rule_object.get_index(matrix))
-                        rule_object.name = noun
-                        rule_object.status_switch_name = 1
-                        rule_object.animation = rule_object.animation_init()
-                        matrix[i][j].append(copy(rule_object))
-                    elif rule_object.status_switch_name == 1:
-                        rule_object.status_switch_name = 2
-                    elif rule_object.status_switch_name == 2:
-                        rule_object.status_switch_name = 0
-                if f'{rule_object.name} has {noun}' in rule.text_rule and not rule_object.is_text:
-                    has_objects.append(noun)
+            if rule.check_fix(rule_object, matrix, self.level_rules):
+                for noun in NOUNS:
+                    if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
+                        if rule_object.status_switch_name == 0:
+                            matrix[i][j].pop(rule_object.get_index(matrix))
+                            rule_object.name = noun
+                            rule_object.status_switch_name = 1
+                            rule_object.animation = rule_object.animation_init()
+                            matrix[i][j].append(copy(rule_object))
+                        elif rule_object.status_switch_name == 1:
+                            rule_object.status_switch_name = 2
+                        elif rule_object.status_switch_name == 2:
+                            rule_object.status_switch_name = 0
+                    if f'{rule_object.name} has {noun}' in rule.text_rule and not rule_object.is_text:
+                        has_objects.append(noun)
 
-            if f'{rule_object.name} is 3d' in rule.text_rule:
-                is_3d = True
+                if f'{rule_object.name} is 3d' in rule.text_rule:
+                    is_3d = True
 
-            elif f'{rule_object.name} is hide' in rule.text_rule:
-                is_hide = True
+                elif f'{rule_object.name} is hide' in rule.text_rule:
+                    is_hide = True
 
-            elif f'{rule_object.name} is fall' in rule.text_rule:
-                is_fall = True
+                elif f'{rule_object.name} is fall' in rule.text_rule:
+                    is_fall = True
 
-            elif f'{rule_object.name} is weak' in rule.text_rule:
-                is_weak = True
+                elif f'{rule_object.name} is weak' in rule.text_rule:
+                    is_weak = True
 
-            elif f'{rule_object.name} is hot' in rule.text_rule:
-                is_hot = True
+                elif f'{rule_object.name} is hot' in rule.text_rule:
+                    is_hot = True
 
-            elif f'{rule_object.name} is still' in rule.text_rule:
-                is_still = True
+                elif f'{rule_object.name} is power' in rule.text_rule:
+                    is_power = True
 
-            elif f'{rule_object.name} is locked' in rule.text_rule:
-                if f'{rule_object.name} is lockeddown' in rule.text_rule:
-                    locked_sides.append('down')
-                elif f'{rule_object.name} is lockedup' in rule.text_rule:
-                    locked_sides.append('up')
-                elif f'{rule_object.name} is lockedleft' in rule.text_rule:
-                    locked_sides.append('left')
-                elif f'{rule_object.name} is lockedright' in rule.text_rule:
-                    locked_sides.append('right')
+                elif f'{rule_object.name} is still' in rule.text_rule:
+                    is_still = True
 
-            elif f'{rule_object.name} is safe' in rule.text_rule:
-                is_safe = True
+                elif f'{rule_object.name} is locked' in rule.text_rule:
+                    if f'{rule_object.name} is lockeddown' in rule.text_rule:
+                        locked_sides.append('down')
+                    elif f'{rule_object.name} is lockedup' in rule.text_rule:
+                        locked_sides.append('up')
+                    elif f'{rule_object.name} is lockedleft' in rule.text_rule:
+                        locked_sides.append('left')
+                    elif f'{rule_object.name} is lockedright' in rule.text_rule:
+                        locked_sides.append('right')
 
-            elif f'{rule_object.name} is open' in rule.text_rule:
-                is_open = True
+                elif f'{rule_object.name} is safe' in rule.text_rule:
+                    is_safe = True
 
-            elif f'{rule_object.name} is phantom' in rule.text_rule:
-                is_phantom = True
+                elif f'{rule_object.name} is open' in rule.text_rule:
+                    is_open = True
 
-            elif f'{rule_object.name} is shut' in rule.text_rule:
-                is_shut = True
+                elif f'{rule_object.name} is phantom' in rule.text_rule:
+                    is_phantom = True
 
-            elif f'{rule_object.name} is text' in rule.text_rule:
-                is_text = True
+                elif f'{rule_object.name} is shut' in rule.text_rule:
+                    is_shut = True
 
-            elif f'{rule_object.name} is sleep' in rule.text_rule:
-                is_sleep = True
+                elif f'{rule_object.name} is text' in rule.text_rule:
+                    is_text = True
 
-            elif f'{rule_object.name} is float' in rule.text_rule:
-                is_float = True
+                elif f'{rule_object.name} is sleep' in rule.text_rule:
+                    is_sleep = True
+
+                elif f'{rule_object.name} is float' in rule.text_rule:
+                    is_float = True
         self.apply_rules_cache[rule_cache_key] = (is_hot, is_hide, is_safe, is_open, is_shut, is_phantom,
-                                                  is_text, is_still, is_sleep, is_weak, is_float, is_3d, is_fall,
-                                                  locked_sides, has_objects)
+                                                  is_text, is_still, is_sleep, is_power, is_weak,
+                                                  is_float, is_3d, is_fall, locked_sides, has_objects)
 
     def apply_rules(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int):
         if not rule_object.special_text:
@@ -734,12 +751,14 @@ class PlayLevel(GameStrategy):
             if rule_cache_key not in self.apply_rules_cache:
                 self._create_in_cache_rules_thing(
                     matrix, rule_object, i, j, rule_cache_key)
-            is_hot, is_hide, is_safe, is_open, is_shut, is_phantom, is_text, is_still, is_sleep, \
-                is_weak, is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:13]
-            locked_sides: List[str] = self.apply_rules_cache[rule_cache_key][13]
-            has_objects: List[str] = self.apply_rules_cache[rule_cache_key][14]
+            is_hot, is_hide, is_safe, is_open, is_shut, is_phantom, \
+            is_text, is_still, is_sleep, is_power, is_weak, \
+            is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:14]
+            locked_sides: List[str] = self.apply_rules_cache[rule_cache_key][14]
+            has_objects: List[str] = self.apply_rules_cache[rule_cache_key][15]
 
             rule_object.is_hot = is_hot
+            rule_object.is_power = is_power
             rule_object.is_hide = is_hide
             rule_object.is_safe = is_safe
             rule_object.locked_sides = my_deepcopy(locked_sides)
@@ -758,7 +777,7 @@ class PlayLevel(GameStrategy):
             for rule in self.level_rules:
                 if rule_object.name in rule.text_rule:
                     rules.processor.update_object(rule_object)
-                    rules.processor.process(rule.text_rule)
+                    rules.processor.process(rule)
 
     def find_rules(self):
         self.level_rules.clear()
@@ -767,9 +786,47 @@ class PlayLevel(GameStrategy):
             for j in range(len(self.matrix[i])):
                 self.scan_rules(i, j, 0, 1)
                 self.scan_rules(i, j, 1, 0)
+        self.not_prefix_rules()
         self.mimic_rules()
         self.level_rules = self.remove_copied_rules(
             self.level_rules)
+
+    def not_prefix_rules(self):
+        nouns = []
+        del_rules = []
+        for rule in self.level_rules:
+            if rule.prefix is not None:
+                if 'not' in rule.prefix:
+                    rule_noun = rule.text_rule.split()[0]
+                    if len(nouns) == 0:
+                        for i in self.matrix:
+                            for j in i:
+                                for rule_object in j:
+                                    if rule_object.name in NOUNS and rule_object.name != rule_noun:
+                                        nouns.append(rule_object.name)
+                    for noun in nouns:
+                        new_rule = copy(rule)
+                        text = rule.text_rule.split()
+                        text[0] = noun
+                        text = f'{text[0]} {text[1]} {text[2]}'
+                        new_rule.text_rule = text
+                        new_rule.prefix = None
+                        if new_rule.infix is not None:
+                            for inf in new_rule.infix:
+                                if inf is None or None in inf:
+                                    new_rule.infix = [None]
+                        self.level_rules.append(new_rule)
+                    del_rules.append(rule.text_rule)
+        new_arr = []
+        for rule in self.level_rules:
+            if rule.text_rule not in del_rules:
+                if rule.prefix is not None:
+                    if 'not' not in rule.prefix:
+                        new_arr.append(rule)
+                else:
+                    new_arr.append(rule)
+
+        self.level_rules = new_arr
 
     def mimic_rules(self):
         new_rules = []
@@ -898,7 +955,7 @@ class PlayLevel(GameStrategy):
                 self.num_obj_3d %= self.count_3d_obj
         else:
             level_surface = pygame.Surface(
-                (self.size[0]*50, self.size[1]*50))
+                (self.size[0] * 50, self.size[1] * 50))
 
             for particle in self.particles:
                 particle.draw(level_surface)
@@ -921,8 +978,8 @@ class PlayLevel(GameStrategy):
             self.screen.blit(pygame.transform.scale(
                 level_surface, (self.size[0] * 50 * self.scale * settings.WINDOW_SCALE,
                                 self.size[1] * 50 * self.scale * settings.WINDOW_SCALE)),
-                             (self.window_offset[1] * settings.WINDOW_SCALE,
-                             self.window_offset[0] * settings.WINDOW_SCALE))
+                (self.window_offset[1] * settings.WINDOW_SCALE,
+                 self.window_offset[0] * settings.WINDOW_SCALE))
 
             if self.border_screen:
                 self.screen.blit(self.border_screen, (0, 0))

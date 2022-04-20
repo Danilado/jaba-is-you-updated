@@ -232,7 +232,7 @@ class Win:
     def apply(matrix, rule_object, level_rules, level_processor, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
             rule_object.level_processor = level_processor
-            rule_object.check_win(level_rules, level_object)
+            rule_object.check_win(level_rules, level_object, matrix)
 
 
 class Defeat:
@@ -242,7 +242,7 @@ class Defeat:
             if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text:
                 if not rule_object.is_safe:
                     matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
-                    rule_object.die(0, 0, matrix)
+                    rule_object.die(0, 0, matrix, level_rules)
                     return False
         for level_object in matrix[rule_object.y][rule_object.x]:
             if not level_object.check_defeat(0, 0, matrix, level_rules, rule_object):
@@ -499,29 +499,32 @@ class RuleProcessor:
         self.object = rule_object
 
     def process(self, rule) -> bool:
+        text_rule = rule.text_rule
         status_rule = None
-        if rule.split()[-1] in self.dictionary:
+        if text_rule.split()[-1] in self.dictionary:
             status_rule = 'property'
-        if rule.split()[-2] in self.dictionary:
+        if text_rule.split()[-2] in self.dictionary:
             status_rule = 'verb'
         try:
             if status_rule == 'property':
-                self.dictionary[rule.split()[-1]].apply(matrix=self.matrix,
-                                                        rule_object=self.object,
-                                                        events=self.events,
-                                                        level_rules=self.rules,
-                                                        objects_for_tp=self.objects_for_tp,
-                                                        num_obj_3d=self.num_obj_3d,
-                                                        level_processor=self.level_processor)
+                if rule.check_fix(self.object, self.matrix, self.rules):
+                    self.dictionary[text_rule.split()[-1]].apply(matrix=self.matrix,
+                                                            rule_object=self.object,
+                                                            events=self.events,
+                                                            level_rules=self.rules,
+                                                            objects_for_tp=self.objects_for_tp,
+                                                            num_obj_3d=self.num_obj_3d,
+                                                            level_processor=self.level_processor)
             elif status_rule == 'verb':
-                self.dictionary[rule.split()[-2]].apply(matrix=self.matrix,
-                                                        rule_object=self.object,
-                                                        events=self.events,
-                                                        level_rules=self.rules,
-                                                        rule_noun=rule.split(
-                                                        )[-1],
-                                                        num_obj_3d=self.num_obj_3d,
-                                                        level_processor=self.level_processor)
+                if rule.check_fix(self.object, self.matrix, self.rules):
+                    self.dictionary[text_rule.split()[-2]].apply(matrix=self.matrix,
+                                                            rule_object=self.object,
+                                                            events=self.events,
+                                                            level_rules=self.rules,
+                                                            rule_noun=text_rule.split(
+                                                            )[-1],
+                                                            num_obj_3d=self.num_obj_3d,
+                                                            level_processor=self.level_processor)
 
         except RecursionError:
             print(
