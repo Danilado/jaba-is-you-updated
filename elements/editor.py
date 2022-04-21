@@ -552,6 +552,9 @@ class Editor(GameStrategy):
             self.screen.blit(text, (800 * settings.WINDOW_SCALE - text.get_width() /
                              2, 450 * settings.WINDOW_SCALE - text.get_height() / 2))
 
+        if pygame.time.get_ticks() - self.text_timestamp > 1500:
+            self.search_text = ''
+
         if self.state is None:
             self.state = State(GameState.FLIP)
         return self.state
