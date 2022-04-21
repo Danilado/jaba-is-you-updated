@@ -3,6 +3,7 @@ from functools import partial
 
 import pygame
 import settings
+from elements.editor import unparse_all
 from elements.global_classes import sound_manager, palette_manager
 from elements.loader_util import parse_file
 from elements.play_level import PlayLevel
@@ -15,6 +16,7 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
+from utils import map_saves
 
 
 class ReferencePoint(GameStrategy):
@@ -30,6 +32,7 @@ class ReferencePoint(GameStrategy):
         self.parse_file(name, 'map_levels')
         self.empty_object = Object(-1, -1, 0, 'empty', False)
         self.radius = 0
+        self.complete_levels = map_saves()
         self.flag_anime = False
         self.delay = 0
         self.current_palette = palette_manager.get_palette('default')
@@ -44,6 +47,33 @@ class ReferencePoint(GameStrategy):
                 self.current_palette = palette_manager.get_palette(
                     parameters[0])
                 break
+
+    def check_levels(self):
+        if self.complete_levels[self.ref_point_name.split('/')[1]] > 0:
+            for i, line in enumerate(self.matrix):
+                for j, cell in enumerate(line):
+                    for k, rule_object in enumerate(cell):
+                        if k < len(cell) and j < 31:
+                            if rule_object.name == 'cursor' and not rule_object.is_text:
+                                if len(self.matrix[i][j + 1]) >= 2 and self.matrix[i][j + 1][-2].name \
+                                        in self.cursor.levels:
+                                    self.matrix[i][j + 1].pop()
+                                if len(self.matrix[i][j - 1]) >= 2 and self.matrix[i][j - 1][-2].name \
+                                        in self.cursor.levels:
+                                    self.matrix[i][j - 1].pop()
+                                if len(self.matrix[i + 1][j]) >= 2 and self.matrix[i + 1][j][-2].name \
+                                        in self.cursor.levels:
+                                    self.matrix[i + 1][j].pop()
+                                if len(self.matrix[i - 1][j]) >= 2 and self.matrix[i - 1][j][-2].name \
+                                        in self.cursor.levels:
+                                    self.matrix[i - 1][j].pop()
+
+        if self.complete_levels[self.ref_point_name.split('/')[1]] == 8:
+            saves = map_saves()
+            saves['reference_point'] += 1
+            with open('./saves/map_saves', mode='w', encoding='utf-8') as file:
+                for param in saves:
+                    file.write(f'{param} {saves[param]}\n')
 
     def animation_level(self):
         if self.flag_anime:
@@ -106,14 +136,24 @@ class ReferencePoint(GameStrategy):
                 neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
         return neighbours
 
+    def save(self):
+        string = f"{self.current_palette.name} {self.size[0]} {self.size[1]}\n"
+        string_state, counter = unparse_all(self.matrix)
+        if counter > 0:
+            string += string_state
+            with open(f"map_levels/{self.ref_point_name.split('/')[1]}"
+                      f".omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
+                      encoding='utf-8') as file:
+                file.write(string)
+
     def level_name(self):
         for i, line in enumerate(self.matrix):
             for j, cell in enumerate(line):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
-                                self.matrix[i][j][1].name in self.cursor.levels:
-                            return self.matrix[i][j][1].name
+                                self.matrix[i][j][-2].name in self.cursor.levels:
+                            return self.matrix[i][j][-2].name
 
     def go_to_game(self):
         for i, line in enumerate(self.matrix):
@@ -121,9 +161,9 @@ class ReferencePoint(GameStrategy):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
-                                self.matrix[i][j][1].name in self.cursor.levels:
+                                self.matrix[i][j][-2].name in self.cursor.levels:
                             self._state = State(GameState.SWITCH,
-                                                partial(PlayLevel, self.matrix[i][j][1].name.split("/")[0],
+                                                partial(PlayLevel, self.matrix[i][j][-2].name.split("/")[0],
                                                         self.ref_point_name))
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
@@ -137,19 +177,22 @@ class ReferencePoint(GameStrategy):
         """
         map_surface = pygame.Surface((self.size[0] * 50, self.size[1] * 50))
         self._state = None
+        saves = map_saves()
+        if self.complete_levels[self.ref_point_name.split('/')[1]] != saves[self.ref_point_name.split('/')[1]]:
+            self.complete_levels[self.ref_point_name.split('/')[1]] = saves[self.ref_point_name.split('/')[1]]
+            self.check_levels()
         for event in events:
             if event.type == pygame.QUIT:
                 self._state = State(GameState.BACK)
+                self.save()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self._state = State(GameState.BACK)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self._state = State(GameState.BACK)
-                    if event.key == pygame.K_RETURN and self.level_name() in self.cursor.levels:
-                        self.delay = pygame.time.get_ticks()
-                        self.set_pallete(self.level_name())
-                        self.flag_anime = True
+                    self.save()
+                if event.key == pygame.K_RETURN and self.level_name() in self.cursor.levels:
+                    self.delay = pygame.time.get_ticks()
+                    self.set_pallete(self.level_name())
+                    self.flag_anime = True
         if not self.flag_anime:
             self.cursor.check_events()
             needed_to_redraw_objects = self.cursor.turning_side != -1

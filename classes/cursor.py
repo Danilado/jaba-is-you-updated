@@ -37,7 +37,7 @@ class MoveCursor:
                             element.name == 'cursor' and not element.is_text and \
                             len(matrix[i - 1][j]) != 0 and matrix[i - 1][j][0].name.split("_")[0] != 'gate' and\
                             (matrix[i - 1][j][0].name.split("_")[0] == 'line' or
-                             matrix[i - 1][j][1].name.split("_")[0] in self.blocks):
+                             matrix[i - 1][j][-1].name.split("_")[0] in self.blocks):
                         matrix[i - 1][j].append(element)
                         matrix[i - 1][j][-1].movement.start_x_pixel, matrix[i - 1][j][-1].movement.start_y_pixel = \
                             matrix[i - 1][j][-1].xpx, matrix[i - 1][j][-1].ypx
@@ -61,7 +61,7 @@ class MoveCursor:
                             element.name == 'cursor' and not element.is_text and \
                             len(matrix[i + 1][j]) != 0 and matrix[i + 1][j][0].name.split("_")[0] != 'gate' and\
                             (matrix[i + 1][j][0].name.split("_")[0] == 'line' or
-                             matrix[i + 1][j][1].name.split("_")[0] in self.blocks):
+                             matrix[i + 1][j][-1].name.split("_")[0] in self.blocks):
                         num_el = k
                         x = i
                         y = j
@@ -87,7 +87,7 @@ class MoveCursor:
                             element.name == 'cursor' and not element.is_text and \
                             len(matrix[i][j - 1]) != 0 and matrix[i][j - 1][0].name.split("_")[0] != 'gate' and\
                             (matrix[i][j - 1][0].name.split("_")[0] == 'line' or
-                             matrix[i][j - 1][1].name.split("_")[0] in self.blocks):
+                             matrix[i][j - 1][-1].name.split("_")[0] in self.blocks):
                         matrix[i][j - 1].append(element)
                         matrix[i][j - 1][-1].movement.start_x_pixel, matrix[i][j - 1][-1].movement.start_y_pixel = \
                             matrix[i][j - 1][-1].animation.position
@@ -112,7 +112,7 @@ class MoveCursor:
                             element.name == 'cursor' and not element.is_text and \
                             len(matrix[i][j + 1]) != 0 and matrix[i][j + 1][0].name.split("_")[0] != 'gate' and\
                             (matrix[i][j + 1][0].name.split("_")[0] == 'line' or
-                             matrix[i][j + 1][1].name.split("_")[0] in self.blocks):
+                             matrix[i][j + 1][-1].name.split("_")[0] in self.blocks):
                         num_el = k
                         x = i
                         y = j
