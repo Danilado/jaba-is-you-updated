@@ -1,8 +1,10 @@
 import math
-from copy import copy
 import random
+from copy import copy
 
 import pygame
+
+from classes.text_rule import TextRule
 
 
 class Broken:
@@ -160,6 +162,7 @@ class Direction:
 class Fall:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
+        assert rule_object.animation is not None
         while rule_object.motion(0, 1, matrix, level_rules):
             ...
 
@@ -498,7 +501,7 @@ class RuleProcessor:
     def update_object(self, rule_object):
         self.object = rule_object
 
-    def process(self, rule) -> bool:
+    def process(self, rule: TextRule) -> bool:
         text_rule = rule.text_rule
         status_rule = None
         if text_rule.split()[-1] in self.dictionary:
