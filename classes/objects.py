@@ -158,7 +158,6 @@ class Object:
     def x(self, value: int):
         self._x = value
         self._xpx = int(value * 50 * settings.WINDOW_SCALE)
-        self.animation.position = (self._xpx, self.animation.position[1])
 
     @property
     def y(self) -> int:
@@ -168,7 +167,6 @@ class Object:
     def y(self, value: int):
         self._y = value
         self._ypx = int(value * 50 * settings.WINDOW_SCALE)
-        self.animation.position = (self.animation.position[0], self._ypx)
 
     @property
     def xpx(self) -> int:
@@ -178,7 +176,6 @@ class Object:
     def xpx(self, value: int):
         self._xpx = value
         self._x = int(value / 50 * settings.WINDOW_SCALE)
-        self.animation.position = (self._xpx, self.animation.position[1])
 
     @property
     def ypx(self) -> int:
@@ -188,7 +185,6 @@ class Object:
     def ypx(self, value: int):
         self._ypx = value
         self._y = int(value / 50 * settings.WINDOW_SCALE)
-        self.animation.position = (self.animation.position[0], self._ypx)
 
     def investigate_neighbours(self):
         """Исследует соседей объекта и возвращает правильный ключ к спрайту
@@ -1027,7 +1023,7 @@ class Object:
                     self.name in NOUNS and self.is_text):
                 matrix[self.y][self.x].pop(self.get_index(matrix))
                 self.pull_objects(delta_x, delta_y, matrix, level_rules)
-                self.update_parameters(delta_x, delta_y, matrix)
+                self.update_parameters(delta_x, delta_y, matrix)   # TODO: NONE
 
             for rule in level_rules:
                 if f'{self.name} is pull' in rule.text_rule and status == 'pull' and not self.is_text\
