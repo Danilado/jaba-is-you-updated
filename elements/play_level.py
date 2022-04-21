@@ -895,7 +895,8 @@ class PlayLevel(GameStrategy):
         if self.status_cancel:
             new_time = pygame.time.get_ticks()
             if new_time > self.delta_cancel + 200:
-                if len(self.history_of_matrix) > 0:
+                is_history_of_matrix_empty = len(self.history_of_matrix) > 0
+                if is_history_of_matrix_empty:
                     self.matrix = self.copy_matrix(self.history_of_matrix[-1])
                     self.history_of_matrix.pop()
                     self.check_matrix()
@@ -907,10 +908,18 @@ class PlayLevel(GameStrategy):
                 for i in range(len(self.matrix)):
                     for j in range(len(self.matrix[i])):
                         for obj in self.matrix[i][j]:
+                            if is_history_of_matrix_empty:
+                                obj.movement.start_x_pixel = obj.xpx+obj.movement.x_pixel_delta
+                                obj.movement.start_y_pixel = obj.ypx + obj.movement.y_pixel_delta
+                            else:
+                                obj.movement.start_x_pixel = obj.xpx
+                                obj.movement.start_y_pixel = obj.ypx
+                                obj.movement.x_pixel_delta = obj.movement.y_pixel_delta = 0
                             obj.x = j
                             obj.y = i
-                            obj.movement.start_x_pixel = obj.xpx
-                            obj.movement.start_y_pixel = obj.ypx
+                            if is_history_of_matrix_empty:
+                                obj.movement.x_pixel_delta = obj.xpx-obj.movement.start_x_pixel
+                                obj.movement.y_pixel_delta = obj.ypx - obj.movement.start_y_pixel
                             obj.movement.rerun(0.05)
 
         if self.moved and not self.flag_to_win_animation:
@@ -967,7 +976,7 @@ class PlayLevel(GameStrategy):
                             if game_object.name in STICKY and not game_object.is_text and \
                                     (game_object.moved or self.first_iteration):
                                 self.update_sticky_neighbours(game_object)
-                        game_object.draw(level_surface)
+                        game_object.draw(level_surface, self.matrix)
 
             if self.show_grid:
                 for x in range(0, self.size[0] * 50, 50):
