@@ -67,6 +67,13 @@ class ReferencePoint(GameStrategy):
                                 if len(self.matrix[i - 1][j]) >= 2 and self.matrix[i - 1][j][-2].name \
                                         in self.cursor.levels:
                                     self.matrix[i - 1][j].pop()
+                                if self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
+                                    self.matrix[i][j].insert(-2, Object(j, i, 1,
+                                                                        f'{self.matrix[i][j][-2].name.split("_")[0]}_n',
+                                                                        True,
+                                                                        palette=palette_manager.get_palette('default'),
+                                                                        level_size=(32, 18)))
+                                    self.matrix[i][j].pop(-2)
 
         if self.complete_levels[self.ref_point_name.split('/')[1]] == 8:
             saves = map_saves()
@@ -152,8 +159,8 @@ class ReferencePoint(GameStrategy):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
-                                self.matrix[i][j][-2].name in self.cursor.levels:
-                            return self.matrix[i][j][-2].name
+                                self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
+                            return self.matrix[i][j][-2].name.split('_')[0]
 
     def go_to_game(self):
         for i, line in enumerate(self.matrix):
@@ -161,10 +168,15 @@ class ReferencePoint(GameStrategy):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
-                                self.matrix[i][j][-2].name in self.cursor.levels:
-                            self._state = State(GameState.SWITCH,
-                                                partial(PlayLevel, self.matrix[i][j][-2].name.split("/")[0],
-                                                        self.ref_point_name))
+                                self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
+                            if len(self.matrix[i][j][-2].name.split('_')) == 1:
+                                self._state = State(GameState.SWITCH, partial(PlayLevel,
+                                                                              self.matrix[i][j][-2].name[0],
+                                                                              self.ref_point_name, False))
+                            else:
+                                self._state = State(GameState.SWITCH, partial(PlayLevel,
+                                                                              self.matrix[i][j][-2].name[0],
+                                                                              self.ref_point_name, True))
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает интерфейс загрузчика и обрабатывает все события
