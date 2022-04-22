@@ -91,6 +91,7 @@ class Editor(GameStrategy):
         # focused cell
         self.focus = (-1, -1)
         self.search_text = ''
+        self.filter = ''
         self.text_timestamp = pygame.time.get_ticks() + 255
         self.font = pygame.font.SysFont(
             'notosans', int(300 * settings.WINDOW_SCALE))
@@ -191,6 +192,8 @@ class Editor(GameStrategy):
         :param n: Вперёд или назад перелистывать и на какое количество страниц
         :type n: int
         """
+        if self.filter == '':
+            self.pagination_limit = ceil(len(OBJECTS) / 12)
         self.page = (self.page + number) % self.pagination_limit
         self.buttons = self.parse_buttons()
 
@@ -204,8 +207,9 @@ class Editor(GameStrategy):
         """
         filtered_array = []
         for game_object in OBJECTS:
-            if self.search_text in game_object:
+            if self.filter in game_object:
                 filtered_array.append(game_object)
+        self.pagination_limit = max(ceil(len(filtered_array) / 12), 1)
         button_objects_array = filtered_array[12 *
                                               self.page:12 * (self.page + 1)]
         button_array = []
@@ -388,6 +392,7 @@ class Editor(GameStrategy):
 
     def update_text(self):
         self.page = 0
+        self.filter = self.search_text
         self.page_turn(0)
         self.text_timestamp = pygame.time.get_ticks()
 
@@ -552,7 +557,7 @@ class Editor(GameStrategy):
             self.screen.blit(text, (800 * settings.WINDOW_SCALE - text.get_width() /
                              2, 450 * settings.WINDOW_SCALE - text.get_height() / 2))
 
-        if pygame.time.get_ticks() - self.text_timestamp > 1500:
+        if pygame.time.get_ticks() - self.text_timestamp > 1000:
             self.search_text = ''
 
         if self.state is None:
