@@ -1,7 +1,7 @@
 import math
 from typing import Final, Tuple
 
-DEBUG: bool = True
+DEBUG: bool = False
 
 RESOLUTION: Tuple[int, int] = (800, 450)  # 32x18
 SHOW_GRID: Final[bool] = False
@@ -82,15 +82,15 @@ NOUNS = [
 ]
 
 OPERATORS = [
-    'on', 'never', 'facing', 'without', 'above', 'below', 'seeing', 'nextto', 'feeling', 'near', 'and', 'not',
+    'on', 'facing', 'without', 'above', 'below', 'seeing', 'nextto', 'feeling', 'near', 'and', 'not',
     'has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play', 'lonely', 'idle', 'powered', 'is'
 ]
 
 VERBS = ['has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play']
 
-PREFIX = ['lonely', 'idle', 'powered']
+PREFIX = ['lonely', 'idle', 'powered', 'not']
 
-INFIX = ['on', 'never', 'facing', 'without', 'above',
+INFIX = ['on', 'facing', 'without', 'above',
          'below', 'seeing', 'nextto', 'feeling', 'near']
 
 PROPERTIES = [

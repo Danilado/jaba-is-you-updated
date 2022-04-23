@@ -19,6 +19,14 @@ class MoveCursor:
         # TODO by quswadress: split move_right, move_left, move_up, move_down into this method.
         if pygame.time.get_ticks() - self.last_time > 75:
             self.last_time = pygame.time.get_ticks()
+            for i, line in enumerate(matrix):
+                for j, cell in enumerate(line):
+                    for k, element in enumerate(cell):
+                        element.x = j
+                        element.y = i
+                        element.movement.start_x_pixel = element.xpx
+                        element.movement.start_y_pixel = element.ypx
+                        element.movement.x_pixel_delta = element.movement.y_pixel_delta = 0
             if self.turning_side == 0:
                 self.move_right(matrix)
             if self.turning_side == 1:

@@ -90,6 +90,11 @@ class Editor(GameStrategy):
             [[] for _ in range(32)] for _ in range(18)]
         # focused cell
         self.focus = (-1, -1)
+        self.search_text = ''
+        self.filter = ''
+        self.text_timestamp = pygame.time.get_ticks() + 255
+        self.font = pygame.font.SysFont(
+            'notosans', int(300 * settings.WINDOW_SCALE))
         # buttons
         self.buttons: List[ObjectButton] = []
         self.page = 0
@@ -187,6 +192,8 @@ class Editor(GameStrategy):
         :param n: Вперёд или назад перелистывать и на какое количество страниц
         :type n: int
         """
+        if self.filter == '':
+            self.pagination_limit = ceil(len(OBJECTS) / 12)
         self.page = (self.page + number) % self.pagination_limit
         self.buttons = self.parse_buttons()
 
@@ -198,7 +205,13 @@ class Editor(GameStrategy):
         :return: массив кнопок
         :rtype: list
         """
-        button_objects_array = OBJECTS[12 * self.page:12 * (self.page + 1)]
+        filtered_array = []
+        for game_object in OBJECTS:
+            if self.filter in game_object:
+                filtered_array.append(game_object)
+        self.pagination_limit = max(ceil(len(filtered_array) / 12), 1)
+        button_objects_array = filtered_array[12 *
+                                              self.page:12 * (self.page + 1)]
         button_array = []
         for index, text in enumerate(button_objects_array):
             button_array.append(
@@ -354,6 +367,8 @@ class Editor(GameStrategy):
         if len(self.current_state[self.focus[1]][self.focus[0]]) > 0:
             self.name = self.current_state[self.focus[1]
                                            ][self.focus[0]][-1].name
+            self.is_text = self.current_state[self.focus[1]
+                                              ][self.focus[0]][-1].is_text
 
     def overlay(self):
         """Вызывает меню управления редактора"""
@@ -374,6 +389,12 @@ class Editor(GameStrategy):
                     for rule_object in cell:
                         rule_object.palette = value
                         rule_object.animation = rule_object.animation_init()
+
+    def update_text(self):
+        self.page = 0
+        self.filter = self.search_text
+        self.page_turn(0)
+        self.text_timestamp = pygame.time.get_ticks()
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает редактор (включая все его элементы) и обрабатывает все действия пользователя
@@ -418,24 +439,36 @@ class Editor(GameStrategy):
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self.overlay()
-                if event.key == pygame.K_e:
-                    self.turn(-1)
-                if event.key == pygame.K_q:
-                    self.turn(1)
-                if event.key == pygame.K_t:
-                    self.is_text_swap()
-                if event.key == pygame.K_x:
-                    self.set_tool(0)
-                if event.key == pygame.K_c:
-                    self.set_tool(1)
-                if event.key == pygame.K_v:
-                    self.set_tool(2)
-                if event.key == pygame.K_a:
-                    self.page_turn(-1)
-                if event.key == pygame.K_d:
-                    self.page_turn(1)
-                if event.key == pygame.K_z and pygame.key.get_mods() & pygame.KMOD_CTRL:
-                    self.undo()
+                if pygame.key.get_mods() & pygame.KMOD_CTRL:
+                    if event.key == pygame.K_BACKSPACE:
+                        self.search_text = ''
+                        self.update_text()
+                    if event.key == pygame.K_e:
+                        self.turn(-1)
+                    if event.key == pygame.K_q:
+                        self.turn(1)
+                    if event.key == pygame.K_t:
+                        self.is_text_swap()
+                    if event.key == pygame.K_x:
+                        self.set_tool(0)
+                    if event.key == pygame.K_c:
+                        self.set_tool(1)
+                    if event.key == pygame.K_v:
+                        self.set_tool(2)
+                    if event.key == pygame.K_a:
+                        self.page_turn(-1)
+                    if event.key == pygame.K_d:
+                        self.page_turn(1)
+                    if event.key == pygame.K_z:
+                        self.undo()
+                elif len(pygame.key.name(event.key)) == 1:
+                    self.search_text += pygame.key.name(event.key)
+                    self.update_text()
+                elif event.key == pygame.K_BACKSPACE and self.search_text != '':
+                    self.search_text = self.search_text.rstrip(
+                        self.search_text[-1])
+                    self.update_text()
+
             if event.type == pygame.MOUSEMOTION:
                 if event.pos[0] - self.window_offset[1] <= self.size[0]*50*self.scale*settings.WINDOW_SCALE:
                     if event.pos[1] - self.window_offset[0] <= self.size[1]*50*self.scale*settings.WINDOW_SCALE:
@@ -446,7 +479,7 @@ class Editor(GameStrategy):
                         # NOTE ВОЗМОЖНО СТОИТ ДЕЛИТ НА scale
                 else:
                     self.focus = (-1, -1)
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONDOWN or (pygame.key.get_mods() & pygame.KMOD_SHIFT and pygame.mouse.get_pressed()[0]):
                 if self.focus[0] != -1:
                     if self.tool == 1:
                         self.create()
@@ -516,6 +549,16 @@ class Editor(GameStrategy):
         for indicator in indicators:
             indicator.update(events)
             indicator.draw(self.screen)
+
+        if pygame.time.get_ticks() - self.text_timestamp < 510:
+            text = self.font.render(self.search_text, False, (255,)*3)
+            text.set_alpha(
+                255 - (pygame.time.get_ticks() - self.text_timestamp)//2)
+            self.screen.blit(text, (800 * settings.WINDOW_SCALE - text.get_width() /
+                             2, 450 * settings.WINDOW_SCALE - text.get_height() / 2))
+
+        if pygame.time.get_ticks() - self.text_timestamp > 1000:
+            self.search_text = ''
 
         if self.state is None:
             self.state = State(GameState.FLIP)

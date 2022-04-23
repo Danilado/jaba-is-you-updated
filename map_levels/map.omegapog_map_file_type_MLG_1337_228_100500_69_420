@@ -1,4 +1,4 @@
-default 32 18
+mono 32 18
 10 1 1 road False
 20 2 1 road False
 11 3 3 road False
@@ -10,5 +10,5 @@ default 32 18
 24 8 1 road False
 21 11 1 road False
 10 14 1 square False
-10 14 1 0 False
+10 14 1 0_n True
 10 14 1 cursor False
