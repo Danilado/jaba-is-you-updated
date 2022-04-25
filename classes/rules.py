@@ -66,7 +66,6 @@ class You:
 
     def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
         rule_object.check_events(events, self.num)
-        print(rule_object.name)
         rule_object.move(matrix, level_rules, level_processor)
 
 
@@ -97,13 +96,13 @@ class Chill:
 
 class Boom:
     @staticmethod
-    def apply(matrix, rule_object, *_, **__):
+    def apply(matrix, rule_object, level_rules, **__):
         boom_objects = []
         for object in matrix[rule_object.y][rule_object.x]:
             boom_objects.append(object)
             matrix[rule_object.y][rule_object.x].pop(object.get_index(matrix))
         for object in boom_objects:
-            object.die(0, 0, matrix)
+            object.die(0, 0, matrix, level_rules)
 
 
 class Auto:

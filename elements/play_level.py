@@ -663,6 +663,7 @@ class PlayLevel(GameStrategy):
             for i in range(len(self.matrix) - 1, -1, -1):
                 for j in range(len(self.matrix[i]) - 1, -1, -1):
                     for rule_object in self.matrix[i][j]:
+                        print(rule_object.name)
                         self.apply_rules(matrix, rule_object, i, j)
                         rule_object.reset_movement()
 
@@ -745,39 +746,38 @@ class PlayLevel(GameStrategy):
                                                   is_float, is_3d, is_fall, locked_sides, has_objects)
 
     def apply_rules(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int):
-        if not rule_object.special_text:
-            rule_cache_key: Object = rule_object
-
-            if rule_cache_key not in self.apply_rules_cache:
-                self._create_in_cache_rules_thing(
-                    matrix, rule_object, i, j, rule_cache_key)
-            is_hot, is_hide, is_safe, is_open, is_shut, is_phantom, \
-            is_text, is_still, is_sleep, is_power, is_weak, \
-            is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:14]
-            locked_sides: List[str] = self.apply_rules_cache[rule_cache_key][14]
-            has_objects: List[str] = self.apply_rules_cache[rule_cache_key][15]
-
-            rule_object.is_hot = is_hot
-            rule_object.is_power = is_power
-            rule_object.is_hide = is_hide
-            rule_object.is_safe = is_safe
-            rule_object.locked_sides = my_deepcopy(locked_sides)
-            rule_object.is_open = is_open
-            rule_object.is_shut = is_shut
-            rule_object.is_phantom = is_phantom
-            rule_object.is_text = is_text
-            rule_object.is_still = is_still
-            rule_object.is_sleep = is_sleep
-            rule_object.is_weak = is_weak
-            rule_object.is_float = is_float
-            rule_object.is_3d = is_3d
-            rule_object.is_fall = is_fall
-            rule_object.has_objects = has_objects
-
-            for rule in self.level_rules:
-                if rule_object.name in rule.text_rule:
-                    rules.processor.update_object(rule_object)
-                    rules.processor.process(rule)
+        rule_cache_key: Object = rule_object
+        if rule_cache_key not in self.apply_rules_cache:
+            self._create_in_cache_rules_thing(
+                matrix, rule_object, i, j, rule_cache_key)
+        is_hot, is_hide, is_safe, is_open, is_shut, is_phantom, \
+        is_text, is_still, is_sleep, is_power, is_weak, \
+        is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:14]
+        locked_sides: List[str] = self.apply_rules_cache[rule_cache_key][14]
+        has_objects: List[str] = self.apply_rules_cache[rule_cache_key][15]
+        rule_object.is_hot = is_hot
+        rule_object.is_power = is_power
+        rule_object.is_hide = is_hide
+        rule_object.is_safe = is_safe
+        rule_object.locked_sides = my_deepcopy(locked_sides)
+        rule_object.is_open = is_open
+        rule_object.is_shut = is_shut
+        rule_object.is_phantom = is_phantom
+        rule_object.is_text = is_text
+        rule_object.is_still = is_still
+        rule_object.is_sleep = is_sleep
+        rule_object.is_weak = is_weak
+        rule_object.is_float = is_float
+        rule_object.is_3d = is_3d
+        rule_object.is_fall = is_fall
+        rule_object.has_objects = has_objects
+        for rule in self.level_rules:
+            if rule_object.name in rule.text_rule or ('text' in rule.text_rule and (rule_object.name in OPERATORS
+                                                      or rule_object.name in PROPERTIES
+                                                      or rule_object.name in TEXT_ONLY
+                                                      or (rule_object.name in NOUNS and rule_object.is_text))):
+                rules.processor.update_object(rule_object)
+                rules.processor.process(rule)
 
     def find_rules(self):
         self.level_rules.clear()
@@ -909,7 +909,7 @@ class PlayLevel(GameStrategy):
                     for j in range(len(self.matrix[i])):
                         for obj in self.matrix[i][j]:
                             if is_history_of_matrix_empty:
-                                obj.movement.start_x_pixel = obj.xpx+obj.movement.x_pixel_delta
+                                obj.movement.start_x_pixel = obj.xpx + obj.movement.x_pixel_delta
                                 obj.movement.start_y_pixel = obj.ypx + obj.movement.y_pixel_delta
                             else:
                                 obj.movement.start_x_pixel = obj.xpx
@@ -918,7 +918,7 @@ class PlayLevel(GameStrategy):
                             obj.x = j
                             obj.y = i
                             if is_history_of_matrix_empty:
-                                obj.movement.x_pixel_delta = obj.xpx-obj.movement.start_x_pixel
+                                obj.movement.x_pixel_delta = obj.xpx - obj.movement.start_x_pixel
                                 obj.movement.y_pixel_delta = obj.ypx - obj.movement.start_y_pixel
                             obj.movement.rerun(0.05)
 
@@ -1005,6 +1005,9 @@ class PlayLevel(GameStrategy):
             self.win_animation()
 
         if self.moved:
+            print('-----')
+            for rule in self.level_rules:
+                print(rule.text_rule)
             self.moved = False
 
         if self.state is None:

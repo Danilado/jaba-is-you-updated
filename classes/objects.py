@@ -1053,6 +1053,12 @@ class Object:
         """
         self.turning_side = get_pressed_direction(number == 2)
 
+    def is_text(self, rule, property):
+        return (f'text {property}' in rule.text_rule and (self.name in OPERATORS
+                                                      or self.name in PROPERTIES
+                                                      or self.name in TEXT_ONLY
+                                                      or (self.name in NOUNS and self.is_text)))
+
     @property
     def is_operator(self) -> bool:
         """Является ли объект оператором
@@ -1078,7 +1084,9 @@ class Object:
         :return: Является ли объект существительным
         :rtype: bool
         """
-        return self.name in NOUNS and self.name not in OPERATORS and self.is_text
+        return (self.name in NOUNS and self.name not in OPERATORS and self.is_text) or self.name in 'text'
+
+
 
     @property
     def special_text(self) -> bool:
@@ -1087,6 +1095,7 @@ class Object:
         :return: Является ли объект текстом
         :rtype: bool
         """
+        print(self.name in TEXT_ONLY)
         return self.is_text or self.name in TEXT_ONLY
 
     def __copy__(self):
