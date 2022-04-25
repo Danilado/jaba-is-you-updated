@@ -82,6 +82,8 @@ class ReferencePoint(GameStrategy):
                 for param in saves:
                     file.write(f'{param} {saves[param]}\n')
 
+        self.save()
+
     def animation_level(self):
         if self.flag_anime:
             offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),

@@ -96,6 +96,7 @@ class MapMenu(GameStrategy):
                 for j, cell in enumerate(line):
                     for k, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
+            self.first_iteration = True
 
         elif self.complete_levels['main'] == 8:
             _, _, matrix = parse_file('part_map_2', 'map_levels')
@@ -103,6 +104,7 @@ class MapMenu(GameStrategy):
                 for j, cell in enumerate(line):
                     for k, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
+            self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 1:
             _, _, matrix = parse_file('part_map_3', 'map_levels')
@@ -110,6 +112,7 @@ class MapMenu(GameStrategy):
                 for j, cell in enumerate(line):
                     for k, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
+            self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 2:
             _, _, matrix = parse_file('part_map_4', 'map_levels')
@@ -117,6 +120,7 @@ class MapMenu(GameStrategy):
                 for j, cell in enumerate(line):
                     for k, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
+            self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 3:
             _, _, matrix = parse_file('part_map_5', 'map_levels')
@@ -124,6 +128,7 @@ class MapMenu(GameStrategy):
                 for j, cell in enumerate(line):
                     for k, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
+            self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 4:
             for i, line in enumerate(self.matrix):
@@ -132,7 +137,7 @@ class MapMenu(GameStrategy):
                         if k < len(cell) and j < 31:
                             if rule_object.name == 'gate' and not rule_object.is_text and self.count_gate == 0:
                                 self.matrix[i][j].pop()
-                                self.matrix[i][j].append(Object(i, j, 1, 'line', False,
+                                self.matrix[i][j].append(Object(j, i, 1, 'line', False,
                                                                 palette=palette_manager.get_palette('default'),
                                                                 level_size=(32, 18)))
                                 self.count_gate += 1
@@ -145,10 +150,11 @@ class MapMenu(GameStrategy):
                         if k < len(cell) and j < 31:
                             if rule_object.name == 'gate' and not rule_object.is_text:
                                 self.matrix[i][j].pop()
-                                self.matrix[i][j].append(Object(i, j, 1, 'line', False,
+                                self.matrix[i][j].append(Object(j, i, 1, 'line', False,
                                                                 palette=palette_manager.get_palette('default'),
                                                                 level_size=(32, 18)))
                                 break
+        self.save()
 
     def animation_level(self):
         if self.flag_anime:
