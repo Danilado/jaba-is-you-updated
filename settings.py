@@ -1,7 +1,7 @@
 import math
 from typing import Final, Tuple
 
-DEBUG: bool = True
+DEBUG: bool = False
 
 RESOLUTION: Tuple[int, int] = (800, 450)  # 32x18
 SHOW_GRID: Final[bool] = False

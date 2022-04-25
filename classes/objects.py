@@ -1,5 +1,4 @@
 """Модуль класса объекта"""
-from copy import copy
 import os
 import os.path
 from copy import copy
@@ -11,7 +10,6 @@ import settings
 from classes.animation import Animation
 from classes.palette import Palette
 from classes.smooth_movement import SmoothMove
-from classes.animation import Animation
 from elements.global_classes import sprite_manager, palette_manager
 from global_types import SURFACE
 from settings import TEXT_ONLY, SPRITE_ONLY, NOUNS, OPERATORS, PROPERTIES
@@ -97,10 +95,10 @@ class Object:
             neighbours = []
         self.neighbours: List[List[Object]] = neighbours
 
-        self.x = x
-        self.y = y
-        self.xpx = x * 50
-        self.ypx = y * 50
+        self._x = x
+        self._y = y
+        self._xpx = x * 50
+        self._ypx = y * 50
 
         self.angle_3d = angle_3d
         self.num_3d = num_3d
@@ -296,15 +294,64 @@ class Object:
                     return self.animation_init()
         return animation
 
-    def draw(self, screen: SURFACE):
+    def _draw_debug(self, screen: SURFACE, matrix: List[List[List["Object"]]]):
+        """
+        Подсвечивает объект цветами для дебага Кости.
+
+        .. Циановый::
+            Конец движения, то-есть куда объект двигается
+
+        .. Пурпурный::
+            Начало движения, то-есть откуда объект двигается
+
+        .. Оранжевый::
+            Положение объекта на матрице. Если он не находится на объекте - значит что-то пошло не так.
+        """
+        if not self.movement.done:
+            surface = pygame.Surface((50, 50))
+            surface.set_alpha(64)
+            surface.fill("cyan")
+            screen.blit(surface, (self.movement.start_x_pixel + self.movement.x_pixel_delta,
+                                  self.movement.start_y_pixel + self.movement.y_pixel_delta),
+                        special_flags=pygame.BLEND_RGBA_MULT)
+            surface = pygame.Surface((40, 40))
+            surface.set_alpha(64)
+            surface.fill("magenta")
+            screen.blit(surface, (
+                self.movement.start_x_pixel+5,
+                self.movement.start_y_pixel+5
+            ), special_flags=pygame.BLEND_RGBA_ADD)
+        y = x = None
+        for y, line in enumerate(matrix):
+            for x, cell in enumerate(line):
+                for game_object in cell:
+                    if game_object == self:
+                        break
+                else:
+                    continue
+                break
+            else:
+                continue
+            break
+        if y is not None and x is not None:
+            surface = pygame.Surface((45, 45))
+            surface.set_alpha(64)
+            surface.fill("orange")
+            screen.blit(surface, (x*50+2, y*50+2), special_flags=pygame.BLEND_RGBA_ADD)
+
+    def draw(self, screen: SURFACE, matrix: Optional[List[List[List["Object"]]]] = None):
         """
         Метод отрисовки объекта
         """
+        if matrix is None:
+            matrix = []
         new_x_and_y = self._movement.update_x_and_y()
         self.animation.position = self.xpx, self.ypx = new_x_and_y
         if not self.is_hide:
             self.animation.update()
             self.animation.draw(screen)
+        if settings.DEBUG:
+            self._draw_debug(screen, matrix)
 
     def unparse(self) -> str:
         """Сериализовать объект в строку"""
@@ -976,7 +1023,7 @@ class Object:
                     self.name in NOUNS and self.is_text):
                 matrix[self.y][self.x].pop(self.get_index(matrix))
                 self.pull_objects(delta_x, delta_y, matrix, level_rules)
-                self.update_parameters(delta_x, delta_y, matrix)
+                self.update_parameters(delta_x, delta_y, matrix)   # TODO: NONE
 
             for rule in level_rules:
                 if f'{self.name} is pull' in rule.text_rule and status == 'pull' and not self.is_text\
@@ -986,6 +1033,8 @@ class Object:
                     self.update_parameters(delta_x, delta_y, matrix)
 
             return True
+        else:
+            print("NOTE: Object can not move. Calling from classes/objects.py->Object.motion()")
         return False
 
     def check_word(self, level_rules):
