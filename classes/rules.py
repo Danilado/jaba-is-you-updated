@@ -242,7 +242,7 @@ class Defeat:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
         for rule in level_rules:
-            if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text:
+            if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text or rule_object.text(rule, 'is you'):
                 if not rule_object.is_safe:
                     matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
                     rule_object.die(0, 0, matrix, level_rules)

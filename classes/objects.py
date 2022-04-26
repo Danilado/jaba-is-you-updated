@@ -1053,7 +1053,7 @@ class Object:
         """
         self.turning_side = get_pressed_direction(number == 2)
 
-    def is_text(self, rule, property):
+    def text(self, rule, property):
         return (f'text {property}' in rule.text_rule and (self.name in OPERATORS
                                                       or self.name in PROPERTIES
                                                       or self.name in TEXT_ONLY
@@ -1095,8 +1095,7 @@ class Object:
         :return: Является ли объект текстом
         :rtype: bool
         """
-        print(self.name in TEXT_ONLY)
-        return self.is_text or self.name in TEXT_ONLY
+        return self.is_text
 
     def __copy__(self):
         """Метод копирования объекта

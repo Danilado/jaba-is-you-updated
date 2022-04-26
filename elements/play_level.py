@@ -19,7 +19,7 @@ from elements.global_classes import sound_manager
 from elements.loader_util import parse_file
 from global_types import SURFACE
 from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
-from utils import my_deepcopy, settings_saves
+from utils import my_deepcopy, settings_saves, debug
 
 
 class PlayLevel(GameStrategy):
@@ -663,7 +663,6 @@ class PlayLevel(GameStrategy):
             for i in range(len(self.matrix) - 1, -1, -1):
                 for j in range(len(self.matrix[i]) - 1, -1, -1):
                     for rule_object in self.matrix[i][j]:
-                        print(rule_object.name)
                         self.apply_rules(matrix, rule_object, i, j)
                         rule_object.reset_movement()
 
@@ -763,7 +762,6 @@ class PlayLevel(GameStrategy):
         rule_object.is_open = is_open
         rule_object.is_shut = is_shut
         rule_object.is_phantom = is_phantom
-        rule_object.is_text = is_text
         rule_object.is_still = is_still
         rule_object.is_sleep = is_sleep
         rule_object.is_weak = is_weak
@@ -772,12 +770,21 @@ class PlayLevel(GameStrategy):
         rule_object.is_fall = is_fall
         rule_object.has_objects = has_objects
         for rule in self.level_rules:
-            if rule_object.name in rule.text_rule or ('text' in rule.text_rule and (rule_object.name in OPERATORS
-                                                      or rule_object.name in PROPERTIES
-                                                      or rule_object.name in TEXT_ONLY
+            if (f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text) or ('text' in rule.text_rule
+                                                      and (rule_object.name in TEXT_ONLY
                                                       or (rule_object.name in NOUNS and rule_object.is_text))):
                 rules.processor.update_object(rule_object)
                 rules.processor.process(rule)
+
+        for rule in self.level_rules:
+            for verb in OPERATORS:
+                if (f'{rule_object.name} {verb}' in rule.text_rule and not rule_object.is_text
+                      or ('text' in rule.text_rule
+                      and (rule_object.name in TEXT_ONLY
+                      or rule_object.name in NOUNS and rule_object.is_text)) \
+                        )and f'{rule_object.name} is you' not in rule.text_rule:
+                    rules.processor.update_object(rule_object)
+                    rules.processor.process(rule)
 
     def find_rules(self):
         self.level_rules.clear()
