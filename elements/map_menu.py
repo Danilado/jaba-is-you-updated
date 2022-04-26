@@ -37,6 +37,7 @@ class MapMenu(GameStrategy):
         self.flag_anime = False
         self.delay = 0
         self.scale = 1
+        self.is_6or7_complete = False
         self.count_gate = 0
         self.complete_levels = map_saves()
         self.size = (32, 18)
@@ -56,7 +57,7 @@ class MapMenu(GameStrategy):
                 break
 
     def save(self):
-        string = f"{self.current_palette.name} {self.size[0]} {self.size[1]}\n"
+        string = f"default {self.size[0]} {self.size[1]}\n"
         string_state, counter = unparse_all(self.matrix)
         if counter > 0:
             string += string_state
@@ -89,20 +90,20 @@ class MapMenu(GameStrategy):
                                                                     palette=palette_manager.get_palette('default'),
                                                                     level_size=(32, 18)))
                                 self.matrix[i][j].pop(-2)
+                            if self.matrix[i][j][-2].name.split('_')[0] == '6' \
+                                    or self.matrix[i][j][-2].name.split('_')[0] == '7':
+                                _, _, matrix = parse_file('part_map_2', 'map_levels')
+                                for ix, linex in enumerate(matrix):
+                                    for jx, cellx in enumerate(linex):
+                                        for _, rule_objectx in enumerate(cellx):
+                                            self.matrix[ix][jx].append(rule_objectx)
+                                self.first_iteration = True
 
         if self.complete_levels['main'] == 1:
             _, _, matrix = parse_file('part_map_1', 'map_levels')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
-                        self.matrix[i][j].append(rule_object)
-            self.first_iteration = True
-
-        elif self.complete_levels['main'] == 8:
-            _, _, matrix = parse_file('part_map_2', 'map_levels')
-            for i, line in enumerate(matrix):
-                for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
+                    for _, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
             self.first_iteration = True
 
@@ -110,7 +111,7 @@ class MapMenu(GameStrategy):
             _, _, matrix = parse_file('part_map_3', 'map_levels')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
+                    for _, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
             self.first_iteration = True
 
@@ -118,7 +119,7 @@ class MapMenu(GameStrategy):
             _, _, matrix = parse_file('part_map_4', 'map_levels')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
+                    for _, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
             self.first_iteration = True
 
@@ -126,7 +127,7 @@ class MapMenu(GameStrategy):
             _, _, matrix = parse_file('part_map_5', 'map_levels')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
+                    for _, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
             self.first_iteration = True
 
@@ -204,12 +205,12 @@ class MapMenu(GameStrategy):
         neighbours = [None for _ in range(4)]
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == settings.RESOLUTION[1] // 50 * settings.WINDOW_SCALE - 1:
+        elif x == settings.RESOLUTION[1] // 50 - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == settings.RESOLUTION[0] // 50 * settings.WINDOW_SCALE - 1:
+        elif y == settings.RESOLUTION[0] // 50 - 1:
             neighbours[1] = [self.empty_object]
 
         for index, offset in enumerate(offsets):

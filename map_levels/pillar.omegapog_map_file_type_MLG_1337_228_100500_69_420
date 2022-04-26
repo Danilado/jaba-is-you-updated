@@ -146,6 +146,7 @@ default 32 18
 7 9 1 brick False
 8 9 1 pillar False
 16 9 1 line False
+16 9 1 cursor False
 22 9 3 husk False
 25 9 1 wall False
 26 9 1 wall False
@@ -155,7 +156,6 @@ default 32 18
 13 10 3 husk False
 16 10 1 square False
 16 10 1 1 False
-16 10 1 cursor False
 1 11 3 tree False
 18 11 3 water False
 19 11 3 water False

@@ -50,7 +50,7 @@ default 32 18
 16 8 1 jelly False
 20 8 1 line False
 24 8 1 road False
-24 8 2 sprout False
+24 8 2 dot False
 16 9 1 line False
 20 9 1 line False
 11 10 1 square False
