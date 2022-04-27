@@ -675,10 +675,14 @@ class PlayLevel(GameStrategy):
         for rule in self.level_rules:
             if rule.check_fix(rule_object, matrix, self.level_rules):
                 for noun in NOUNS:
-                    if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
+                    if (f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is {noun}' in rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
+                        if rule_object.name == 'baba':
                         if rule_object.status_switch_name == 0:
                             matrix[i][j].pop(rule_object.get_index(matrix))
                             rule_object.name = noun
+                            rule_object.is_text = False
                             rule_object.status_switch_name = 1
                             rule_object.animation = rule_object.animation_init()
                             matrix[i][j].append(copy(rule_object))
@@ -770,19 +774,17 @@ class PlayLevel(GameStrategy):
         rule_object.is_fall = is_fall
         rule_object.has_objects = has_objects
         for rule in self.level_rules:
-            if (f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text) or ('text' in rule.text_rule
-                                                      and (rule_object.name in TEXT_ONLY
-                                                      or (rule_object.name in NOUNS and rule_object.is_text))):
+            if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text \
+                    or (f'text is you' in rule.text_rule and (rule_object.name in TEXT_ONLY
+                        or rule_object.name in NOUNS and rule_object.is_text)):
                 rules.processor.update_object(rule_object)
                 rules.processor.process(rule)
 
         for rule in self.level_rules:
             for verb in OPERATORS:
-                if (f'{rule_object.name} {verb}' in rule.text_rule and not rule_object.is_text
-                      or ('text' in rule.text_rule
-                      and (rule_object.name in TEXT_ONLY
-                      or rule_object.name in NOUNS and rule_object.is_text)) \
-                        )and f'{rule_object.name} is you' not in rule.text_rule:
+                if (f'{rule_object.name} {verb}' in rule.text_rule and not rule_object.is_text \
+                    or (f'text {verb}' in rule.text_rule and (rule_object.name in TEXT_ONLY
+                        or rule_object.name in NOUNS and rule_object.is_text))) and 'is you' not in rule.text_rule:
                     rules.processor.update_object(rule_object)
                     rules.processor.process(rule)
 
