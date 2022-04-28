@@ -91,7 +91,7 @@ class ReferencePoint(GameStrategy):
                                                                     level_size=(32, 18)))
                                 self.matrix[i][j].pop(-2)
 
-        if self.complete_levels[self.ref_point_name.split('/')[1]] == 8:
+        if self.complete_levels[self.ref_point_name.split('/')[1]] == 10:
             saves = map_saves()
             saves['reference_point'] += 1
             with open('./saves/map_saves', mode='w', encoding='utf-8') as file:
