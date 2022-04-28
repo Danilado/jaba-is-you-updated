@@ -8,7 +8,7 @@ from elements.global_classes import sound_manager, palette_manager
 from elements.loader_util import parse_file
 from elements.play_level import PlayLevel
 
-from settings import SHOW_GRID, STICKY
+from settings import STICKY
 from global_types import SURFACE
 
 from classes.cursor import MoveCursor
@@ -49,31 +49,47 @@ class ReferencePoint(GameStrategy):
                 break
 
     def check_levels(self):
-        if self.complete_levels[self.ref_point_name.split('/')[1]] > 0:
-            for i, line in enumerate(self.matrix):
-                for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
-                        if k < len(cell) and j < 31:
-                            if rule_object.name == 'cursor' and not rule_object.is_text:
-                                if len(self.matrix[i][j + 1]) >= 2 and self.matrix[i][j + 1][-2].name \
-                                        in self.cursor.levels:
-                                    self.matrix[i][j + 1].pop()
-                                if len(self.matrix[i][j - 1]) >= 2 and self.matrix[i][j - 1][-2].name \
-                                        in self.cursor.levels:
-                                    self.matrix[i][j - 1].pop()
-                                if len(self.matrix[i + 1][j]) >= 2 and self.matrix[i + 1][j][-2].name \
-                                        in self.cursor.levels:
-                                    self.matrix[i + 1][j].pop()
-                                if len(self.matrix[i - 1][j]) >= 2 and self.matrix[i - 1][j][-2].name \
-                                        in self.cursor.levels:
-                                    self.matrix[i - 1][j].pop()
-                                if self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
-                                    self.matrix[i][j].insert(-2, Object(j, i, 1,
-                                                                        f'{self.matrix[i][j][-2].name.split("_")[0]}_n',
-                                                                        True,
-                                                                        palette=palette_manager.get_palette('default'),
-                                                                        level_size=(32, 18)))
-                                    self.matrix[i][j].pop(-2)
+        _, _, all_map_matrix = parse_file('all_{}'.format(self.ref_point_name.split('/')[1]), 'map_levels')
+        for i, line in enumerate(self.matrix):
+            for j, cell in enumerate(line):
+                for k, rule_object in enumerate(cell):
+                    if k < len(cell) and j < 31:
+                        if rule_object.name == 'cursor' and not rule_object.is_text:
+                            if len(all_map_matrix[i][j + 1]) >= 1 and all_map_matrix[i][j + 1][-1].name \
+                                    in self.cursor.levels and self.matrix[i][j + 1][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i][j + 1].append(Object(j + 1, i, 1,
+                                                                    all_map_matrix[i][j + 1][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i][j - 1]) >= 1 and all_map_matrix[i][j - 1][-1].name \
+                                    in self.cursor.levels and self.matrix[i][j - 1][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i][j - 1].append(Object(j - 1, i, 1,
+                                                                    all_map_matrix[i][j - 1][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i + 1][j]) >= 1 and all_map_matrix[i + 1][j][-1].name \
+                                    in self.cursor.levels and self.matrix[i + 1][j][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i + 1][j].append(Object(j, i + 1, 1,
+                                                                    all_map_matrix[i + 1][j][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i - 1][j]) >= 1 and all_map_matrix[i - 1][j][-1].name \
+                                    in self.cursor.levels and self.matrix[i - 1][j][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i - 1][j].append(Object(j, i - 1, 1,
+                                                                    all_map_matrix[i - 1][j][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
+                                self.matrix[i][j].insert(-2, Object(j, i, 1,
+                                                                    f'{self.matrix[i][j][-2].name.split("_")[0]}_n',
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                                self.matrix[i][j].pop(-2)
 
         if self.complete_levels[self.ref_point_name.split('/')[1]] == 8:
             saves = map_saves()

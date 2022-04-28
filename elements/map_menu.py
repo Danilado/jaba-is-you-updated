@@ -66,23 +66,40 @@ class MapMenu(GameStrategy):
                 file.write(string)
 
     def check_levels(self):
+        _, _, all_map_matrix = parse_file('all_map', 'map_levels')
         for i, line in enumerate(self.matrix):
             for j, cell in enumerate(line):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text:
-                            if len(self.matrix[i][j + 1]) >= 2 and self.matrix[i][j + 1][-2].name \
-                                    in self.cursor.levels:
-                                self.matrix[i][j + 1].pop()
-                            if len(self.matrix[i][j - 1]) >= 2 and self.matrix[i][j - 1][-2].name \
-                                    in self.cursor.levels:
-                                self.matrix[i][j - 1].pop()
-                            if len(self.matrix[i + 1][j]) >= 2 and self.matrix[i + 1][j][-2].name \
-                                    in self.cursor.levels:
-                                self.matrix[i + 1][j].pop()
-                            if len(self.matrix[i - 1][j]) >= 2 and self.matrix[i - 1][j][-2].name \
-                                    in self.cursor.levels:
-                                self.matrix[i - 1][j].pop()
+                            if len(all_map_matrix[i][j + 1]) >= 1 and all_map_matrix[i][j + 1][-1].name \
+                                    in self.cursor.levels and self.matrix[i][j + 1][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i][j + 1].append(Object(j + 1, i, 1,
+                                                                    all_map_matrix[i][j + 1][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i][j - 1]) >= 1 and all_map_matrix[i][j - 1][-1].name \
+                                    in self.cursor.levels and self.matrix[i][j - 1][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i][j - 1].append(Object(j - 1, i, 1,
+                                                                    all_map_matrix[i][j - 1][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i + 1][j]) >= 1 and all_map_matrix[i + 1][j][-1].name \
+                                    in self.cursor.levels and self.matrix[i + 1][j][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i + 1][j].append(Object(j, i + 1, 1,
+                                                                    all_map_matrix[i + 1][j][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i - 1][j]) >= 1 and all_map_matrix[i - 1][j][-1].name \
+                                    in self.cursor.levels and self.matrix[i - 1][j][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i - 1][j].append(Object(j, i - 1, 1,
+                                                                    all_map_matrix[i - 1][j][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
                             if self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
                                 self.matrix[i][j].insert(-2, Object(j, i, 1,
                                                                     f'{self.matrix[i][j][-2].name.split("_")[0]}_n',
@@ -135,26 +152,24 @@ class MapMenu(GameStrategy):
             for i, line in enumerate(self.matrix):
                 for j, cell in enumerate(line):
                     for k, rule_object in enumerate(cell):
-                        if k < len(cell) and j < 31:
-                            if rule_object.name == 'gate' and not rule_object.is_text and self.count_gate == 0:
-                                self.matrix[i][j].pop()
-                                self.matrix[i][j].append(Object(j, i, 1, 'line', False,
-                                                                palette=palette_manager.get_palette('default'),
-                                                                level_size=(32, 18)))
-                                self.count_gate += 1
-                                break
+                        if rule_object.name == 'gate' and not rule_object.is_text and self.count_gate == 0:
+                            self.matrix[i][j].pop()
+                            self.matrix[i][j].append(Object(j, i, 1, 'line', False,
+                                                            palette=palette_manager.get_palette('default'),
+                                                            level_size=(32, 18)))
+                            self.count_gate += 1
+                            break
 
         elif self.complete_levels['reference_point'] == 10:
             for i, line in enumerate(self.matrix):
                 for j, cell in enumerate(line):
                     for k, rule_object in enumerate(cell):
-                        if k < len(cell) and j < 31:
-                            if rule_object.name == 'gate' and not rule_object.is_text:
-                                self.matrix[i][j].pop()
-                                self.matrix[i][j].append(Object(j, i, 1, 'line', False,
-                                                                palette=palette_manager.get_palette('default'),
-                                                                level_size=(32, 18)))
-                                break
+                        if rule_object.name == 'gate' and not rule_object.is_text:
+                            self.matrix[i][j].pop()
+                            self.matrix[i][j].append(Object(j, i, 1, 'line', False,
+                                                            palette=palette_manager.get_palette('default'),
+                                                            level_size=(32, 18)))
+                            break
         self.save()
 
     def animation_level(self):
