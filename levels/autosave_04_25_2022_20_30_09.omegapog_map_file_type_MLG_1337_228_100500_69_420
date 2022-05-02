@@ -1,15 +1,12 @@
 default 32 18
-14 1 1 text False
+14 1 1 baba True
 15 1 1 is False
-16 1 1 defeat False
+16 1 1 you False
+17 1 1 and False
+18 1 1 float False
 26 1 1 wall False
-14 2 1 baba True
-15 2 1 is False
-16 2 1 you False
 26 2 1 wall False
 9 3 1 baba False
-14 3 1 text False
-15 3 1 is False
 25 3 1 baba False
 26 3 1 wall False
 26 4 1 wall False
