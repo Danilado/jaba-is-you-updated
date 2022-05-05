@@ -96,13 +96,13 @@ class Chill:
 
 class Boom:
     @staticmethod
-    def apply(matrix, rule_object, *_, **__):
+    def apply(matrix, rule_object, level_rules, **__):
         boom_objects = []
         for object in matrix[rule_object.y][rule_object.x]:
             boom_objects.append(object)
             matrix[rule_object.y][rule_object.x].pop(object.get_index(matrix))
         for object in boom_objects:
-            object.die(0, 0, matrix)
+            object.die(0, 0, matrix, level_rules)
 
 
 class Auto:
@@ -235,14 +235,17 @@ class Win:
     def apply(matrix, rule_object, level_rules, level_processor, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
             rule_object.level_processor = level_processor
+            level_object.level_processor = level_processor
             rule_object.check_win(level_rules, level_object, matrix)
+            rule_object.check_win(level_rules, rule_object, matrix)
+            level_object.check_win(level_rules, rule_object, matrix)
 
 
 class Defeat:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
         for rule in level_rules:
-            if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text:
+            if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text or rule_object.text(rule, 'is you'):
                 if not rule_object.is_safe:
                     matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
                     rule_object.die(0, 0, matrix, level_rules)
@@ -271,11 +274,12 @@ class ShutOpen:
 class Sink:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
-        for level_object in matrix[rule_object.y][rule_object.x]:
-            if len(matrix[rule_object.y][rule_object.x]) > 1:
-                if not rule_object.check_sink(0, 0, matrix, level_rules, level_object):
-                    level_object.die(0, 0, matrix, level_rules)
-                    rule_object.die(0, 0, matrix, level_rules)
+        if len(matrix[rule_object.y][rule_object.x]) > 1:
+            for level_object in matrix[rule_object.y][rule_object.x]:
+                if rule_object.get_index(matrix) != level_object.get_index(matrix):
+                    if not rule_object.check_sink(0, 0, matrix, level_rules, level_object):
+                        level_object.die(0, 0, matrix, level_rules)
+                        rule_object.die(0, 0, matrix, level_rules)
 
 
 class Make:

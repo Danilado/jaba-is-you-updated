@@ -19,7 +19,7 @@ from elements.global_classes import sound_manager
 from elements.loader_util import parse_file
 from global_types import SURFACE
 from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
-from utils import my_deepcopy, settings_saves
+from utils import my_deepcopy, settings_saves, debug
 
 
 class PlayLevel(GameStrategy):
@@ -312,7 +312,7 @@ class PlayLevel(GameStrategy):
                                 if properties:
                                     for object_property in properties:
                                         property_objects.append(
-                                            ['', object_property])
+                                            object_property)
                     return property_objects
         return False
 
@@ -413,6 +413,7 @@ class PlayLevel(GameStrategy):
                     verbs = arguments[0]
                     object_not = arguments[1]
                     properties = arguments[2]
+
         else:
             infix = self.check_infix(
                 i + delta_i, j + delta_j, delta_i, delta_j)
@@ -675,10 +676,13 @@ class PlayLevel(GameStrategy):
         for rule in self.level_rules:
             if rule.check_fix(rule_object, matrix, self.level_rules):
                 for noun in NOUNS:
-                    if f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text:
+                    if (f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is {noun}' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                         if rule_object.status_switch_name == 0:
                             matrix[i][j].pop(rule_object.get_index(matrix))
                             rule_object.name = noun
+                            rule_object.is_text = False
                             rule_object.status_switch_name = 1
                             rule_object.animation = rule_object.animation_init()
                             matrix[i][j].append(copy(rule_object))
@@ -686,96 +690,144 @@ class PlayLevel(GameStrategy):
                             rule_object.status_switch_name = 2
                         elif rule_object.status_switch_name == 2:
                             rule_object.status_switch_name = 0
-                    if f'{rule_object.name} has {noun}' in rule.text_rule and not rule_object.is_text:
+                    if (f'{rule_object.name} has {noun}' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text has {noun}' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                         has_objects.append(noun)
 
-                if f'{rule_object.name} is 3d' in rule.text_rule:
+                if (f'{rule_object.name} is 3d' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is 3d' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_3d = True
 
-                elif f'{rule_object.name} is hide' in rule.text_rule:
+                elif (f'{rule_object.name} is hide' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is hide' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_hide = True
 
-                elif f'{rule_object.name} is fall' in rule.text_rule:
+
+                elif (f'{rule_object.name} is fall' == rule.text_rule and not rule_object.is_text) or \
+                        (f'text is fall' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                or rule_object.is_text)):
                     is_fall = True
 
-                elif f'{rule_object.name} is weak' in rule.text_rule:
+                elif (f'{rule_object.name} is wwak' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is weak' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_weak = True
 
-                elif f'{rule_object.name} is hot' in rule.text_rule:
+                elif (f'{rule_object.name} is hot' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is hot' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_hot = True
 
-                elif f'{rule_object.name} is power' in rule.text_rule:
+                elif (f'{rule_object.name} is power' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is power' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_power = True
 
-                elif f'{rule_object.name} is still' in rule.text_rule:
+                elif (f'{rule_object.name} is still' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is still' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_still = True
 
-                elif f'{rule_object.name} is locked' in rule.text_rule:
-                    if f'{rule_object.name} is lockeddown' in rule.text_rule:
+                elif (f'{rule_object.name} is locked' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is locked' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
+                    if (f'{rule_object.name} is lockeddown' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is lockeddown' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                         locked_sides.append('down')
-                    elif f'{rule_object.name} is lockedup' in rule.text_rule:
+                    elif (f'{rule_object.name} is lockedup' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is lockedup' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                         locked_sides.append('up')
-                    elif f'{rule_object.name} is lockedleft' in rule.text_rule:
+                    elif (f'{rule_object.name} is lockedleft' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is lockedleft' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                         locked_sides.append('left')
-                    elif f'{rule_object.name} is lockedright' in rule.text_rule:
+                    elif (f'{rule_object.name} is lockedright' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is lockedright' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                         locked_sides.append('right')
 
-                elif f'{rule_object.name} is safe' in rule.text_rule:
+                elif (f'{rule_object.name} is safe' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is safe' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_safe = True
 
-                elif f'{rule_object.name} is open' in rule.text_rule:
+                elif (f'{rule_object.name} is open' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is open' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_open = True
 
-                elif f'{rule_object.name} is phantom' in rule.text_rule:
+                elif (f'{rule_object.name} is phantom' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is phantom' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_phantom = True
 
-                elif f'{rule_object.name} is shut' in rule.text_rule:
+                elif (f'{rule_object.name} is shut' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is shut' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_shut = True
 
-                elif f'{rule_object.name} is text' in rule.text_rule:
+                elif f'{rule_object.name} is text' == rule.text_rule and not rule_object.is_text:
                     is_text = True
 
-                elif f'{rule_object.name} is sleep' in rule.text_rule:
+                elif rule_object.name in TEXT_ONLY or rule_object.is_text:
+                     is_text = True
+
+                elif (f'{rule_object.name} is sleep' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is sleep' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_sleep = True
 
-                elif f'{rule_object.name} is float' in rule.text_rule:
+                elif (f'{rule_object.name} is float' == rule.text_rule and not rule_object.is_text) or \
+                            (f'text is float' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                                   or rule_object.is_text)):
                     is_float = True
         self.apply_rules_cache[rule_cache_key] = (is_hot, is_hide, is_safe, is_open, is_shut, is_phantom,
                                                   is_text, is_still, is_sleep, is_power, is_weak,
                                                   is_float, is_3d, is_fall, locked_sides, has_objects)
 
     def apply_rules(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int):
-        if not rule_object.special_text:
-            rule_cache_key: Object = rule_object
+        rule_cache_key: Object = rule_object
+        if rule_cache_key not in self.apply_rules_cache:
+            self._create_in_cache_rules_thing(
+                matrix, rule_object, i, j, rule_cache_key)
+        is_hot, is_hide, is_safe, is_open, is_shut, is_phantom, \
+        is_text, is_still, is_sleep, is_power, is_weak, \
+        is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:14]
+        locked_sides: List[str] = self.apply_rules_cache[rule_cache_key][14]
+        has_objects: List[str] = self.apply_rules_cache[rule_cache_key][15]
+        rule_object.is_hot = is_hot
+        rule_object.is_power = is_power
+        rule_object.is_hide = is_hide
+        rule_object.is_safe = is_safe
+        rule_object.locked_sides = my_deepcopy(locked_sides)
+        rule_object.is_open = is_open
+        rule_object.is_shut = is_shut
+        rule_object.is_phantom = is_phantom
+        rule_object.is_still = is_still
+        rule_object.is_sleep = is_sleep
+        rule_object.is_weak = is_weak
+        rule_object.is_float = is_float
+        rule_object.is_3d = is_3d
+        rule_object.is_fall = is_fall
+        rule_object.is_text = is_text
+        rule_object.has_objects = has_objects
+        for rule in self.level_rules:
+            if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text \
+                    or (f'text is you' in rule.text_rule and (rule_object.name in TEXT_ONLY
+                        or rule_object.name in NOUNS and rule_object.is_text)):
+                rules.processor.update_object(rule_object)
+                rules.processor.process(rule)
 
-            if rule_cache_key not in self.apply_rules_cache:
-                self._create_in_cache_rules_thing(
-                    matrix, rule_object, i, j, rule_cache_key)
-            is_hot, is_hide, is_safe, is_open, is_shut, is_phantom, \
-            is_text, is_still, is_sleep, is_power, is_weak, \
-            is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:14]
-            locked_sides: List[str] = self.apply_rules_cache[rule_cache_key][14]
-            has_objects: List[str] = self.apply_rules_cache[rule_cache_key][15]
-
-            rule_object.is_hot = is_hot
-            rule_object.is_power = is_power
-            rule_object.is_hide = is_hide
-            rule_object.is_safe = is_safe
-            rule_object.locked_sides = my_deepcopy(locked_sides)
-            rule_object.is_open = is_open
-            rule_object.is_shut = is_shut
-            rule_object.is_phantom = is_phantom
-            rule_object.is_text = is_text
-            rule_object.is_still = is_still
-            rule_object.is_sleep = is_sleep
-            rule_object.is_weak = is_weak
-            rule_object.is_float = is_float
-            rule_object.is_3d = is_3d
-            rule_object.is_fall = is_fall
-            rule_object.has_objects = has_objects
-
-            for rule in self.level_rules:
-                if rule_object.name in rule.text_rule:
+        for rule in self.level_rules:
+            for verb in OPERATORS:
+                if (f'{rule_object.name} {verb}' in rule.text_rule and not rule_object.is_text \
+                    or (f'text {verb}' in rule.text_rule and (rule_object.name in TEXT_ONLY
+                        or rule_object.name in NOUNS and rule_object.is_text))) and 'is you' not in rule.text_rule:
                     rules.processor.update_object(rule_object)
                     rules.processor.process(rule)
 
@@ -909,7 +961,7 @@ class PlayLevel(GameStrategy):
                     for j in range(len(self.matrix[i])):
                         for obj in self.matrix[i][j]:
                             if is_history_of_matrix_empty:
-                                obj.movement.start_x_pixel = obj.xpx+obj.movement.x_pixel_delta
+                                obj.movement.start_x_pixel = obj.xpx + obj.movement.x_pixel_delta
                                 obj.movement.start_y_pixel = obj.ypx + obj.movement.y_pixel_delta
                             else:
                                 obj.movement.start_x_pixel = obj.xpx
@@ -918,7 +970,7 @@ class PlayLevel(GameStrategy):
                             obj.x = j
                             obj.y = i
                             if is_history_of_matrix_empty:
-                                obj.movement.x_pixel_delta = obj.xpx-obj.movement.start_x_pixel
+                                obj.movement.x_pixel_delta = obj.xpx - obj.movement.start_x_pixel
                                 obj.movement.y_pixel_delta = obj.ypx - obj.movement.start_y_pixel
                             obj.movement.rerun(0.05)
 
@@ -1005,6 +1057,7 @@ class PlayLevel(GameStrategy):
             self.win_animation()
 
         if self.moved:
+
             self.moved = False
 
         if self.state is None:

@@ -1,8 +1,0 @@
-default 32 18
-0 0 1 baba True
-1 0 1 is True
-2 0 1 fall True
-0 1 1 is True
-0 2 1 you True
-8 8 1 baba False
-13 8 1 bat False
