@@ -65,7 +65,8 @@ default 32 18
 2 13 1 cloud False
 3 13 1 cloud False
 4 13 1 cloud False
-15 13 1 square False
+15 13 1 tile False
+15 13 1 teeth False
 15 13 1 cursor False
 24 13 1 star False
 29 13 1 cloud False

@@ -14,7 +14,8 @@ default 32 18
 11 1 1 hedge False
 14 1 1 hedge False
 16 1 1 hedge False
-17 1 1 square False
+17 1 1 tile False
+17 1 1 teeth False
 17 1 1 cursor False
 19 1 1 hedge False
 25 1 1 hedge False

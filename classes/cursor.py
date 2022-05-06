@@ -9,7 +9,7 @@ from utils import get_pressed_direction
 class MoveCursor:
     def __init__(self):
         self.turning_side = -1
-        self.levels = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', 'a')
+        self.levels = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10')
         self.reference_point = ('moon', 'skull', 'pillar', 'pumpkin', 'flower',
                                 'spike', 'jelly', 'dot', 'leaf', 'tree')
         self.some_obj = ('line', 'square')
@@ -38,8 +38,8 @@ class MoveCursor:
                             element.name == 'cursor' and not element.is_text and \
                             len(matrix[i - 1][j]) != 0 and matrix[i - 1][j][0].name.split("_")[0] != 'gate' and\
                             (matrix[i - 1][j][0].name.split("_")[0] in self.some_obj or
-                             matrix[i - 1][j][-1].name.split("_")[0] in self.blocks)\
-                            and matrix[i - 1][j][-1].name.split("_")[-1] != 'lock':
+                             matrix[i - 1][j][-1].name.split("_")[0] in self.blocks or
+                             matrix[i - 1][j][-1].name.split("_")[-1] == 'teeth'):
                         matrix[i - 1][j].append(element)
                         matrix[i - 1][j][-1].movement.start_x_pixel, matrix[i - 1][j][-1].movement.start_y_pixel = \
                             matrix[i - 1][j][-1].xpx, matrix[i - 1][j][-1].ypx
@@ -63,8 +63,8 @@ class MoveCursor:
                             element.name == 'cursor' and not element.is_text and \
                             len(matrix[i + 1][j]) != 0 and matrix[i + 1][j][0].name.split("_")[0] != 'gate' and\
                             (matrix[i + 1][j][0].name.split("_")[0] in self.some_obj or
-                             matrix[i + 1][j][-1].name.split("_")[0] in self.blocks)\
-                            and matrix[i + 1][j][-1].name.split("_")[-1] != 'lock':
+                             matrix[i + 1][j][-1].name.split("_")[0] in self.blocks or
+                             matrix[i + 1][j][-1].name.split("_")[-1] == 'teeth'):
                         num_el = k
                         x = i
                         y = j
@@ -90,8 +90,8 @@ class MoveCursor:
                             element.name == 'cursor' and not element.is_text and \
                             len(matrix[i][j - 1]) != 0 and matrix[i][j - 1][0].name.split("_")[0] != 'gate' and\
                             (matrix[i][j - 1][0].name.split("_")[0] in self.some_obj or
-                             matrix[i][j - 1][-1].name.split("_")[0] in self.blocks)\
-                            and matrix[i][j - 1][-1].name.split("_")[-1] != 'lock':
+                             matrix[i][j - 1][-1].name.split("_")[0] in self.blocks or
+                             matrix[i][j - 1][-1].name.split("_")[-1] == 'teeth'):
                         matrix[i][j - 1].append(element)
                         matrix[i][j - 1][-1].movement.start_x_pixel, matrix[i][j - 1][-1].movement.start_y_pixel = \
                             matrix[i][j - 1][-1].animation.position
@@ -116,8 +116,8 @@ class MoveCursor:
                             element.name == 'cursor' and not element.is_text and \
                             len(matrix[i][j + 1]) != 0 and matrix[i][j + 1][0].name.split("_")[0] != 'gate' and\
                             (matrix[i][j + 1][0].name.split("_")[0] in self.some_obj or
-                             matrix[i][j + 1][-1].name.split("_")[0] in self.blocks)\
-                            and matrix[i][j + 1][-1].name.split("_")[-1] != 'lock':
+                             matrix[i][j + 1][-1].name.split("_")[0] in self.blocks or
+                             matrix[i][j + 1][-1].name.split("_")[-1] == 'teeth'):
                         num_el = k
                         x = i
                         y = j

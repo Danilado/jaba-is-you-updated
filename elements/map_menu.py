@@ -109,7 +109,7 @@ class MapMenu(GameStrategy):
                                 self.matrix[i][j].pop(-2)
                             if self.matrix[i][j][-2].name.split('_')[0] == '6' \
                                     or self.matrix[i][j][-2].name.split('_')[0] == '7':
-                                _, _, matrix = parse_file('part_map_2', 'map_levels')
+                                _, _, matrix = parse_file('part_map_2', 'map_levels/parts/map')
                                 for ix, linex in enumerate(matrix):
                                     for jx, cellx in enumerate(linex):
                                         for _, rule_objectx in enumerate(cellx):
@@ -117,7 +117,7 @@ class MapMenu(GameStrategy):
                                 self.first_iteration = True
 
         if self.complete_levels['main'] == 1:
-            _, _, matrix = parse_file('part_map_1', 'map_levels')
+            _, _, matrix = parse_file('part_map_1', 'map_levels/parts/map')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
                     for _, rule_object in enumerate(cell):
@@ -125,7 +125,7 @@ class MapMenu(GameStrategy):
             self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 1:
-            _, _, matrix = parse_file('part_map_3', 'map_levels')
+            _, _, matrix = parse_file('part_map_3', 'map_levels/parts/map')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
                     for _, rule_object in enumerate(cell):
@@ -133,7 +133,7 @@ class MapMenu(GameStrategy):
             self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 2:
-            _, _, matrix = parse_file('part_map_4', 'map_levels')
+            _, _, matrix = parse_file('part_map_4', 'map_levels/parts/map')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
                     for _, rule_object in enumerate(cell):
@@ -141,7 +141,7 @@ class MapMenu(GameStrategy):
             self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 3:
-            _, _, matrix = parse_file('part_map_5', 'map_levels')
+            _, _, matrix = parse_file('part_map_5', 'map_levels/parts/map')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
                     for _, rule_object in enumerate(cell):
@@ -158,6 +158,7 @@ class MapMenu(GameStrategy):
                                                             palette=palette_manager.get_palette('default'),
                                                             level_size=(32, 18)))
                             self.count_gate += 1
+                            self.first_iteration = True
                             break
 
         elif self.complete_levels['reference_point'] == 10:
@@ -169,6 +170,7 @@ class MapMenu(GameStrategy):
                             self.matrix[i][j].append(Object(j, i, 1, 'line', False,
                                                             palette=palette_manager.get_palette('default'),
                                                             level_size=(32, 18)))
+                            self.first_iteration = True
                             break
         self.save()
 

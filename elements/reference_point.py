@@ -26,7 +26,7 @@ class ReferencePoint(GameStrategy):
         self.matrix: List[List[List[Object]]] = [[[]
                                                   for _ in range(32)] for _ in range(18)]
         self.cursor = MoveCursor()
-        self.ref_point_name = f'map_levels/{name}'
+        self.ref_point_name = name
         self._state: Optional[State] = None
         self.first_iteration = True
         self.parse_file(name, 'map_levels')
@@ -40,7 +40,8 @@ class ReferencePoint(GameStrategy):
         self.size = (32, 18)
 
     def set_pallete(self, level_name: str):
-        path_to_file = f'./{self.ref_point_name}/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
+        path_to_file = \
+            f'./map_levels/{self.ref_point_name}/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
         with open(path_to_file, mode='r', encoding='utf-8') as level_file:
             for line in level_file.readlines():
                 parameters = line.strip().split(' ')
@@ -49,7 +50,7 @@ class ReferencePoint(GameStrategy):
                 break
 
     def check_levels(self):
-        _, _, all_map_matrix = parse_file('all_{}'.format(self.ref_point_name.split('/')[1]), 'map_levels')
+        _, _, all_map_matrix = parse_file('all_{}'.format(self.ref_point_name), 'map_levels/open_maps')
         for i, line in enumerate(self.matrix):
             for j, cell in enumerate(line):
                 for k, rule_object in enumerate(cell):
@@ -91,7 +92,35 @@ class ReferencePoint(GameStrategy):
                                                                     level_size=(32, 18)))
                                 self.matrix[i][j].pop(-2)
 
-        if self.complete_levels[self.ref_point_name.split('/')[1]] == 10:
+                            if len(all_map_matrix[i - 1][j]) > 0 and len(self.matrix[i - 1][j]) == 0 \
+                                    and all_map_matrix[i - 1][j][0].name.split("_")[0] == 'line'\
+                                    or len(all_map_matrix[i + 1][j]) > 0 and len(self.matrix[i + 1][j]) == 0 \
+                                    and all_map_matrix[i + 1][j][0].name.split("_")[0] == 'line'\
+                                    or len(all_map_matrix[i][j - 1]) > 0 and len(self.matrix[i][j - 1]) == 0 \
+                                    and all_map_matrix[i][j - 1][0].name.split("_")[0] == 'line'\
+                                    or len(all_map_matrix[i][j + 1]) > 0 and len(self.matrix[i][j + 1]) == 0 \
+                                    and all_map_matrix[i][j + 1][0].name.split("_")[0] == 'line':
+                                for num in range(1, 4):
+                                    try:
+                                        _, _, part_matrix = parse_file(f'part_{self.ref_point_name}_{num}',
+                                                                       f'map_levels/parts/{self.ref_point_name}')
+                                        if len(part_matrix[i - 1][j]) > 0 and len(self.matrix[i - 1][j]) == 0 \
+                                           and part_matrix[i - 1][j][0].name.split("_")[0] == 'line' \
+                                           or len(part_matrix[i + 1][j]) > 0 and len(self.matrix[i + 1][j]) == 0 \
+                                           and part_matrix[i + 1][j][0].name.split("_")[0] == 'line' \
+                                           or len(part_matrix[i][j - 1]) > 0 and len(self.matrix[i][j - 1]) == 0 \
+                                           and part_matrix[i][j - 1][0].name.split("_")[0] == 'line' \
+                                           or len(part_matrix[i][j + 1]) > 0 and len(self.matrix[i][j + 1]) == 0 \
+                                           and part_matrix[i][j + 1][0].name.split("_")[0] == 'line':
+                                            for ix, linex in enumerate(part_matrix):
+                                                for jx, cellx in enumerate(linex):
+                                                    for _, rule_objectx in enumerate(cellx):
+                                                        self.matrix[ix][jx].append(rule_objectx)
+                                            self.first_iteration = True
+                                    except FileNotFoundError:
+                                        pass
+
+        if self.complete_levels[self.ref_point_name] == 10:
             saves = map_saves()
             saves['reference_point'] += 1
             with open('./saves/map_saves', mode='w', encoding='utf-8') as file:
@@ -166,7 +195,7 @@ class ReferencePoint(GameStrategy):
         string_state, counter = unparse_all(self.matrix)
         if counter > 0:
             string += string_state
-            with open(f"map_levels/{self.ref_point_name.split('/')[1]}"
+            with open(f"map_levels/{self.ref_point_name}"
                       f".omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
                       encoding='utf-8') as file:
                 file.write(string)
@@ -177,7 +206,8 @@ class ReferencePoint(GameStrategy):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
-                                self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
+                                (self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels\
+                                or self.matrix[i][j][-2].name.split('_')[0] == 'teeth'):
                             return self.matrix[i][j][-2].name.split('_')[0]
 
     def go_to_game(self):
@@ -186,15 +216,19 @@ class ReferencePoint(GameStrategy):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
-                                self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
-                            if len(self.matrix[i][j][-2].name.split('_')) == 1:
+                                self.matrix[i][j][-2].name.split('_')[0] in [*self.cursor.levels, 'teeth']:
+                            if self.matrix[i][j][-2].name.split('_')[0] == 'teeth':
+                                self._state = State(GameState.BACK)
+                            elif len(self.matrix[i][j][-2].name.split('_')) == 1:
                                 self._state = State(GameState.SWITCH, partial(PlayLevel,
                                                                               self.matrix[i][j][-2].name[0],
-                                                                              self.ref_point_name, False))
+                                                                              f"map_levels/{self.ref_point_name}",
+                                                                              False))
                             else:
                                 self._state = State(GameState.SWITCH, partial(PlayLevel,
                                                                               self.matrix[i][j][-2].name[0],
-                                                                              self.ref_point_name, True))
+                                                                              f"map_levels/{self.ref_point_name}",
+                                                                              True))
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает интерфейс загрузчика и обрабатывает все события
@@ -208,8 +242,8 @@ class ReferencePoint(GameStrategy):
         map_surface = pygame.Surface((self.size[0] * 50, self.size[1] * 50))
         self._state = None
         saves = map_saves()
-        if self.complete_levels[self.ref_point_name.split('/')[1]] != saves[self.ref_point_name.split('/')[1]]:
-            self.complete_levels[self.ref_point_name.split('/')[1]] = saves[self.ref_point_name.split('/')[1]]
+        if self.complete_levels[self.ref_point_name] != saves[self.ref_point_name]:
+            self.complete_levels[self.ref_point_name] = saves[self.ref_point_name]
             self.check_levels()
         for event in events:
             if event.type == pygame.QUIT:
@@ -219,9 +253,10 @@ class ReferencePoint(GameStrategy):
                 if event.key == pygame.K_ESCAPE:
                     self._state = State(GameState.BACK)
                     self.save()
-                if event.key == pygame.K_RETURN and self.level_name() in self.cursor.levels:
+                if event.key == pygame.K_RETURN and self.level_name() in [*self.cursor.levels, 'teeth']:
                     self.delay = pygame.time.get_ticks()
-                    self.set_pallete(self.level_name())
+                    if self.level_name() in self.cursor.levels:
+                        self.set_pallete(self.level_name())
                     self.flag_anime = True
         if not self.flag_anime:
             self.cursor.check_events()

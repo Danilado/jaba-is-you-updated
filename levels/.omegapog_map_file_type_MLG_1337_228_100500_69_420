@@ -1,6 +1,5 @@
-default 7 5
-2 0 1 bird True
-3 0 1 is False
-4 0 1 3d False
-3 2 1 bird False
-
+default 32 18
+18 9 1 line False
+18 10 1 line False
+18 11 1 square False
+18 11 1 10 False

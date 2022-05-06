@@ -57,7 +57,8 @@ default 32 18
 13 6 1 square False
 14 6 1 square False
 5 7 0 brick False
-9 7 1 square False
+9 7 1 tile False
+9 7 1 teeth False
 9 7 1 cursor False
 10 7 1 line False
 11 7 1 line False
@@ -65,15 +66,7 @@ default 32 18
 13 7 1 square False
 13 7 1 2 False
 14 7 1 square False
-15 7 1 line False
-17 7 1 square False
-18 7 1 square False
 23 7 0 rock False
-15 8 1 line False
-16 8 1 line False
-17 8 1 line False
-18 8 1 square False
-19 8 1 square False
 6 9 2 skull False
 10 9 1 lava False
 11 9 1 lava False

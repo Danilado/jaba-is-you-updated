@@ -50,7 +50,6 @@ default 32 18
 7 3 3 wall False
 12 3 1 brick False
 13 3 3 wall False
-16 3 1 square False
 19 3 3 water False
 20 3 3 water False
 21 3 3 water False
@@ -61,7 +60,6 @@ default 32 18
 31 3 3 grass False
 0 4 3 husk False
 10 4 3 brick False
-16 4 1 square False
 19 4 3 water False
 20 4 3 water False
 26 4 1 wall False
@@ -71,9 +69,6 @@ default 32 18
 6 5 3 husk False
 9 5 3 brick False
 10 5 3 tree False
-15 5 1 square False
-16 5 1 square False
-17 5 1 square False
 19 5 3 water False
 22 5 3 statue False
 23 5 1 wall False
@@ -87,9 +82,6 @@ default 32 18
 10 6 3 brick False
 12 6 3 tree False
 13 6 3 brick False
-15 6 1 square False
-16 6 1 square False
-17 6 1 square False
 23 6 1 door False
 24 6 1 brick False
 25 6 1 brick False
@@ -101,7 +93,6 @@ default 32 18
 8 7 1 pillar False
 10 7 3 brick False
 13 7 3 brick False
-16 7 1 square False
 22 7 3 statue False
 23 7 1 wall False
 24 7 1 wall False
@@ -119,7 +110,6 @@ default 32 18
 9 8 1 brick False
 10 8 1 brick False
 12 8 3 brick False
-16 8 1 line False
 25 8 1 wall False
 27 8 1 brick False
 28 8 1 brick False
@@ -127,7 +117,6 @@ default 32 18
 6 9 1 pillar False
 7 9 1 brick False
 8 9 1 pillar False
-16 9 1 line False
 22 9 3 husk False
 25 9 1 wall False
 26 9 1 wall False
@@ -135,10 +124,12 @@ default 32 18
 28 9 1 wall False
 29 9 1 wall False
 13 10 3 husk False
+14 10 1 line False
+15 10 1 line False
 16 10 1 square False
 16 10 1 1 False
-16 10 1 cursor False
 1 11 3 tree False
+14 11 1 line False
 18 11 3 water False
 19 11 3 water False
 23 11 1 pillar False
@@ -146,6 +137,9 @@ default 32 18
 1 12 3 tree False
 6 12 3 tree False
 11 12 3 wall False
+14 12 1 tile False
+14 12 1 teeth False
+14 12 1 cursor False
 16 12 3 water False
 17 12 3 water False
 18 12 3 water False

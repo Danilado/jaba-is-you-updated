@@ -22,7 +22,8 @@ default 32 18
 19 7 1 dot False
 23 7 1 dot False
 5 8 1 dot False
-10 8 1 square False
+10 8 1 tile False
+10 8 1 teeth False
 10 8 1 cursor False
 11 8 1 line False
 12 8 1 line False
