@@ -84,12 +84,5 @@ def language_words():
         return words
 
 
-def debug(*args):
-    """Главный дебаг мира, который дебажит вообще всё на свете и сразу и вообще.
-    Можно передать любое количество любых аргументов и всё выведется. Ультимативная вещь.
-    """
-    print('хуй', *args)
-
-
 def map_value(x, in_min, in_max, out_min, out_max):
     return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)

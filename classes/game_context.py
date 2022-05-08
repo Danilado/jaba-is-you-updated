@@ -30,7 +30,8 @@ class GameContext:
         else:
             settings.RESOLUTION = [800, 450]
         settings.WINDOW_SCALE = settings_saves()[4]
-        self.screen: Final[SURFACE] = pygame.display.set_mode(settings.RESOLUTION)
+        self.screen: Final[SURFACE] = pygame.display.set_mode(
+            settings.RESOLUTION)
         self._running: bool = True
         self._history: List["GameStrategy"] = []
 
@@ -64,7 +65,7 @@ class GameContext:
         if DEBUG:
             print(
                 f'Current game strategy is {self._game_strategy.__class__.__name__}; History a.k.a stack: ', end="")
-            pprint(
+            print(
                 [game_strategy.__class__.__name__ for game_strategy in self._history], indent=4)
 
     @property
