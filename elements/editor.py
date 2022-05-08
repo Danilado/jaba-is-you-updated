@@ -163,7 +163,7 @@ class Editor(GameStrategy):
 
             for border in borders:
                 pygame.draw.rect(self.border_screen,
-                                 self.current_palette.pixels[3][6], border)
+                                 self.current_palette.pixels[0][1], border)
 
             self.border_screen = pygame.transform.scale(
                 self.border_screen, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))

@@ -81,7 +81,7 @@ class PlayLevel(GameStrategy):
                                                     (randint(20, 35), randint(
                                                         40, 65)), (randint(0, 360), randint(0, 360 * 5)), 20,
                                                     60 + randint(-20, 20), True, True),
-                                   self.current_palette.pixels[3][6]) for _ in range(40)]
+                                   self.current_palette.pixels[0][1]) for _ in range(40)]
 
         self.apply_rules_cache: Dict[Object, Tuple[bool, bool, bool, bool, bool, bool, bool, bool,
                                                    bool, bool, bool, bool, bool, List[str], List[str]]] = {}
@@ -127,7 +127,7 @@ class PlayLevel(GameStrategy):
 
             for border in borders:
                 pygame.draw.rect(self.border_screen,
-                                 self.current_palette.pixels[3][6], border)
+                                 self.current_palette.pixels[0][1], border)
 
             self.border_screen = pygame.transform.scale(
                 self.border_screen, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
@@ -553,7 +553,7 @@ class PlayLevel(GameStrategy):
                    (1600 * settings.WINDOW_SCALE, 500 * settings.WINDOW_SCALE),
                    (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
         for offset in offsets:
-            pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+            pygame.draw.circle(self.screen, self.current_palette.pixels[0][1],
                                offset, self.circle_radius)
 
         text_surface = pygame.Surface(
@@ -592,7 +592,7 @@ class PlayLevel(GameStrategy):
         max_radius = 100 * settings.WINDOW_SCALE
         if not self.flag_to_level_start_animation and self.flag_to_win_animation:
             for offset, radius in self.win_offsets:
-                pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+                pygame.draw.circle(self.screen, self.current_palette.pixels[0][1],
                                    offset, radius)
             if self.win_offsets[0][1] < max_radius:
                 self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
@@ -619,7 +619,7 @@ class PlayLevel(GameStrategy):
             if self.win_offsets[0][1] >= max_radius and pygame.time.get_ticks() - self.delay >= 1000:
                 for offset1 in border_offsets:
                     pygame.draw.circle(
-                        self.screen, self.current_palette.pixels[3][6], offset1, self.circle_radius)
+                        self.screen, self.current_palette.pixels[0][1], offset1, self.circle_radius)
                 self.circle_radius += 8 * settings.WINDOW_SCALE
 
             if self.circle_radius >= 650 * settings.WINDOW_SCALE:

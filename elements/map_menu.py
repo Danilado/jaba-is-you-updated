@@ -67,7 +67,7 @@ class MapMenu(GameStrategy):
                        (1600 * settings.WINDOW_SCALE, 500 * settings.WINDOW_SCALE),
                        (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
             for offset in offsets:
-                pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+                pygame.draw.circle(self.screen, self.current_palette.pixels[0][1],
                                    offset, self.radius)
             self.radius += 8 * settings.WINDOW_SCALE
 
@@ -130,7 +130,8 @@ class MapMenu(GameStrategy):
                         if rule_object.name == 'cursor' and not rule_object.is_text:
                             if self.matrix[i][j][1].name in self.cursor.levels:
                                 self._state = State(GameState.SWITCH, partial(PlayLevel,
-                                                                              self.matrix[i][j][1].name.split("/")[0],
+                                                                              self.matrix[i][j][1].name.split(
+                                                                                  "/")[0],
                                                                               'map_levels'))
                             if self.matrix[i][j][1].name in self.cursor.reference_point:
                                 self._state = State(GameState.SWITCH, partial(ReferencePoint,
