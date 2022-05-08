@@ -1,5 +1,5 @@
 default 22 16
-0 0 1 baba True
+0 0 1 frog True
 1 0 1 wall True
 2 0 1 wall False
 16 0 1 grass False
@@ -33,7 +33,7 @@ default 22 16
 5 3 1 grass False
 7 3 1 wall False
 8 3 1 tile False
-9 3 1 baba False
+9 3 1 frog False
 10 3 1 tile False
 11 3 1 tile False
 12 3 1 rock False

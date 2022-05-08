@@ -73,7 +73,7 @@ default 24 14
 3 6 1 rock False
 4 6 1 rock False
 6 6 1 wall False
-8 6 1 baba False
+8 6 1 frog False
 12 6 2 skull False
 13 6 1 wall False
 14 6 1 wall False
@@ -114,7 +114,7 @@ default 24 14
 1 10 2 grass False
 2 10 2 grass False
 3 10 2 grass False
-8 10 1 baba True
+8 10 1 frog True
 10 10 1 wall False
 15 10 1 wall False
 19 10 2 flower False

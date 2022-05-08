@@ -1,5 +1,5 @@
 default 32 18
-10 5 1 baba True
+10 5 1 frog True
 11 5 1 is True
 12 5 1 you True
 18 5 1 flag True
@@ -28,7 +28,7 @@ default 32 18
 19 8 1 tile False
 20 8 1 tile False
 10 9 1 tile False
-11 9 1 baba False
+11 9 1 frog False
 12 9 1 tile False
 13 9 1 tile False
 14 9 1 tile False

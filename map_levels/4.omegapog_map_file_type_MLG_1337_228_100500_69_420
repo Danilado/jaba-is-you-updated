@@ -2,7 +2,7 @@ default 24 14
 0 0 2 flag True
 1 0 1 is True
 2 0 1 win True
-0 1 2 baba True
+0 1 2 frog True
 1 1 1 is True
 2 1 1 you True
 13 3 2 skull False
@@ -62,7 +62,7 @@ default 24 14
 20 11 2 skull False
 21 11 2 skull False
 3 12 2 skull False
-6 12 1 baba False
+6 12 1 frog False
 9 12 2 skull False
 3 13 2 skull False
 9 13 2 skull False

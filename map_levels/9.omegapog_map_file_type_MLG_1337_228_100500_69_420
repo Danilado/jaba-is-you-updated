@@ -60,7 +60,7 @@ default 24 18
 15 10 1 wall False
 4 11 1 wall False
 6 11 1 key False
-8 11 1 baba False
+8 11 1 frog False
 15 11 1 door False
 18 11 1 wall False
 4 12 1 wall False
@@ -70,7 +70,7 @@ default 24 18
 18 12 1 wall False
 19 12 1 wall False
 4 13 1 wall False
-7 13 1 baba True
+7 13 1 frog True
 8 13 1 is True
 9 13 1 you False
 12 13 1 key True
