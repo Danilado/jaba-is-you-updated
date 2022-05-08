@@ -19,7 +19,7 @@ from elements.global_classes import sound_manager
 from elements.loader_util import parse_file
 from global_types import SURFACE
 from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
-from utils import my_deepcopy, settings_saves, debug
+from utils import my_deepcopy, settings_saves
 
 
 class PlayLevel(GameStrategy):
@@ -149,6 +149,7 @@ class PlayLevel(GameStrategy):
         self.current_palette, self.size, self.start_matrix = parse_file(
             level_name, path_to_level)
         self.matrix = my_deepcopy(self.start_matrix)
+        print(self.size)
 
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -167,17 +168,20 @@ class PlayLevel(GameStrategy):
 
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == self.size[0] - 1:
+        elif x == self.size[1] - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == self.size[1] - 1:
+        elif y == self.size[0] - 1:
             neighbours[1] = [self.empty_object]
 
         for index, offset in enumerate(offsets):
             if not neighbours[index]:
                 neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
+
+        print(neighbours, 'for', x, y)
+
         return neighbours
 
     @staticmethod
@@ -963,6 +967,7 @@ class PlayLevel(GameStrategy):
                     self.delta_cancel = new_time
                 else:
                     self.matrix = self.copy_matrix(self.start_matrix)
+                    self.first_iteration = True
                     self.check_matrix()
                     self.delta_cancel = new_time
                 for i in range(len(self.matrix)):
@@ -997,6 +1002,10 @@ class PlayLevel(GameStrategy):
                                 game_object.num_3d = self.count_3d_obj
                                 self.count_3d_obj += 1
             self.flag = False
+
+        if self.first_iteration:
+            self.find_rules()
+            self.matrix = self.copy_matrix(self.start_matrix)
 
         for line in self.matrix:
             for cell in line:
@@ -1052,10 +1061,7 @@ class PlayLevel(GameStrategy):
             if self.border_screen:
                 self.screen.blit(self.border_screen, (0, 0))
 
-        if self.first_iteration:
-            self.find_rules()
-            self.matrix = self.copy_matrix(self.start_matrix)
-            self.first_iteration = False
+        self.first_iteration = False
 
         if self.flag_to_level_start_animation:
             self.level_start_animation()
