@@ -23,7 +23,7 @@ TEXT_ONLY = [
     'play', 'power', 'power2', 'power3', 'powered', 'powered2', 'powered3', 'pull',
     'purple', 'push', 'q', 'r', 'red', 'reverse', 'right', 'rosy', 's', 'sad', 'safe',
     'scary', 'seeing', 'seldom', 'sharp', 'shift', 'shut', 'silver', 'sink',
-    'sleep', 'still', 'stop', 'swap', 't', 'tele', 'turn', 'u', 'up', 'v', 'w', 'weak',
+    'sleep', 'still', 'stop', 'swap', 't', 'tele', 'text', 'turn', 'u', 'up', 'v', 'w', 'weak',
     'white', 'win', 'without', 'wonder', 'word', 'write', 'x', 'y', 'yellow', 'you', 'you2', 'z'
 ]
 
