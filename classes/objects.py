@@ -1008,7 +1008,6 @@ class Object:
         """
         if self.check_locked(delta_x, delta_y) and not self.is_sleep and len(matrix[self.y][self.x]) > 0:
             for rule_object in matrix[self.y + delta_y][self.x + delta_x]:
-                print(rule_object.name)
                 self.check_rules(delta_x, delta_y, matrix,
                                  level_rules, rule_object)
             if self.status == 'dead':

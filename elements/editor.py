@@ -179,7 +179,6 @@ class Editor(GameStrategy):
         string_state, counter = unparse_all(state)
         if counter > 0:
             string += string_state
-            print(name)
             if name is None:
                 name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
             with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
@@ -232,7 +231,6 @@ class Editor(GameStrategy):
 
     def safe_exit(self):
         """Функция подготовки к безопасному выходу из редактора без потери изменений"""
-        print(self.level_name)
         self.save(self.current_state, self.level_name)
         self.unresize()
 
