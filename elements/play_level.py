@@ -180,8 +180,6 @@ class PlayLevel(GameStrategy):
             if not neighbours[index]:
                 neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
 
-        print(neighbours, 'for', x, y)
-
         return neighbours
 
     @staticmethod
@@ -1034,6 +1032,7 @@ class PlayLevel(GameStrategy):
         else:
             level_surface = pygame.Surface(
                 (self.size[0] * 50, self.size[1] * 50))
+            level_surface.fill(self.current_palette.pixels[4][6])
 
             for particle in self.particles:
                 particle.draw(level_surface)
