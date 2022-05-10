@@ -525,11 +525,11 @@ class Object:
         """
         for rule in level_rules:
             if ((not rule_object.is_text and f'{rule_object.name} is swap' in rule.text_rule)
-                    or (f'{self.name} is swap' in rule.text_rule and not self.is_phantom) or
-                    (f'text is swap' in rule.text_rule and (rule_object.name in TEXT_ONLY
-                    or rule_object.is_text))
-                    or (f'text is swap' in rule.text_rule and (self.name in TEXT_ONLY
-                            or self.is_text)))\
+                or (f'{self.name} is swap' in rule.text_rule and not self.is_phantom) or
+                (f'text is swap' in rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                        or rule_object.is_text))
+                or (f'text is swap' in rule.text_rule and (self.name in TEXT_ONLY
+                                                           or self.is_text))) \
                     and rule.check_fix(self, matrix, level_rules):
                 matrix[self.y][self.x].pop(self.get_index(matrix))
                 self.update_parameters(delta_x, delta_y, matrix)
@@ -557,26 +557,31 @@ class Object:
         :rtype: bool
         """
         if self.can_interact(rule_object, level_rules):
-            if not self.object_can_stop(rule_object, level_rules, matrix, True):
+            if not self.object_can_stop(rule_object, level_rules, matrix, True) or rule_object.name == 'level':
                 if not self.is_safe:
                     for rule in level_rules:
-                        if ((f'{self.name} is melt' in rule.text_rule and not self.is_text)
-                            or (f'text is melt' in rule.text_rule and (self.name in TEXT_ONLY
-                            or self.name in NOUNS and self.is_text)))\
-                        and rule.check_fix(self, matrix, level_rules):
+                        if self.check_rule(matrix, level_rules, rule, 'melt'):
                             for sec_rule in level_rules:
-                                if not rule_object.is_text and f'{rule_object.name} is hot' in sec_rule.text_rule\
-                                        and sec_rule.check_fix(rule_object, matrix, level_rules):
+                                if rule_object.check_rule(matrix, level_rules, sec_rule, 'hot'):
                                     matrix[self.y][self.x].pop(
                                         self.get_index(matrix))
                                     return False
                 for rule in level_rules:
-                    if self.is_hot and ((not rule_object.is_text and f'{rule_object.name} is melt' in rule.text_rule) or
-                                        (f'text is melt' in rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                                or rule_object.is_text)))\
-                            and rule.check_fix(rule_object, matrix, level_rules):
-                        matrix[self.y + delta_y][self.x +
-                                                 delta_x].pop(rule_object.get_index(matrix))
+                    if rule_object.check_rule(matrix, level_rules, rule, 'melt'):
+                        for sec_rule in level_rules:
+                            if self.check_rule(matrix, level_rules, sec_rule, 'hot'):
+                                if rule_object.name != 'level':
+                                    matrix[self.y + delta_y][self.x +
+                                                             delta_x].pop(rule_object.get_index(matrix))
+                                else:
+                                    die_objects = []
+                                    for i in matrix:
+                                        for j in i:
+                                            for level_object in j:
+                                                die_objects.append(level_object)
+                                                matrix[level_object.y][level_object.x].pop(level_object.get_index(matrix))
+                                    for object in die_objects:
+                                        object.die(0, 0, matrix, level_rules)
             return True
 
     def check_weak(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
@@ -601,14 +606,15 @@ class Object:
             if not self.is_safe:
                 for rule in level_rules:
                     if ((f'{rule_object.name} is stop' in rule.text_rule and not rule_object.is_text)
-                        or (f'text is stop' in rule.text_rule and (rule_object.name in TEXT_ONLY or rule_object.is_text)))\
+                        or (f'text is stop' in rule.text_rule and (
+                                    rule_object.name in TEXT_ONLY or rule_object.is_text))) \
                             and self.is_weak \
                             and rule.check_fix(rule_object, matrix, level_rules):
                         matrix[self.y][self.x].pop(self.get_index(matrix))
                         return False
             for rule in level_rules:
                 if ((not rule_object.is_text and f'{rule_object.name} is weak' in rule.text_rule) or
-                        (f'text is weak' in rule.text_rule and (rule_object.name in TEXT_ONLY or rule_object.is_text))) \
+                    (f'text is weak' in rule.text_rule and (rule_object.name in TEXT_ONLY or rule_object.is_text))) \
                         and rule.check_fix(rule_object, matrix, level_rules):
                     matrix[self.y + delta_y][self.x +
                                              delta_x].pop(rule_object.get_index(matrix))
@@ -632,28 +638,19 @@ class Object:
         :return: True если объект выжил иначе False
         :rtype: bool
         """
-        if self.can_interact(rule_object, level_rules):
+        if self.can_interact(rule_object, level_rules) and rule_object.name == 'level':
             if not self.is_safe:
                 for rule in level_rules:
-                    if not rule_object.is_text and self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
-                            or self.is_shut and f'{rule_object.name} is open' in rule.text_rule\
-                                and rule.check_fix(rule_object, matrix, level_rules):
-                        matrix[self.y][self.x].pop(self.get_index(matrix))
-                        matrix[self.y + delta_y][self.x +
-                                                 delta_x].pop(rule_object.get_index(matrix))
-                        return False
-            for rule in level_rules:
-                if not rule_object.is_text and self.is_open and f'{rule_object.name} is shut' in rule.text_rule \
-                        or self.is_shut and f'{rule_object.name} is open' in rule.text_rule\
-                                and rule.check_fix(rule_object, matrix, level_rules):
-                    if not self.is_safe:
-                        matrix[self.y][self.x].pop(self.get_index(matrix))
-                    matrix[self.y + delta_y][self.x +
-                                             delta_x].pop(rule_object.get_index(matrix))
-                    if not self.is_safe:
-                        return False
-
-            return True
+                    for sec_rule in level_rules:
+                        if rule_object.check_rule(matrix, level_rules, rule, 'shut')\
+                                and self.check_rule(matrix, level_rules, sec_rule, 'open')\
+                                or rule_object.check_rule(matrix, level_rules, rule, 'open')\
+                                and self.check_rule(matrix, level_rules, sec_rule, 'shut'):
+                            matrix[self.y][self.x].pop(self.get_index(matrix))
+                            matrix[self.y + delta_y][self.x +
+                                                     delta_x].pop(rule_object.get_index(matrix))
+                            return False
+        return True
 
     def die(self, delta_j, delta_i, matrix, level_rules):
         self.has_objects = []
@@ -671,6 +668,13 @@ class Object:
             )
             new_object.animation = new_object.animation_init()
             matrix[self.y + delta_i][self.x + delta_j].append(new_object)
+
+    def check_rule(self, matrix, level_rules, rule, property):
+        return ((not self.is_text and f'{self.name} is {property}' in rule.text_rule) or
+                (f'text is {property}' in rule.text_rule and (self.name in TEXT_ONLY
+                                                              or self.name in NOUNS and self.is_text))
+                or self.name == 'level' and f'level is {property}' in rule.text_rule) \
+               and rule.check_fix(self, matrix, level_rules)
 
     def check_defeat(self, delta_x, delta_y, matrix, level_rules, rule_object) -> bool:
         """Проверяет правило defeat у объекта и сразу
@@ -691,38 +695,28 @@ class Object:
         :rtype: bool
         """
         if self.can_interact(rule_object, level_rules):
-            if not self.object_can_stop(rule_object, level_rules, matrix, True):
+            if not self.object_can_stop(rule_object, level_rules, matrix, True) or rule_object.name == 'level':
                 if not self.is_safe:
                     for rule in level_rules:
-                        if ((not rule_object.is_text and f'{rule_object.name} is defeat' in rule.text_rule) or \
-                                (f'text is defeat' in rule.text_rule and (rule_object.name in TEXT_ONLY
-                                or rule_object.name in NOUNS and rule_object.is_text))) \
-                                and rule.check_fix(rule_object, matrix, level_rules):
+                        if rule_object.check_rule(matrix, level_rules, rule, 'defeat'):
                             for sec_rule in level_rules:
-                                if f'{self.name} is you' in sec_rule.text_rule \
-                                        and sec_rule.check_fix(self, matrix, level_rules):
+                                if self.check_rule(matrix, level_rules, sec_rule, 'you'):
                                     matrix[self.y][self.x].pop(
                                         self.get_index(matrix))
                                     return False
 
-                                if f'{self.name} is 3d' in sec_rule.text_rule \
-                                        and sec_rule.check_fix(self, matrix, level_rules):
+                                if self.check_rule(matrix, level_rules, sec_rule, '3d'):
                                     matrix[self.y][self.x].pop(
                                         self.get_index(matrix))
                                     return False
 
                 for rule in level_rules:
-                    if f'{self.name} is defeat' in rule.text_rule \
-                            and rule.check_fix(self, matrix, level_rules):
+                    if self.check_rule(matrix, level_rules, rule, 'defeat'):
                         for sec_rule in level_rules:
-                            if (not rule_object.is_text and f'{rule_object.name} is you' in sec_rule.text_rule) or\
-                                    (f'text is you' in rule.text_rule and (rule_object.name in TEXT_ONLY
-                                        or rule_object.name in NOUNS and rule_object.is_text)) \
-                                    and sec_rule.check_fix(rule_object, matrix, level_rules):
+                            if rule_object.check_rule(matrix, level_rules, sec_rule, 'you'):
                                 matrix[self.y + delta_y][self.x +
                                                          delta_x].pop(rule_object.get_index(matrix))
-                            elif not rule_object.is_text and f'{rule_object.name} is 3d' in sec_rule.text_rule \
-                                    and sec_rule.check_fix(rule_object, matrix, level_rules):
+                            elif rule_object.check_rule(matrix, level_rules, sec_rule, '3d'):
                                 matrix[self.y + delta_y][self.x +
                                                          delta_x].pop(rule_object.get_index(matrix))
             return True
@@ -746,22 +740,17 @@ class Object:
         :rtype: bool
         """
         if self.can_interact(rule_object, level_rules):
-            if not self.object_can_stop(rule_object, level_rules, matrix, True):
+            if not self.object_can_stop(rule_object, level_rules, matrix, True) or rule_object.name == 'level':
                 if not self.is_safe:
                     for rule in level_rules:
-                        if ((f'{rule_object.name} is sink' in rule.text_rule and not rule_object.is_text) or
-                            (f'text is sink' in rule.text_rule and (rule_object.name in TEXT_ONLY
-                                        or rule_object.name in NOUNS and rule_object.is_text))) \
-                                and rule.check_fix(rule_object, matrix, level_rules):
+                        if rule_object.check_rule(matrix, level_rules, rule, 'sink'):
                             matrix[self.y][self.x].pop(self.get_index(matrix))
-                            matrix[self.y + delta_y][self.x +
+                            if rule_object.name != 'level':
+                                matrix[self.y + delta_y][self.x +
                                                      delta_x].pop(rule_object.get_index(matrix))
                             return False
                 for rule in level_rules:
-                    if ((f'{self.name} is sink' in rule.text_rule and not self.is_text) or
-                            (f'text is sink' in rule.text_rule and (self.name in TEXT_ONLY
-                                        or self.name in NOUNS and self.is_text)))\
-                            and rule.check_fix(self, matrix, level_rules):
+                    if self.check_rule(matrix, level_rules, rule, 'sink') and self.name != 'level':
                         matrix[self.y + delta_y][self.x +
                                                  delta_x].pop(rule_object.get_index(matrix))
             return True
@@ -780,22 +769,13 @@ class Object:
         :rtype: bool
         """
         if self.can_interact(rule_object, level_rules):
-            if not self.object_can_stop(rule_object, level_rules, matrix, True):
+            if not self.object_can_stop(rule_object, level_rules, matrix, True) or rule_object.name == 'level':
                 for rule in level_rules:
-                    if ((f'{rule_object.name} is win' in rule.text_rule and not rule_object.is_text) or
-                            (f'text is win' in rule.text_rule and (rule_object.name in TEXT_ONLY
-                                        or rule_object.name in NOUNS and rule_object.is_text))) \
-                                and rule.check_fix(rule_object, matrix, level_rules):
+                    if rule_object.check_rule(matrix, level_rules, rule, 'win'):
                         for sec_rule in level_rules:
 
-                            if ((f'{self.name} is you' in sec_rule.text_rule and not self.is_text) or
-                            (f'text is you' in sec_rule.text_rule and (self.name in TEXT_ONLY
-                                        or self.name in NOUNS and self.is_text))) \
-                                and rule.check_fix(self, matrix, level_rules) or \
-                                    ((f'{self.name} is 3d' in sec_rule.text_rule and not self.is_text) or
-                            (f'text is 3d' in sec_rule.text_rule and (self.name in TEXT_ONLY
-                                        or self.name in NOUNS and self.is_text))) \
-                                and rule.check_fix(self, matrix, level_rules):
+                            if self.check_rule(matrix, level_rules, sec_rule, 'you') or \
+                                    self.check_rule(matrix, level_rules, sec_rule, '3d'):
                                 if not self.level_processor.flag_to_win_animation \
                                         and not self.level_processor.flag_to_level_start_animation:
                                     self.level_processor.flag_to_win_animation = True
@@ -853,14 +833,15 @@ class Object:
             if (f'{rule_object.name} is stop' in rule.text_rule and not rule_object.is_text
                 or f'{rule_object.name} is pull' in rule.text_rule and not rule_object.is_text
                 or (f'text is pull' in rule.text_rule and (rule_object.name in TEXT_ONLY or rule_object.is_text))) \
-                    and self.can_interact(rule_object, level_rules) and rule.check_fix(rule_object, matrix, level_rules):
+                    and self.can_interact(rule_object, level_rules) and rule.check_fix(rule_object, matrix,
+                                                                                       level_rules):
                 status = True
             if with_push:
                 if f'{rule_object.name} is push' in rule.text_rule and not rule_object.is_text \
                         or (rule_object.name in TEXT_ONLY
                             or rule_object.name in NOUNS and rule_object.is_text) \
-                        and rule.check_fix(rule_object, matrix, level_rules)\
-                        and self.can_interact(rule_object, level_rules, True):
+                        and rule.check_fix(rule_object, matrix, level_rules) \
+                        and self.can_interact(rule_object, level_rules, True) :
                     status = True
         return status
 
@@ -924,7 +905,8 @@ class Object:
                 if not rule_object.is_text and rule_object.name in NOUNS:
                     for rule in level_rules:
                         if (f'{rule_object.name} is pull' in rule.text_rule
-                            or (f'text is pull' in rule.text_rule and (rule_object.name in TEXT_ONLY or rule_object.is_text))) \
+                            or (f'text is pull' in rule.text_rule and (
+                                        rule_object.name in TEXT_ONLY or rule_object.is_text))) \
                                 and rule.check_fix(rule_object, matrix, level_rules):
                             rule_object.motion(
                                 delta_x, delta_y, matrix, level_rules, 'pull')
@@ -971,18 +953,18 @@ class Object:
         self.is_float = False
         for rule in level_rules:
             if (f'{rule_object.name} is float' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is float' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is float' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                             or rule_object.is_text)):
                 status_float_rule_object = True
             if status_push:
                 if (f'{rule_object.name} is push' in rule.text_rule \
-                        and not ((rule_object.name in TEXT_ONLY
-                                or rule_object.name in NOUNS and rule_object.is_text))) \
+                    and not ((rule_object.name in TEXT_ONLY
+                              or rule_object.name in NOUNS and rule_object.is_text))) \
                         or (rule_object.name in TEXT_ONLY or rule_object.is_text):
                     status_push_rule_object = True
             if (f'{self.name} is float' == rule.text_rule and not self.is_text) or \
-                            (f'text is float' == rule.text_rule and (self.name in TEXT_ONLY
-                                                                   or self.is_text)):
+                    (f'text is float' == rule.text_rule and (self.name in TEXT_ONLY
+                                                             or self.is_text)):
                 self.is_float = True
         if self.is_float == status_float_rule_object \
                 or status_push_rule_object:
@@ -1060,14 +1042,14 @@ class Object:
                     return False
 
             if status is None or (self.name in TEXT_ONLY
-                            or self.name in NOUNS and self.is_text):
+                                  or self.name in NOUNS and self.is_text):
                 matrix[self.y][self.x].pop(self.get_index(matrix))
                 self.pull_objects(delta_x, delta_y, matrix, level_rules)
                 self.update_parameters(delta_x, delta_y, matrix)  # TODO: NONE
 
             for rule in level_rules:
-                if ((f'{self.name} is pull' in rule.text_rule and status == 'pull' and not self.is_text) or\
-                    (f'text is pull' in rule.text_rule and (self.name in TEXT_ONLY or self.is_text)))\
+                if ((f'{self.name} is pull' in rule.text_rule and status == 'pull' and not self.is_text) or \
+                    (f'text is pull' in rule.text_rule and (self.name in TEXT_ONLY or self.is_text))) \
                         and rule.check_fix(self, matrix, level_rules):
                     matrix[self.y][self.x].pop(self.get_index(matrix))
                     self.pull_objects(delta_x, delta_y, matrix, level_rules)
@@ -1125,7 +1107,8 @@ class Object:
         :return: Является ли объект существительным
         :rtype: bool
         """
-        return (self.name in NOUNS and self.name not in OPERATORS and self.is_text) or self.name in 'text'
+        return (self.name in NOUNS and self.name not in OPERATORS and self.is_text) or self.name in 'text' \
+               or self.name in 'level'
 
     @property
     def special_text(self) -> bool:

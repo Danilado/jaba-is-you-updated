@@ -6,7 +6,6 @@ import pygame
 
 from classes.text_rule import TextRule
 
-
 class Broken:
     @staticmethod
     def apply(rule_object, level_rules, *_, **__):
@@ -19,18 +18,21 @@ class Broken:
 
 class Deturn:
     @staticmethod
-    def apply(matrix, rule_object, *_, **__):
-        matrix[rule_object.y][rule_object.x].pop(
-            rule_object.get_index(matrix))
-        rule_object.direction -= 1
-        rule_object.status_of_rotate -= 1
-        if rule_object.direction < 0:
-            rule_object.direction = 3
-        if rule_object.status_of_rotate < 0:
-            rule_object.status_of_rotate = 3
-        rule_object.animation = rule_object.animation_init()
-        matrix[rule_object.y][rule_object.x].append(
-            copy(rule_object))
+    def apply(matrix, rule_object, level, *_, **__):
+        if rule_object.name == 'level':
+            level.angle -= 90
+        else:
+            matrix[rule_object.y][rule_object.x].pop(
+                rule_object.get_index(matrix))
+            rule_object.direction -= 1
+            rule_object.status_of_rotate -= 1
+            if rule_object.direction < 0:
+                rule_object.direction = 3
+            if rule_object.status_of_rotate < 0:
+                rule_object.status_of_rotate = 3
+            rule_object.animation = rule_object.animation_init()
+            matrix[rule_object.y][rule_object.x].append(
+                copy(rule_object))
 
 
 class Text:
@@ -46,18 +48,21 @@ class Text:
 
 class Turn:
     @staticmethod
-    def apply(matrix, rule_object, *_, **__):
-        matrix[rule_object.y][rule_object.x].pop(
-            rule_object.get_index(matrix))
-        rule_object.direction += 1
-        rule_object.status_of_rotate += 1
-        if rule_object.direction > 3:
-            rule_object.direction = 0
-        if rule_object.status_of_rotate > 3:
-            rule_object.status_of_rotate = 0
-        rule_object.animation = rule_object.animation_init()
-        matrix[rule_object.y][rule_object.x].append(
-            copy(rule_object))
+    def apply(matrix, rule_object, level, *_, **__):
+        if rule_object.name == 'level':
+            level.angle += 90
+        else:
+            matrix[rule_object.y][rule_object.x].pop(
+                rule_object.get_index(matrix))
+            rule_object.direction += 1
+            rule_object.status_of_rotate += 1
+            if rule_object.direction > 3:
+                rule_object.direction = 0
+            if rule_object.status_of_rotate > 3:
+                rule_object.status_of_rotate = 0
+            rule_object.animation = rule_object.animation_init()
+            matrix[rule_object.y][rule_object.x].append(
+                copy(rule_object))
 
 
 class You:
@@ -98,11 +103,31 @@ class Boom:
     @staticmethod
     def apply(matrix, rule_object, level_rules, **__):
         boom_objects = []
-        for object in matrix[rule_object.y][rule_object.x]:
-            boom_objects.append(object)
-            matrix[rule_object.y][rule_object.x].pop(object.get_index(matrix))
+        if rule_object.name == 'level':
+            for i in matrix:
+                for j in i:
+                    for level_object in j:
+                        boom_objects.append(level_object)
+                        matrix[level_object.y][level_object.x].pop(level_object.get_index(matrix))
+        else:
+            for object in matrix[rule_object.y][rule_object.x]:
+                boom_objects.append(object)
+                matrix[rule_object.y][rule_object.x].pop(object.get_index(matrix))
         for object in boom_objects:
             object.die(0, 0, matrix, level_rules)
+
+class Weak:
+    @staticmethod
+    def apply(matrix, rule_object, level_rules, **__):
+        if rule_object.name == 'level':
+            die_objects = []
+            for i in matrix:
+                for j in i:
+                    for level_object in j:
+                        die_objects.append(level_object)
+                        matrix[level_object.y][level_object.x].pop(level_object.get_index(matrix))
+            for object in die_objects:
+                object.die(0, 0, matrix, level_rules)
 
 
 class Auto:
@@ -141,22 +166,34 @@ class Move:
 
 class Direction:
     @staticmethod
-    def apply(rule_object, direction, *_, **__):
+    def apply(rule_object, direction, level, **__):
         if direction == 'up':
-            rule_object.direction = 0
-            rule_object.status_of_rotate = 1
+            if rule_object.name == 'level':
+                level.angle = 90
+            else:
+                rule_object.direction = 0
+                rule_object.status_of_rotate = 1
 
         elif direction == 'right':
-            rule_object.direction = 1
-            rule_object.status_of_rotate = 0
+            if rule_object.name == 'level':
+                level.angle = 0
+            else:
+                rule_object.direction = 1
+                rule_object.status_of_rotate = 0
 
         elif direction == 'down':
-            rule_object.direction = 2
-            rule_object.status_of_rotate = 3
+            if rule_object.name == 'level':
+                level.angle = 270
+            else:
+                rule_object.direction = 2
+                rule_object.status_of_rotate = 3
 
         elif direction == 'left':
-            rule_object.direction = 3
-            rule_object.status_of_rotate = 2
+            if rule_object.name == 'level':
+                level.angle = 180
+            else:
+                rule_object.direction = 3
+                rule_object.status_of_rotate = 2
 
 
 class Fall:
@@ -209,138 +246,203 @@ class More:
 
 class Shift:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
-        for level_object in matrix[rule_object.y][rule_object.x]:
-            if level_object.name != rule_object.name and rule_object.can_iteract(level_rules, level_rules):
-                if rule_object.direction == 0:
-                    level_object.motion(0, -1, matrix, level_rules, 'push')
-                elif rule_object.direction == 1:
-                    level_object.motion(1, 0, matrix, level_rules, 'push')
-                elif rule_object.direction == 2:
-                    level_object.motion(0, 1, matrix, level_rules, 'push')
-                elif rule_object.direction == 3:
-                    level_object.motion(-1, 0, matrix, level_rules, 'push')
+    def apply(matrix, rule_object, level_rules, level, **__):
+        if rule_object.name == 'level':
+            for i in matrix:
+                for j in i:
+                    for level_object in j:
+                        if level.angle % 360 == 0:
+                            level_object.motion(0, 1, matrix, level_rules, 'push')
+                        if level.angle % 360 == 90:
+                            level_object.motion(1, 0, matrix, level_rules, 'push')
+                        if level.angle % 360 == 180:
+                            level_object.motion(0, -1, matrix, level_rules, 'push')
+                        if level.angle % 360 == 270:
+                            level_object.motion(-1, 0, matrix, level_rules, 'push')
+        else:
+            for level_object in matrix[rule_object.y][rule_object.x]:
+                if level_object.name != rule_object.name and rule_object.can_iteract(level_rules, level_rules):
+                    if rule_object.direction == 0:
+                        level_object.motion(0, -1, matrix, level_rules, 'push')
+                    elif rule_object.direction == 1:
+                        level_object.motion(1, 0, matrix, level_rules, 'push')
+                    elif rule_object.direction == 2:
+                        level_object.motion(0, 1, matrix, level_rules, 'push')
+                    elif rule_object.direction == 3:
+                        level_object.motion(-1, 0, matrix, level_rules, 'push')
 
 
 class Melt:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
-        for level_object in matrix[rule_object.y][rule_object.x]:
-            if not level_object.check_melt(0, 0, matrix, level_rules, rule_object):
-                level_object.die(0, 0, matrix, level_rules)
-
+        if rule_object.name == 'level':
+            for i in matrix:
+                for j in i:
+                    for level_object in j:
+                        if not level_object.check_melt(0, 0, matrix, level_rules, rule_object):
+                            level_object.die(0, 0, matrix, level_rules)
+        else:
+            for level_object in matrix[rule_object.y][rule_object.x]:
+                if not level_object.check_melt(0, 0, matrix, level_rules, rule_object):
+                    level_object.die(0, 0, matrix, level_rules)
 
 class Win:
     @staticmethod
     def apply(matrix, rule_object, level_rules, level_processor, *_, **__):
-        for level_object in matrix[rule_object.y][rule_object.x]:
-            rule_object.level_processor = level_processor
-            level_object.level_processor = level_processor
-            rule_object.check_win(level_rules, level_object, matrix)
-            rule_object.check_win(level_rules, rule_object, matrix)
-            level_object.check_win(level_rules, rule_object, matrix)
+        if rule_object.name == 'level':
+            for i in matrix:
+                for j in i:
+                    for level_object in j:
+                        rule_object.level_processor = level_processor
+                        level_object.level_processor = level_processor
+                        rule_object.check_win(level_rules, level_object, matrix)
+                        rule_object.check_win(level_rules, rule_object, matrix)
+                        level_object.check_win(level_rules, rule_object, matrix)
+        else:
+            for level_object in matrix[rule_object.y][rule_object.x]:
+                rule_object.level_processor = level_processor
+                level_object.level_processor = level_processor
+                rule_object.check_win(level_rules, level_object, matrix)
+                rule_object.check_win(level_rules, rule_object, matrix)
+                level_object.check_win(level_rules, rule_object, matrix)
 
 
 class Defeat:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
-        for rule in level_rules:
-            if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text or rule_object.text(rule, 'is you'):
-                if not rule_object.is_safe:
-                    matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
-                    rule_object.die(0, 0, matrix, level_rules)
-                    return False
-        for level_object in matrix[rule_object.y][rule_object.x]:
-            if not level_object.check_defeat(0, 0, matrix, level_rules, rule_object):
-                level_object.die(0, 0, matrix, level_rules)
+        if rule_object.name == 'level':
+            for i in matrix:
+                for j in i:
+                    for level_object in j:
+                        if not level_object.check_defeat(0, 0, matrix, level_rules, rule_object):
+                            level_object.die(0, 0, matrix, level_rules)
+        else:
+            for rule in level_rules:
+                if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text or rule_object.text(rule, 'is you'):
+                    if not rule_object.is_safe:
+                        matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+                        rule_object.die(0, 0, matrix, level_rules)
+                        return False
+            for level_object in matrix[rule_object.y][rule_object.x]:
+                if not level_object.check_defeat(0, 0, matrix, level_rules, rule_object):
+                    level_object.die(0, 0, matrix, level_rules)
 
 
 class ShutOpen:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
-        for rule in level_rules:
-            if f'{rule_object.name} is open' in rule.text_rule and not rule_object.is_text:
-                if not rule_object.is_safe and rule_object.can_interact(level_rules, level_rules):
-                    matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
-                    return False
-        for level_object in matrix[rule_object.y][rule_object.x]:
-            if rule_object.can_interact(level_object, level_rules):
-                if not rule_object.check_shut_open(
-                        0, 0, matrix, level_rules, level_object):
-                    level_object.die(0, 0, matrix, level_rules)
-                    rule_object.die(0, 0, matrix, level_rules)
+        if rule_object.name == 'level':
+            status = False
+            for i in matrix:
+                for j in i:
+                    for level_object in j:
+                        for rule in level_rules:
+                            if level_object.check_rule(matrix, level_rules, rule, 'open'):
+                                status = True
+            if status:
+                die_objects = []
+                for i in matrix:
+                    for j in i:
+                        for level_object in j:
+                            die_objects.append(level_object)
+                            matrix[level_object.y][level_object.x].pop(level_object.get_index(matrix))
+                for object in die_objects:
+                    object.die(0, 0, matrix, level_rules)
+        else:
+            for rule in level_rules:
+                if f'{rule_object.name} is open' in rule.text_rule and not rule_object.is_text:
+                    if not rule_object.is_safe and rule_object.can_interact(level_rules, level_rules):
+                        matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+                        return False
+            for level_object in matrix[rule_object.y][rule_object.x]:
+                if rule_object.can_interact(level_object, level_rules):
+                    if not rule_object.check_shut_open(
+                            0, 0, matrix, level_rules, level_object):
+                        level_object.die(0, 0, matrix, level_rules)
+                        rule_object.die(0, 0, matrix, level_rules)
 
 
 class Sink:
     @staticmethod
     def apply(matrix, rule_object, level_rules, *_, **__):
-        if len(matrix[rule_object.y][rule_object.x]) > 1:
-            for level_object in matrix[rule_object.y][rule_object.x]:
-                if rule_object.get_index(matrix) != level_object.get_index(matrix):
-                    if not rule_object.check_sink(0, 0, matrix, level_rules, level_object):
-                        level_object.die(0, 0, matrix, level_rules)
-                        rule_object.die(0, 0, matrix, level_rules)
+        if rule_object.name == 'level':
+            for i in matrix:
+                for j in i:
+                    for level_object in j:
+                        if not level_object.check_sink(0, 0, matrix, level_rules, rule_object):
+                            level_object.die(0, 0, matrix, level_rules)
+        else:
+            if len(matrix[rule_object.y][rule_object.x]) > 1:
+                for level_object in matrix[rule_object.y][rule_object.x]:
+                    if rule_object.get_index(matrix) != level_object.get_index(matrix):
+                        if not rule_object.check_sink(0, 0, matrix, level_rules, level_object):
+                            level_object.die(0, 0, matrix, level_rules)
+                            rule_object.die(0, 0, matrix, level_rules)
 
 
 class Make:
     @staticmethod
     def apply(matrix, rule_object, rule_noun, *_, **__):
-        status = True
-        for check_object in matrix[rule_object.y][rule_object.x]:
-            if check_object.name == rule_noun:
-                status = False
-        if status:
-            matrix[rule_object.y][rule_object.x].pop(
-                rule_object.get_index(matrix))
-            new_object = copy(rule_object)
-            new_object.name = rule_noun
-            new_object.animation = new_object.animation_init()
-            matrix[rule_object.y][rule_object.x].append(new_object)
-            new_object = copy(rule_object)
-            matrix[rule_object.y][rule_object.x].append(new_object)
+        if rule_object.name != 'level':
+            status = True
+            for check_object in matrix[rule_object.y][rule_object.x]:
+                if check_object.name == rule_noun:
+                    status = False
+            if status:
+                matrix[rule_object.y][rule_object.x].pop(
+                    rule_object.get_index(matrix))
+                new_object = copy(rule_object)
+                new_object.name = rule_noun
+                new_object.animation = new_object.animation_init()
+                matrix[rule_object.y][rule_object.x].append(new_object)
+                new_object = copy(rule_object)
+                matrix[rule_object.y][rule_object.x].append(new_object)
 
 
 class Write:
     @staticmethod
     def apply(matrix, rule_object, rule_noun, *_, **__):
-        matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
-        rule_object.name = rule_noun
-        rule_object.is_text = True
-        rule_object.animation = rule_object.animation_init()
-        matrix[rule_object.y][rule_object.x].append(rule_object)
+        if rule_object.name != 'level':
+            matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
+            rule_object.name = rule_noun
+            rule_object.is_text = True
+            rule_object.animation = rule_object.animation_init()
+            matrix[rule_object.y][rule_object.x].append(rule_object)
 
 
 class Fear:
     def apply(self, matrix, rule_object, rule_noun, level_rules, **__):
-        fear_top = False
-        if rule_object.check_valid_range(0, -1):
-            for level_object in matrix[rule_object.y - 1][rule_object.x]:
-                if not level_object.is_text and level_object.name == rule_noun:
-                    fear_top = True
-        fear_bottom = False
-        if rule_object.check_valid_range(0, 1):
-            for level_object in matrix[rule_object.y + 1][rule_object.x]:
-                if not level_object.is_text and level_object.name == rule_noun:
-                    fear_bottom = True
-        fear_left = False
-        if rule_object.check_valid_range(-1, 0):
-            for level_object in matrix[rule_object.y][rule_object.x - 1]:
-                if not level_object.is_text and level_object.name == rule_noun:
-                    fear_left = True
-        fear_right = False
-        if rule_object.check_valid_range(1, 0):
-            for level_object in matrix[rule_object.y][rule_object.x + 1]:
-                if not level_object.is_text and level_object.name == rule_noun:
-                    fear_right = True
-        turning_side = self.find_side_move(fear_top, fear_bottom, fear_left, fear_right, rule_object.turning_side)
-        if turning_side == 0:
-            rule_object.motion(1, 0, matrix, level_rules)
-        elif turning_side == 1:
-            rule_object.motion(0, -1, matrix, level_rules)
-        elif turning_side == 2:
-            rule_object.motion(-1, 0, matrix, level_rules)
-        elif turning_side == 3:
-            rule_object.motion(0, 1, matrix, level_rules)
+        if rule_object.name != 'level':
+
+            fear_top = False
+            if rule_object.check_valid_range(0, -1):
+                for level_object in matrix[rule_object.y - 1][rule_object.x]:
+                    if not level_object.is_text and level_object.name == rule_noun:
+                        fear_top = True
+            fear_bottom = False
+            if rule_object.check_valid_range(0, 1):
+                for level_object in matrix[rule_object.y + 1][rule_object.x]:
+                    if not level_object.is_text and level_object.name == rule_noun:
+                        fear_bottom = True
+            fear_left = False
+            if rule_object.check_valid_range(-1, 0):
+                for level_object in matrix[rule_object.y][rule_object.x - 1]:
+                    if not level_object.is_text and level_object.name == rule_noun:
+                        fear_left = True
+            fear_right = False
+            if rule_object.check_valid_range(1, 0):
+                for level_object in matrix[rule_object.y][rule_object.x + 1]:
+                    if not level_object.is_text and level_object.name == rule_noun:
+                        fear_right = True
+            turning_side = self.find_side_move(fear_top, fear_bottom, fear_left, fear_right, rule_object.turning_side)
+            if turning_side == 0:
+                rule_object.motion(1, 0, matrix, level_rules)
+            elif turning_side == 1:
+                rule_object.motion(0, -1, matrix, level_rules)
+            elif turning_side == 2:
+                rule_object.motion(-1, 0, matrix, level_rules)
+            elif turning_side == 3:
+                rule_object.motion(0, 1, matrix, level_rules)
 
     @staticmethod
     def find_side_move(fear_top, fear_bottom, fear_left, fear_right, side):
@@ -378,6 +480,18 @@ class Fear:
 class Eat:
     @staticmethod
     def apply(matrix, rule_object, rule_noun, *_, **__):
+        if rule_object.name == 'level':
+            for i in matrix:
+                for j in i:
+                    for level_object in j:
+                        if level_object.name == rule_noun and not level_object.is_text:
+                            if rule_object.name != rule_noun:
+                                matrix[level_object.y][level_object.x].pop(
+                                    level_object.get_index(matrix))
+                            else:
+                                if level_object.get_index(matrix) != rule_object.get_index(matrix):
+                                    matrix[level_object.y][level_object.x].pop(
+                                        level_object.get_index(matrix))
         for level_object in matrix[rule_object.y][rule_object.x]:
             if level_object.name == rule_noun and not level_object.is_text:
                 if rule_object.name != rule_noun:
@@ -464,6 +578,7 @@ class RuleProcessor:
         self.level_processor = None
         self.objects_for_tp = None
         self.num_obj_3d = None
+        self.level = None
 
         self.dictionary = {
             'broken': Broken(),
@@ -491,16 +606,18 @@ class RuleProcessor:
             'write': Write(),
             'fear': Fear(),
             'eat': Eat(),
-            'follow': Follow()
+            'follow': Follow(),
+            'weak': Weak()
         }
 
-    def update_lists(self, level_processor, matrix, events):
+    def update_lists(self, level_processor, matrix, events, level):
         self.level_processor = level_processor
         self.matrix = matrix
         self.events = events
         self.rules = level_processor.level_rules
         self.objects_for_tp = level_processor.objects_for_tp
         self.num_obj_3d = level_processor.num_obj_3d
+        self.level = level
 
     def update_object(self, rule_object):
         self.object = rule_object
@@ -521,7 +638,8 @@ class RuleProcessor:
                                                             level_rules=self.rules,
                                                             objects_for_tp=self.objects_for_tp,
                                                             num_obj_3d=self.num_obj_3d,
-                                                            level_processor=self.level_processor)
+                                                            level_processor=self.level_processor,
+                                                            level=self.level)
             elif status_rule == 'verb':
                 if rule.check_fix(self.object, self.matrix, self.rules):
                     self.dictionary[text_rule.split()[-2]].apply(matrix=self.matrix,
@@ -531,11 +649,12 @@ class RuleProcessor:
                                                             rule_noun=text_rule.split(
                                                             )[-1],
                                                             num_obj_3d=self.num_obj_3d,
-                                                            level_processor=self.level_processor)
+                                                            level_processor=self.level_processor,
+                                                            level=self.level)
 
         except RecursionError:
             print(
-                f'!!! RecursionError appeared somewhere in {rule.split()[-1]} rule')
+                f'!!! RecursionError appeared somewhere in {rule.text_rule.split()[-1]} rule')
         return True
 
 

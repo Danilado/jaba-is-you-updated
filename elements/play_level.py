@@ -43,6 +43,7 @@ class PlayLevel(GameStrategy):
         self.window_offset: List[int] = [0, 0]
         self.border_screen: pygame.Surface = None
         self.define_border_and_scale()
+        self.angle = 0
 
         self.empty_object = Object(-1, -1, 0, 'empty',
                                    False, self.current_palette)
@@ -129,6 +130,7 @@ class PlayLevel(GameStrategy):
 
             self.border_screen = pygame.transform.scale(
                 self.border_screen, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
+
             self.border_screen = self.border_screen.convert_alpha()
         else:
             self.border_screen = None
@@ -651,7 +653,8 @@ class PlayLevel(GameStrategy):
                                         pygame.K_LEFT]):
             rules.processor.update_lists(level_processor=self,
                                          matrix=matrix,
-                                         events=events)
+                                         events=events,
+                                         level=self)
             for i, line in enumerate(self.matrix):
                 for j, cell in enumerate(line):
                     for rule_object in cell:
@@ -660,7 +663,8 @@ class PlayLevel(GameStrategy):
         elif any(pressed[key] for key in [pygame.K_s, pygame.K_d, pygame.K_DOWN, pygame.K_RIGHT]):
             rules.processor.update_lists(level_processor=self,
                                          matrix=matrix,
-                                         events=events)
+                                         events=events,
+                                         level=self)
             for i in range(len(self.matrix) - 1, -1, -1):
                 for j in range(len(self.matrix[i]) - 1, -1, -1):
                     for rule_object in self.matrix[i][j]:
@@ -817,7 +821,8 @@ class PlayLevel(GameStrategy):
         rule_object.is_text = is_text
         rule_object.has_objects = has_objects
         for rule in self.level_rules:
-            if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text \
+            if 'level is you' in rule.text_rule and rule_object.name == 'level'\
+                    or f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text \
                     or (f'text is you' in rule.text_rule and (rule_object.name in TEXT_ONLY
                         or rule_object.name in NOUNS and rule_object.is_text)):
                 rules.processor.update_object(rule_object)
@@ -825,7 +830,8 @@ class PlayLevel(GameStrategy):
 
         for rule in self.level_rules:
             for verb in OPERATORS:
-                if (f'{rule_object.name} {verb}' in rule.text_rule and not rule_object.is_text \
+                if (rule_object.name == 'level' or f'{rule_object.name} {verb}' in rule.text_rule
+                    and not rule_object.is_text \
                     or (f'text {verb}' in rule.text_rule and (rule_object.name in TEXT_ONLY
                         or rule_object.name in NOUNS and rule_object.is_text))) and 'is you' not in rule.text_rule:
                     rules.processor.update_object(rule_object)
@@ -1037,13 +1043,13 @@ class PlayLevel(GameStrategy):
                             level_surface, (255, 255, 255), (x, y, 50, 50), 1)
 
             self.screen.blit(pygame.transform.scale(
-                level_surface, (self.size[0] * 50 * self.scale * settings.WINDOW_SCALE,
+                pygame.transform.rotate(level_surface, self.angle), (self.size[0] * 50 * self.scale * settings.WINDOW_SCALE,
                                 self.size[1] * 50 * self.scale * settings.WINDOW_SCALE)),
-                (self.window_offset[1] * settings.WINDOW_SCALE,
-                 self.window_offset[0] * settings.WINDOW_SCALE))
+                (self.window_offset[1] * settings.WINDOW_SCALE + 50 * self.scale * settings.WINDOW_SCALE * 0,
+                 self.window_offset[0] * settings.WINDOW_SCALE + 50 * self.scale * settings.WINDOW_SCALE * 0))
 
             if self.border_screen:
-                self.screen.blit(self.border_screen, (0, 0))
+                self.screen.blit(self.border_screen, (50 * self.scale * settings.WINDOW_SCALE * 0, 50 * self.scale * settings.WINDOW_SCALE * 0))
 
         if self.first_iteration:
             self.find_rules()
@@ -1057,7 +1063,8 @@ class PlayLevel(GameStrategy):
             self.win_animation()
 
         if self.moved:
-
+            for rule in self.level_rules:
+                print(rule.text_rule)
             self.moved = False
 
         if self.state is None:
