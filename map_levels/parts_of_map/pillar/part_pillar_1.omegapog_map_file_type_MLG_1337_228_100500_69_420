@@ -1,0 +1,13 @@
+default 32 18
+16 3 1 square False
+16 4 1 square False
+15 5 1 square False
+16 5 1 square False
+17 5 1 square False
+15 6 1 square False
+16 6 1 square False
+17 6 1 square False
+16 7 1 square False
+16 7 1 2 False
+16 8 1 line False
+16 9 1 line False

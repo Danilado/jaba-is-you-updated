@@ -99,7 +99,7 @@ class SpriteManager(BaseDownloadManager):
                       'text/yellow': (2, 4), 'text/you': (4, 1), 'text/you2': (4, 1), 'text/0_n': (0, 1),
                       'text/1_n': (0, 1), 'text/2_n': (0, 1), 'text/3_n': (0, 1), 'text/4_n': (0, 1),
                       'text/5_n': (0, 1), 'text/6_n': (0, 1), 'text/7_n': (0, 1), 'text/8_n': (0, 1),
-                      'text/9_n': (0, 1), 'text/10_n': (0, 1)
+                      'text/9_n': (0, 1), 'text/10_n': (0, 1), 'cursor': (4, 1)
                       }
 
     def __init__(self):

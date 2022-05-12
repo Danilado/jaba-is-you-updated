@@ -38,6 +38,16 @@ class ReferencePoint(GameStrategy):
         self.current_palette = palette_manager.get_palette('default')
         self.scale = 1
         self.size = (32, 18)
+        self.win_offsets = [[(775, 325), 0], [(825, 325), 0], [(725, 325), 0], [(875, 325), 0], [(675, 325), 0],
+                            [(925, 325), 0], [(625, 325), 0], [(975, 325), 0], [
+                                (575, 325), 0], [(1025, 325), 0], [(525, 325), 0], [(1075, 325), 0], [(475, 325), 0],
+                            [(1100, 325), 0], [(450, 325), 0], [(1125, 325), 0], [(425, 325), 0]]
+        for i, _ in enumerate(self.win_offsets):
+            self.win_offsets[i][0] = (
+                self.win_offsets[i][0][0] * settings.WINDOW_SCALE, self.win_offsets[i][0][1] * settings.WINDOW_SCALE)
+        self.circle_radius = 0
+        self.flag_to_delay = False
+        self.flag_to_win_animation = False
 
     def set_pallete(self, level_name: str):
         path_to_file = \
@@ -93,25 +103,25 @@ class ReferencePoint(GameStrategy):
                                 self.matrix[i][j].pop(-2)
 
                             if len(all_map_matrix[i - 1][j]) > 0 and len(self.matrix[i - 1][j]) == 0 \
-                                    and all_map_matrix[i - 1][j][0].name.split("_")[0] == 'line'\
+                                    and all_map_matrix[i - 1][j][0].name.split("_")[0] == 'line' \
                                     or len(all_map_matrix[i + 1][j]) > 0 and len(self.matrix[i + 1][j]) == 0 \
-                                    and all_map_matrix[i + 1][j][0].name.split("_")[0] == 'line'\
+                                    and all_map_matrix[i + 1][j][0].name.split("_")[0] == 'line' \
                                     or len(all_map_matrix[i][j - 1]) > 0 and len(self.matrix[i][j - 1]) == 0 \
-                                    and all_map_matrix[i][j - 1][0].name.split("_")[0] == 'line'\
+                                    and all_map_matrix[i][j - 1][0].name.split("_")[0] == 'line' \
                                     or len(all_map_matrix[i][j + 1]) > 0 and len(self.matrix[i][j + 1]) == 0 \
                                     and all_map_matrix[i][j + 1][0].name.split("_")[0] == 'line':
                                 for num in range(1, 4):
                                     try:
                                         _, _, part_matrix = parse_file(f'part_{self.ref_point_name}_{num}',
-                                                                       f'map_levels/parts/{self.ref_point_name}')
+                                                                       f'map_levels/parts_of_map/{self.ref_point_name}')
                                         if len(part_matrix[i - 1][j]) > 0 and len(self.matrix[i - 1][j]) == 0 \
-                                           and part_matrix[i - 1][j][0].name.split("_")[0] == 'line' \
-                                           or len(part_matrix[i + 1][j]) > 0 and len(self.matrix[i + 1][j]) == 0 \
-                                           and part_matrix[i + 1][j][0].name.split("_")[0] == 'line' \
-                                           or len(part_matrix[i][j - 1]) > 0 and len(self.matrix[i][j - 1]) == 0 \
-                                           and part_matrix[i][j - 1][0].name.split("_")[0] == 'line' \
-                                           or len(part_matrix[i][j + 1]) > 0 and len(self.matrix[i][j + 1]) == 0 \
-                                           and part_matrix[i][j + 1][0].name.split("_")[0] == 'line':
+                                                and part_matrix[i - 1][j][0].name.split("_")[0] == 'line' \
+                                                or len(part_matrix[i + 1][j]) > 0 and len(self.matrix[i + 1][j]) == 0 \
+                                                and part_matrix[i + 1][j][0].name.split("_")[0] == 'line' \
+                                                or len(part_matrix[i][j - 1]) > 0 and len(self.matrix[i][j - 1]) == 0 \
+                                                and part_matrix[i][j - 1][0].name.split("_")[0] == 'line' \
+                                                or len(part_matrix[i][j + 1]) > 0 and len(self.matrix[i][j + 1]) == 0 \
+                                                and part_matrix[i][j + 1][0].name.split("_")[0] == 'line':
                                             for ix, linex in enumerate(part_matrix):
                                                 for jx, cellx in enumerate(linex):
                                                     for _, rule_objectx in enumerate(cellx):
@@ -126,8 +136,74 @@ class ReferencePoint(GameStrategy):
             with open('./saves/map_saves', mode='w', encoding='utf-8') as file:
                 for param in saves:
                     file.write(f'{param} {saves[param]}\n')
-
+            self.flag_to_win_animation = True
         self.save()
+
+    def text_to_png(self, text):
+        if len(text) >= 32:
+            x_offset = 0
+        else:
+            x_offset = (32 - len(text)) // 2
+        text_in_objects = []
+
+        for letter in text:
+            if letter in settings.TEXT_ONLY:
+                img_letter = Object(x_offset, 6, 1, letter,
+                                    True, self.current_palette)
+                text_in_objects.append(img_letter)
+            x_offset += 1
+
+        return text_in_objects
+
+    def win_animation(self):
+        border_offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),
+                          (1000 * settings.WINDOW_SCALE, 0),
+                          (1600 * settings.WINDOW_SCALE,
+                           0), (0, 900 * settings.WINDOW_SCALE),
+                          (300 * settings.WINDOW_SCALE,
+                           900 * settings.WINDOW_SCALE),
+                          (800 * settings.WINDOW_SCALE,
+                           900 * settings.WINDOW_SCALE),
+                          (1200 * settings.WINDOW_SCALE,
+                           900 * settings.WINDOW_SCALE),
+                          (0, 300 * settings.WINDOW_SCALE),
+                          (0, 600 * settings.WINDOW_SCALE),
+                          (1600 * settings.WINDOW_SCALE,
+                           100 * settings.WINDOW_SCALE),
+                          (1600 * settings.WINDOW_SCALE,
+                           500 * settings.WINDOW_SCALE),
+                          (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
+        max_radius = 100 * settings.WINDOW_SCALE
+        for offset, radius in self.win_offsets:
+            pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+                               offset, radius)
+        if self.win_offsets[0][1] < max_radius:
+            self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
+            for index in range(1, len(self.win_offsets), 2):
+                self.win_offsets[index][1] += 0.1 * \
+                    (len(self.win_offsets) - index)
+                self.win_offsets[index + 1][1] += 0.1 * \
+                    (len(self.win_offsets) - index)
+        if self.win_offsets[0][1] >= max_radius and not self.flag_to_delay:
+            self.flag_to_delay = True
+            self.delay = pygame.time.get_ticks()
+        if self.win_offsets[0][1] >= max_radius / 2:
+            text_surface = pygame.Surface(
+                (1600, 900), pygame.SRCALPHA, 32)
+            for character_object in self.text_to_png('area complete'):
+                character_object.draw(text_surface)
+            text_surface = pygame.transform.scale(
+                text_surface, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
+            text_surface = text_surface.convert_alpha()
+            self.screen.blit(text_surface, (0, 0))
+
+        if self.win_offsets[0][1] >= max_radius and pygame.time.get_ticks() - self.delay >= 1000:
+            for offset1 in border_offsets:
+                pygame.draw.circle(
+                    self.screen, self.current_palette.pixels[3][6], offset1, self.circle_radius)
+            self.circle_radius += 8 * settings.WINDOW_SCALE
+        if self.circle_radius >= 650 * settings.WINDOW_SCALE:
+            self._state = State(GameState.BACK)
 
     def animation_level(self):
         if self.flag_anime:
@@ -206,8 +282,8 @@ class ReferencePoint(GameStrategy):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
-                                (self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels\
-                                or self.matrix[i][j][-2].name.split('_')[0] == 'teeth'):
+                                (self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels
+                                 or self.matrix[i][j][-2].name.split('_')[0] == 'teeth'):
                             return self.matrix[i][j][-2].name.split('_')[0]
 
     def go_to_game(self):
@@ -294,6 +370,8 @@ class ReferencePoint(GameStrategy):
             self.animation_level()
         if self.first_iteration:
             self.first_iteration = False
+        if self.flag_to_win_animation:
+            self.win_animation()
 
         return self._state
 
