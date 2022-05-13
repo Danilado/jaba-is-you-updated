@@ -1,17 +1,13 @@
 """Модуль класса партикла"""
-from math import sin, cos
 import os
-from random import randint
+from math import sin, cos
+from random import randint, uniform
 from typing import Optional, Tuple, Union
 
 import pygame
 
-from global_types import COLOR, SURFACE
 from elements.global_classes import sprite_manager
-
-
-particle_sprites_cache = {}
-preset_strategies = {}
+from global_types import COLOR
 
 
 class ParticleStrategy:
@@ -19,14 +15,14 @@ class ParticleStrategy:
 
     def __init__(self, x_dimensions: Optional[Tuple[int, int]] = None, y_dimensions: Optional[Tuple[int, int]] = None,
                  size: Optional[Tuple[int, int]] = None, rotation: Optional[Tuple[int, int]] = None, wobble: int = 0,
-                 duration: Optional[int] = None, loop: bool = False, randomize_start_values: bool = False):
+                 duration: Optional[float] = None, loop: bool = False, randomize_start_values: bool = False):
         """Инициализация стратегии партикла
 
         :param x_dimensions: координаты x начала и конца движения партикла, defaults to None
         :type x_dimensions: Tuple[int, int], optional
         :param y_dimensions: координаты y начала и конца движения партикла, defaults to None
         :type y_dimensions: Tuple[int, int], optional
-        :param size_args: размер партикла, defaults to None
+        :param size: размер партикла, defaults to None
         :type size: Tuple[int, int], optional
         :param rotation: угол поворота спрайта партикла в начале и конце движения, defaults to None
         :type rotation: Tuple[int, int], optional
@@ -69,7 +65,7 @@ class ParticleStrategy:
                     y_dimensions[0], y_dimensions[1]))
                 self.angle = randint(
                     min(rotation[0], rotation[1]), max(rotation[0], rotation[1]))
-                self.time_randomizer = randint(0, self.duration)
+                self.time_randomizer = uniform(0, self.duration)
 
             self.start_timestamp = pygame.time.get_ticks()
         except IndexError:
@@ -111,29 +107,22 @@ class ParticleStrategy:
 
 
 class Particle:
-    def __init__(self, screen: SURFACE, name: str = None,
+    def __init__(self, name: str = None,
                  strategy: Union[ParticleStrategy, str] = None, color: COLOR = 'white'):
-        self.screen = screen
         self.sprite_name = name
         self.color = color
 
-        if strategy not in preset_strategies:
-            self.strategy = strategy
+        self.strategy = strategy
 
-        if f'{self.sprite_name}_{self.color}' not in particle_sprites_cache:
-            self.initialize_sprites()
-
-        self.sprites = particle_sprites_cache[f'{self.sprite_name}_{self.color}']
-
-        self.sprites_count = len(self.sprites)
+        self.sprites_count = len(self._get_sprites())
         self.sprite_index = 0
         self.animation_timestamp = pygame.time.get_ticks()
 
-    def initialize_sprites(self):
+    def _get_sprites(self):
         path = os.path.join('./', 'sprites', self.sprite_name)
         states = [sprite_manager.get(os.path.join(
             path, name), color=self.color) for name in os.listdir(path)]
-        particle_sprites_cache[f'{self.sprite_name}_{self.color}'] = states
+        return states
 
     def update(self):
         if self.strategy.update_values():
@@ -149,5 +138,7 @@ class Particle:
             screen.blit(
                 pygame.transform.scale(
                     pygame.transform.rotate(
-                        self.sprites[self.sprite_index], int(self.strategy.angle)),
+                        self._get_sprites()[self.sprite_index], int(self.strategy.angle)),
                     (self.strategy.size, )*2), (self.strategy.x_position, self.strategy.y_position))
+            return True
+        return False

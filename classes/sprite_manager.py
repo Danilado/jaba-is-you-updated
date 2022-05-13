@@ -95,15 +95,15 @@ class SpriteManager(BaseDownloadManager):
                       'text/sleep': (1, 4), 'text/still': (2, 2), 'text/stop': (5, 1), 'text/swap': (3, 1),
                       'text/tele': (1, 4), 'text/turn': (1, 4), 'text/up': (1, 4), 'text/weak': (1, 2),
                       'text/white': (0, 3), 'text/win': (2, 4), 'text/wonder': (0, 3), 'text/word': (0, 3),
-                      'text/yellow': (2, 4), 'text/you': (4, 1), 'text/you2': (4, 1)
+                      'text/yellow': (2, 4), 'text/you': (4, 1), 'text/you2': (4, 1),
+                      'text/sad': (3, 3)
                       }
 
     def __init__(self):
         super().__init__()
         self._sprites: Dict[SpriteInfo, SURFACE] = {}
 
-    @staticmethod
-    def _get_sprite_info(*args, **kwargs) -> SpriteInfo:
+    def _get_sprite_info(self, *args, **kwargs) -> SpriteInfo:
         def get_from_kwargs(kwarg_key: str, expected_types: Sequence[type]):
             """Функция получения `keyword` из kwargs, вместе с проверкой типа"""
             kwarg = kwargs.pop(kwarg_key, None)
@@ -131,11 +131,10 @@ class SpriteManager(BaseDownloadManager):
             return sprite_info
 
         if default:
-            sprite_path = "/".join(sprite_info.path.parts[1:-1])
-            if sprite_path in SpriteManager.default_colors.keys():
-                palette_pixel_position = SpriteManager.default_colors[sprite_path]
-                sprite_info.color = palette.pixels[palette_pixel_position[1]
-                                                   ][palette_pixel_position[0]]
+            sprite_name = "/".join(sprite_info.path.parts[1:-1])
+            if sprite_name in self.default_colors.keys():
+                palette_pixel_position = self.default_colors[sprite_name]
+                sprite_info.color = palette.pixels[palette_pixel_position[1]][palette_pixel_position[0]]
         return sprite_info
 
     def get(self, *args, **kwargs) -> SURFACE:
