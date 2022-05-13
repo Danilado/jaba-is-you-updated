@@ -19,7 +19,7 @@ from elements.global_classes import sound_manager
 from elements.loader_util import parse_file
 from global_types import SURFACE
 from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
-from utils import my_deepcopy, settings_saves, debug
+from utils import my_deepcopy, settings_saves
 
 
 class PlayLevel(GameStrategy):
@@ -76,14 +76,14 @@ class PlayLevel(GameStrategy):
 
         self.delay = pygame.time.get_ticks()
 
-        self.particles = [Particle(self.screen, 'dot',
+        self.particles = [Particle('dot',
                                    ParticleStrategy((randint(0, 1600), randint(-50, 1650)), (950, - 50),
                                                     (randint(20, 35), randint(
                                                         40, 65)), (randint(0, 360), randint(0, 360 * 5)), 20,
                                                     60 + randint(-20, 20), True, True),
                                    self.current_palette.pixels[3][6]) for _ in range(40)]
 
-        self.apply_rules_cache: Dict[Object, Tuple[bool, bool, bool, bool, bool, bool, bool, bool,
+        self.apply_rules_cache: Dict[Object, Tuple[bool, bool, bool, bool, bool, bool, bool, bool, bool,
                                                    bool, bool, bool, bool, bool, List[str], List[str]]] = {}
 
     def define_border_and_scale(self):
