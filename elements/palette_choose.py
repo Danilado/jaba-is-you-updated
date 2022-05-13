@@ -81,6 +81,7 @@ class PaletteChoose(GameStrategy):
 
         if palette is not None:
             self.editor.current_palette = palette
+            self.editor.define_border_and_scale()
             state = State(GameState.BACK)
             print(f"choose: {self.editor.current_palette.name}")
 

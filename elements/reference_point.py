@@ -60,7 +60,7 @@ class ReferencePoint(GameStrategy):
                        (1600 * settings.WINDOW_SCALE, 500 * settings.WINDOW_SCALE),
                        (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
             for offset in offsets:
-                pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+                pygame.draw.circle(self.screen, self.current_palette.pixels[0][1],
                                    offset, self.radius)
             self.radius += 8 * settings.WINDOW_SCALE
 

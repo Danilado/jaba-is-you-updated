@@ -75,7 +75,7 @@ class SpriteManager(BaseDownloadManager):
                       'text/trees': (5, 2), 'text/trumpet': (2, 4), 'text/turnip': (6, 2), 'text/turtle': (5, 4),
                       'text/ufo': (4, 1), 'text/vase': (0, 1), 'text/vine': (5, 2), 'text/wall': (0, 1),
                       'text/water': (1, 3), 'text/what': (0, 3), 'text/wind': (1, 4), 'text/worm': (0, 3),
-                      'tile': (0, 0), 'tower': (0, 1), 'track': (6, 0), 'train': (5, 2), 'tree': (5, 2),
+                      'tile': (1, 0), 'tower': (0, 1), 'track': (6, 0), 'train': (5, 2), 'tree': (5, 2),
                       'trees': (5, 2), 'trumpet': (3, 4), 'turnip': (6, 2), 'turtle': (5, 4), 'ufo': (4, 2),
                       'vase': (0, 2), 'vine': (5, 2), 'wall': (1, 1), 'water': (1, 3), 'what': (0, 3), 'wind': (1, 4),
                       'worm': (0, 3), 'text/3d': (4, 1), 'text/all': (0, 3), 'text/auto': (4, 1), 'text/best': (2, 4),
@@ -114,7 +114,8 @@ class SpriteManager(BaseDownloadManager):
 
         default: bool = get_from_kwargs("default", (bool,))
         palette: Palette = get_from_kwargs("palette", (Palette,))
-        color: COLOR = get_from_kwargs("color", (tuple, str, pygame.color.Color, pygame.Color))
+        color: COLOR = get_from_kwargs(
+            "color", (tuple, str, pygame.color.Color, pygame.Color))
         sprite_info = get_from_kwargs("sprite_info", (SpriteInfo,))
         if sprite_info is None:
             sprite_info = args[0]

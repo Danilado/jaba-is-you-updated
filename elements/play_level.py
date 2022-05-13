@@ -81,7 +81,7 @@ class PlayLevel(GameStrategy):
                                                     (randint(20, 35), randint(
                                                         40, 65)), (randint(0, 360), randint(0, 360 * 5)), 20,
                                                     60 + randint(-20, 20), True, True),
-                                   self.current_palette.pixels[3][6]) for _ in range(40)]
+                                   self.current_palette.pixels[0][1]) for _ in range(40)]
 
         self.apply_rules_cache: Dict[Object, Tuple[bool, bool, bool, bool, bool, bool, bool, bool, bool,
                                                    bool, bool, bool, bool, bool, List[str], List[str]]] = {}
@@ -99,8 +99,9 @@ class PlayLevel(GameStrategy):
                     borders[2] = pygame.Rect(0, 850, 1600, 50)
                     self.window_offset[0] = 50
                 self.scale = (
-                                     900 - self.window_offset[0] * 2) / (self.size[1] * 50)
-                self.window_offset[1] = (1600 - self.size[0] * 50 * self.scale) / 2
+                    900 - self.window_offset[0] * 2) / (self.size[1] * 50)
+                self.window_offset[1] = (
+                    1600 - self.size[0] * 50 * self.scale) / 2
                 borders[1] = pygame.Rect(0, 0, int(self.window_offset[1]), 900)
                 borders[3] = pygame.Rect(
                     int(1600 - self.window_offset[1]), 0, int(self.window_offset[1]), 900)
@@ -114,8 +115,9 @@ class PlayLevel(GameStrategy):
                     borders[3] = pygame.Rect(1550, 0, 50, 900)
                     self.window_offset[1] = 50
                 self.scale = (
-                                     1600 - self.window_offset[1] * 2) / (self.size[0] * 50)
-                self.window_offset[0] = (900 - self.size[1] * 50 * self.scale) / 2
+                    1600 - self.window_offset[1] * 2) / (self.size[0] * 50)
+                self.window_offset[0] = (
+                    900 - self.size[1] * 50 * self.scale) / 2
                 borders[0] = pygame.Rect(
                     0, 0, 1600, int(self.window_offset[0]))
                 borders[2] = pygame.Rect(
@@ -125,7 +127,7 @@ class PlayLevel(GameStrategy):
 
             for border in borders:
                 pygame.draw.rect(self.border_screen,
-                                 self.current_palette.pixels[3][6], border)
+                                 self.current_palette.pixels[0][1], border)
 
             self.border_screen = pygame.transform.scale(
                 self.border_screen, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
@@ -147,6 +149,7 @@ class PlayLevel(GameStrategy):
         self.current_palette, self.size, self.start_matrix = parse_file(
             level_name, path_to_level)
         self.matrix = my_deepcopy(self.start_matrix)
+        print(self.size)
 
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -165,16 +168,18 @@ class PlayLevel(GameStrategy):
 
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == self.size[0] - 1:
+        elif x == self.size[1] - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == self.size[1] - 1:
+        elif y == self.size[0] - 1:
             neighbours[1] = [self.empty_object]
+
         for index, offset in enumerate(offsets):
             if not neighbours[index]:
                 neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
+
         return neighbours
 
     @staticmethod
@@ -222,7 +227,7 @@ class PlayLevel(GameStrategy):
         :rtype: bool
         """
         return self.size[0] - 1 >= x + delta_x >= 0 \
-               and self.size[1] - 1 >= y + delta_y >= 0
+            and self.size[1] - 1 >= y + delta_y >= 0
 
     def check_not_infix(self, i, j, delta_i, delta_j):
         start_delta_i = delta_i
@@ -440,24 +445,28 @@ class PlayLevel(GameStrategy):
                                 if object_not is None:
                                     text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                     objects = [noun[1], verb, object_property]
-                                    rules.append(TextRule(text, objects, None, None))
+                                    rules.append(
+                                        TextRule(text, objects, None, None))
                                 else:
                                     text = f'{noun[1].name} {verb.name} {object_not.name} {object_property[1].name}'
                                     objects = [noun[1], verb,
                                                object_not, object_property]
-                                    rules.append(TextRule(text, objects, None, None))
+                                    rules.append(
+                                        TextRule(text, objects, None, None))
                             else:
                                 if object_not is None:
                                     text = f'{noun[1].name} {verb.name} {object_property[1].name}'
                                     objects = [
                                         noun[0], noun[1], verb, object_property]
-                                    rules.append(TextRule(text, objects, noun[0].name, None))
+                                    rules.append(
+                                        TextRule(text, objects, noun[0].name, None))
                                 else:
                                     text = f'{noun[1].name} {verb.name} ' \
                                            f'{object_not.name} {object_property[1].name}'
                                     objects = [noun[0], noun[1],
                                                verb, object_not, object_property]
-                                    rules.append(TextRule(text, objects, noun[0].name, None))
+                                    rules.append(
+                                        TextRule(text, objects, noun[0].name, None))
 
             elif len(infix) != 0:
                 for inf in infix[1]:
@@ -470,13 +479,15 @@ class PlayLevel(GameStrategy):
                                                f' {verb.name} {object_property[1].name}'
                                         objects = [noun[1], infix[0],
                                                    inf[1], verb, object_property[1]]
-                                        rules.append(TextRule(text, objects, None, [infix[0].name, inf[1].name]))
+                                        rules.append(TextRule(text, objects, None, [
+                                                     infix[0].name, inf[1].name]))
                                     else:
                                         text = f'{noun[1].name}' \
                                                f' {verb.name} {object_not.name} {object_property[1].name}'
                                         objects = [
                                             noun[1], infix[0], inf[1], verb, object_not, object_property[1]]
-                                        rules.append(TextRule(text, objects, None, [infix[0].name, inf[1].name]))
+                                        rules.append(TextRule(text, objects, None, [
+                                                     infix[0].name, inf[1].name]))
                                 else:
                                     if object_not is None:
                                         text = f'{noun[1].name} {verb.name} {object_property[1].name}'
@@ -542,7 +553,7 @@ class PlayLevel(GameStrategy):
                    (1600 * settings.WINDOW_SCALE, 500 * settings.WINDOW_SCALE),
                    (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
         for offset in offsets:
-            pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+            pygame.draw.circle(self.screen, self.current_palette.pixels[0][1],
                                offset, self.circle_radius)
 
         text_surface = pygame.Surface(
@@ -581,15 +592,15 @@ class PlayLevel(GameStrategy):
         max_radius = 100 * settings.WINDOW_SCALE
         if not self.flag_to_level_start_animation and self.flag_to_win_animation:
             for offset, radius in self.win_offsets:
-                pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+                pygame.draw.circle(self.screen, self.current_palette.pixels[0][1],
                                    offset, radius)
             if self.win_offsets[0][1] < max_radius:
                 self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
                 for index in range(1, len(self.win_offsets), 2):
                     self.win_offsets[index][1] += 0.1 * \
-                                                  (len(self.win_offsets) - index)
+                        (len(self.win_offsets) - index)
                     self.win_offsets[index + 1][1] += 0.1 * \
-                                                      (len(self.win_offsets) - index)
+                        (len(self.win_offsets) - index)
 
             if self.win_offsets[0][1] >= max_radius and not self.flag_to_delay:
                 self.flag_to_delay = True
@@ -608,7 +619,7 @@ class PlayLevel(GameStrategy):
             if self.win_offsets[0][1] >= max_radius and pygame.time.get_ticks() - self.delay >= 1000:
                 for offset1 in border_offsets:
                     pygame.draw.circle(
-                        self.screen, self.current_palette.pixels[3][6], offset1, self.circle_radius)
+                        self.screen, self.current_palette.pixels[0][1], offset1, self.circle_radius)
                 self.circle_radius += 8 * settings.WINDOW_SCALE
 
             if self.circle_radius >= 650 * settings.WINDOW_SCALE:
@@ -678,7 +689,7 @@ class PlayLevel(GameStrategy):
                 for noun in NOUNS:
                     if (f'{rule_object.name} is {noun}' == rule.text_rule and not rule_object.is_text) or \
                             (f'text is {noun}' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                                                                      or rule_object.is_text)):
                         if rule_object.status_switch_name == 0:
                             matrix[i][j].pop(rule_object.get_index(matrix))
                             rule_object.name = noun
@@ -692,19 +703,18 @@ class PlayLevel(GameStrategy):
                             rule_object.status_switch_name = 0
                     if (f'{rule_object.name} has {noun}' == rule.text_rule and not rule_object.is_text) or \
                             (f'text has {noun}' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                                                                       or rule_object.is_text)):
                         has_objects.append(noun)
 
                 if (f'{rule_object.name} is 3d' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is 3d' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is 3d' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                          or rule_object.is_text)):
                     is_3d = True
 
                 elif (f'{rule_object.name} is hide' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is hide' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is hide' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                            or rule_object.is_text)):
                     is_hide = True
-
 
                 elif (f'{rule_object.name} is fall' == rule.text_rule and not rule_object.is_text) or \
                         (f'text is fall' == rule.text_rule and (rule_object.name in TEXT_ONLY
@@ -712,79 +722,79 @@ class PlayLevel(GameStrategy):
                     is_fall = True
 
                 elif (f'{rule_object.name} is wwak' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is weak' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is weak' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                            or rule_object.is_text)):
                     is_weak = True
 
                 elif (f'{rule_object.name} is hot' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is hot' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is hot' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                           or rule_object.is_text)):
                     is_hot = True
 
                 elif (f'{rule_object.name} is power' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is power' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is power' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                             or rule_object.is_text)):
                     is_power = True
 
                 elif (f'{rule_object.name} is still' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is still' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is still' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                             or rule_object.is_text)):
                     is_still = True
 
                 elif (f'{rule_object.name} is locked' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is locked' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is locked' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                              or rule_object.is_text)):
                     if (f'{rule_object.name} is lockeddown' == rule.text_rule and not rule_object.is_text) or \
                             (f'text is lockeddown' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                                                                          or rule_object.is_text)):
                         locked_sides.append('down')
                     elif (f'{rule_object.name} is lockedup' == rule.text_rule and not rule_object.is_text) or \
                             (f'text is lockedup' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                                                                        or rule_object.is_text)):
                         locked_sides.append('up')
                     elif (f'{rule_object.name} is lockedleft' == rule.text_rule and not rule_object.is_text) or \
                             (f'text is lockedleft' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                                                                          or rule_object.is_text)):
                         locked_sides.append('left')
                     elif (f'{rule_object.name} is lockedright' == rule.text_rule and not rule_object.is_text) or \
                             (f'text is lockedright' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                                                                           or rule_object.is_text)):
                         locked_sides.append('right')
 
                 elif (f'{rule_object.name} is safe' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is safe' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is safe' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                            or rule_object.is_text)):
                     is_safe = True
 
                 elif (f'{rule_object.name} is open' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is open' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is open' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                            or rule_object.is_text)):
                     is_open = True
 
                 elif (f'{rule_object.name} is phantom' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is phantom' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is phantom' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                               or rule_object.is_text)):
                     is_phantom = True
 
                 elif (f'{rule_object.name} is shut' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is shut' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is shut' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                            or rule_object.is_text)):
                     is_shut = True
 
                 elif f'{rule_object.name} is text' == rule.text_rule and not rule_object.is_text:
                     is_text = True
 
                 elif rule_object.name in TEXT_ONLY or rule_object.is_text:
-                     is_text = True
+                    is_text = True
 
                 elif (f'{rule_object.name} is sleep' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is sleep' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is sleep' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                             or rule_object.is_text)):
                     is_sleep = True
 
                 elif (f'{rule_object.name} is float' == rule.text_rule and not rule_object.is_text) or \
-                            (f'text is float' == rule.text_rule and (rule_object.name in TEXT_ONLY
-                                                                   or rule_object.is_text)):
+                    (f'text is float' == rule.text_rule and (rule_object.name in TEXT_ONLY
+                                                             or rule_object.is_text)):
                     is_float = True
         self.apply_rules_cache[rule_cache_key] = (is_hot, is_hide, is_safe, is_open, is_shut, is_phantom,
                                                   is_text, is_still, is_sleep, is_power, is_weak,
@@ -796,8 +806,8 @@ class PlayLevel(GameStrategy):
             self._create_in_cache_rules_thing(
                 matrix, rule_object, i, j, rule_cache_key)
         is_hot, is_hide, is_safe, is_open, is_shut, is_phantom, \
-        is_text, is_still, is_sleep, is_power, is_weak, \
-        is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:14]
+            is_text, is_still, is_sleep, is_power, is_weak, \
+            is_float, is_3d, is_fall = self.apply_rules_cache[rule_cache_key][:14]
         locked_sides: List[str] = self.apply_rules_cache[rule_cache_key][14]
         has_objects: List[str] = self.apply_rules_cache[rule_cache_key][15]
         rule_object.is_hot = is_hot
@@ -825,7 +835,7 @@ class PlayLevel(GameStrategy):
 
         for rule in self.level_rules:
             for verb in OPERATORS:
-                if (f'{rule_object.name} {verb}' in rule.text_rule and not rule_object.is_text \
+                if (f'{rule_object.name} {verb}' in rule.text_rule and not rule_object.is_text
                     or (f'text {verb}' in rule.text_rule and (rule_object.name in TEXT_ONLY
                         or rule_object.name in NOUNS and rule_object.is_text))) and 'is you' not in rule.text_rule:
                     rules.processor.update_object(rule_object)
@@ -921,7 +931,7 @@ class PlayLevel(GameStrategy):
         for neighbour_list in game_object.neighbours:
             for neighbour in neighbour_list:
                 if not neighbour.recursively_used:
-                    neighbour.recursively_used = True
+                    # neighbour.recursively_used = True
                     self.update_sticky_neighbours(neighbour)
         game_object.animation = game_object.animation_init()
         game_object.moved = False
@@ -955,6 +965,7 @@ class PlayLevel(GameStrategy):
                     self.delta_cancel = new_time
                 else:
                     self.matrix = self.copy_matrix(self.start_matrix)
+                    self.first_iteration = True
                     self.check_matrix()
                     self.delta_cancel = new_time
                 for i in range(len(self.matrix)):
@@ -990,6 +1001,10 @@ class PlayLevel(GameStrategy):
                                 self.count_3d_obj += 1
             self.flag = False
 
+        if self.first_iteration:
+            self.find_rules()
+            self.matrix = self.copy_matrix(self.start_matrix)
+
         for line in self.matrix:
             for cell in line:
                 for game_object in cell:
@@ -1017,6 +1032,7 @@ class PlayLevel(GameStrategy):
         else:
             level_surface = pygame.Surface(
                 (self.size[0] * 50, self.size[1] * 50))
+            level_surface.fill(self.current_palette.pixels[4][6])
 
             for particle in self.particles:
                 particle.draw(level_surface)
@@ -1025,8 +1041,7 @@ class PlayLevel(GameStrategy):
                 for cell in line:
                     for game_object in cell:
                         if self.first_iteration or self.moved:
-                            if game_object.name in STICKY and not game_object.is_text and \
-                                    (game_object.moved or self.first_iteration):
+                            if game_object.name in STICKY and not game_object.is_text and (game_object.moved or self.first_iteration):
                                 self.update_sticky_neighbours(game_object)
                         game_object.draw(level_surface, self.matrix)
 
@@ -1039,16 +1054,13 @@ class PlayLevel(GameStrategy):
             self.screen.blit(pygame.transform.scale(
                 level_surface, (self.size[0] * 50 * self.scale * settings.WINDOW_SCALE,
                                 self.size[1] * 50 * self.scale * settings.WINDOW_SCALE)),
-                (self.window_offset[1] * settings.WINDOW_SCALE,
-                 self.window_offset[0] * settings.WINDOW_SCALE))
+                             (self.window_offset[1] * settings.WINDOW_SCALE,
+                              self.window_offset[0] * settings.WINDOW_SCALE))
 
             if self.border_screen:
                 self.screen.blit(self.border_screen, (0, 0))
 
-        if self.first_iteration:
-            self.find_rules()
-            self.matrix = self.copy_matrix(self.start_matrix)
-            self.first_iteration = False
+        self.first_iteration = False
 
         if self.flag_to_level_start_animation:
             self.level_start_animation()
