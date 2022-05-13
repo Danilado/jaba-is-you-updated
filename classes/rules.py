@@ -1,15 +1,22 @@
 import math
 import random
 from copy import copy
+from typing import Optional, List, TYPE_CHECKING
 
 import pygame
 
+from classes.objects import Object
+from classes.rule_particle_helper import ParticleMover
+from classes.sprite_manager import SpriteManager
 from classes.text_rule import TextRule
+from elements.global_classes import sprite_manager
 
+if TYPE_CHECKING:
+    from elements.play_level import PlayLevel
 
 class Broken:
     @staticmethod
-    def apply(rule_object, level_rules, *_, **__):
+    def apply(rule_object: Object, level_rules, *_, **__):
         object_name = rule_object.name
         for sec_rule in level_rules:
             if f'{object_name}' == sec_rule.text_rule.split()[-3] or f'{object_name}' == sec_rule.text_rule.split()[-4] \
@@ -19,7 +26,7 @@ class Broken:
 
 class Deturn:
     @staticmethod
-    def apply(matrix, rule_object, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, *_, **__):
         matrix[rule_object.y][rule_object.x].pop(
             rule_object.get_index(matrix))
         rule_object.direction -= 1
@@ -35,7 +42,7 @@ class Deturn:
 
 class Text:
     @staticmethod
-    def apply(matrix, rule_object, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, *_, **__):
         matrix[rule_object.y][rule_object.x].pop(
             rule_object.get_index(matrix))
         rule_object.is_text = True
@@ -46,7 +53,7 @@ class Text:
 
 class Turn:
     @staticmethod
-    def apply(matrix, rule_object, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, *_, **__):
         matrix[rule_object.y][rule_object.x].pop(
             rule_object.get_index(matrix))
         rule_object.direction += 1
@@ -64,14 +71,16 @@ class You:
     def __init__(self, num: int = 1):
         self.num: int = num
 
-    def apply(self, matrix, rule_object, events, level_rules, level_processor, *_, **__):
+    def apply(self, matrix: List[List[List[Object]]], rule_object: Object, events, level_rules,
+              level_processor: "PlayLevel", *_, **__):
         rule_object.check_events(events, self.num)
         rule_object.move(matrix, level_rules, level_processor)
 
 
 class Is3d:
     @staticmethod
-    def apply(matrix, rule_object, events, level_rules, level_processor, num_obj_3d, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, events, level_rules,
+              level_processor: "PlayLevel", num_obj_3d, *_, **__):
         if rule_object.num_3d == num_obj_3d:
             rule_object.check_events(events, 1)
             if events[0].key == pygame.K_s:
@@ -82,7 +91,7 @@ class Is3d:
 
 class Chill:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, *_, **__):
         rand_dir = random.randint(0, 4)
         if rand_dir == 0:
             rule_object.motion(0, -1, matrix, level_rules)
@@ -96,7 +105,7 @@ class Chill:
 
 class Boom:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, **__):
         boom_objects = []
         for object in matrix[rule_object.y][rule_object.x]:
             boom_objects.append(object)
@@ -107,7 +116,7 @@ class Boom:
 
 class Auto:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, *_, **__):
         if rule_object.direction == 0:
             rule_object.motion(0, -1, matrix, level_rules)
         elif rule_object.direction == 1:
@@ -120,7 +129,7 @@ class Auto:
 
 class Move:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, *_, **__):
         if rule_object.direction == 0:
             if not rule_object.motion(0, -1, matrix, level_rules):
                 rule_object.direction = 2
@@ -141,7 +150,7 @@ class Move:
 
 class Direction:
     @staticmethod
-    def apply(rule_object, direction, *_, **__):
+    def apply(rule_object: Object, direction, *_, **__):
         if direction == 'up':
             rule_object.direction = 0
             rule_object.status_of_rotate = 1
@@ -161,7 +170,7 @@ class Direction:
 
 class Fall:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, *_, **__):
         assert rule_object.animation is not None
         while rule_object.motion(0, 1, matrix, level_rules):
             ...
@@ -169,7 +178,7 @@ class Fall:
 
 class More:
     @staticmethod
-    def apply(matrix, rule_object, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, *_, **__):
         if rule_object.y < len(matrix) - 1:
             if not matrix[rule_object.y + 1][rule_object.x]:
                 new_object = copy(rule_object)
@@ -209,9 +218,9 @@ class More:
 
 class Shift:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
-            if level_object.name != rule_object.name and rule_object.can_iteract(level_rules, level_rules):
+            if level_object.name != rule_object.name and rule_object.can_interact(level_rules, level_rules):
                 if rule_object.direction == 0:
                     level_object.motion(0, -1, matrix, level_rules, 'push')
                 elif rule_object.direction == 1:
@@ -224,15 +233,26 @@ class Shift:
 
 class Melt:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
             if not level_object.check_melt(0, 0, matrix, level_rules, rule_object):
                 level_object.die(0, 0, matrix, level_rules)
 
 
 class Win:
-    @staticmethod
-    def apply(matrix, rule_object, level_rules, level_processor, *_, **__):
+    def __init__(self):
+        self.particle_helper = ParticleMover(
+            x_offset=range(-80, 81),
+            y_offset=range(-80, 81),
+            size=range(10, 41),
+            max_rotation=range(0, 360),
+            wait_delay=1.5,
+            duration=0.5
+        )
+
+    def apply(self, matrix: List[List[List[Object]]], rule_object: Object, level_rules,
+              level_processor: "PlayLevel", *_, **__):
+        self.particle_helper.update_on_apply(level_processor, rule_object, "text/win", "plus")
         for level_object in matrix[rule_object.y][rule_object.x]:
             rule_object.level_processor = level_processor
             level_object.level_processor = level_processor
@@ -240,10 +260,13 @@ class Win:
             rule_object.check_win(level_rules, rule_object, matrix)
             level_object.check_win(level_rules, rule_object, matrix)
 
+    def on_changed(self, rules: List[TextRule]):
+        self.particle_helper.update_on_rules_changed(rules, 'win')
+
 
 class Defeat:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, *_, **__):
         for rule in level_rules:
             if f'{rule_object.name} is you' in rule.text_rule and not rule_object.is_text or rule_object.text(rule, 'is you'):
                 if not rule_object.is_safe:
@@ -257,7 +280,7 @@ class Defeat:
 
 class ShutOpen:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, *_, **__):
         for rule in level_rules:
             if f'{rule_object.name} is open' in rule.text_rule and not rule_object.is_text:
                 if not rule_object.is_safe and rule_object.can_interact(level_rules, level_rules):
@@ -273,7 +296,7 @@ class ShutOpen:
 
 class Sink:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, *_, **__):
         if len(matrix[rule_object.y][rule_object.x]) > 1:
             for level_object in matrix[rule_object.y][rule_object.x]:
                 if rule_object.get_index(matrix) != level_object.get_index(matrix):
@@ -284,7 +307,7 @@ class Sink:
 
 class Make:
     @staticmethod
-    def apply(matrix, rule_object, rule_noun, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, rule_noun, *_, **__):
         status = True
         for check_object in matrix[rule_object.y][rule_object.x]:
             if check_object.name == rule_noun:
@@ -302,7 +325,7 @@ class Make:
 
 class Write:
     @staticmethod
-    def apply(matrix, rule_object, rule_noun, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, rule_noun, *_, **__):
         matrix[rule_object.y][rule_object.x].pop(rule_object.get_index(matrix))
         rule_object.name = rule_noun
         rule_object.is_text = True
@@ -311,7 +334,7 @@ class Write:
 
 
 class Fear:
-    def apply(self, matrix, rule_object, rule_noun, level_rules, **__):
+    def apply(self, matrix: List[List[List[Object]]], rule_object: Object, rule_noun, level_rules, **__):
         fear_top = False
         if rule_object.check_valid_range(0, -1):
             for level_object in matrix[rule_object.y - 1][rule_object.x]:
@@ -377,7 +400,7 @@ class Fear:
 
 class Eat:
     @staticmethod
-    def apply(matrix, rule_object, rule_noun, *_, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, rule_noun, *_, **__):
         for level_object in matrix[rule_object.y][rule_object.x]:
             if level_object.name == rule_noun and not level_object.is_text:
                 if rule_object.name != rule_noun:
@@ -391,7 +414,7 @@ class Eat:
 
 class Follow:
     @staticmethod
-    def apply(matrix, rule_object, rule_noun, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, rule_noun, **__):
         min_delta_y = 100
         min_delta_x = 100
         for i in matrix:
@@ -425,7 +448,7 @@ class Follow:
 
 class Tele:
     @staticmethod
-    def apply(matrix, rule_object, level_rules, **__):
+    def apply(matrix: List[List[List[Object]]], rule_object: Object, level_rules, **__):
         first_tp = rule_object
         status = False
         teleports = []
@@ -446,25 +469,130 @@ class Tele:
         x2 = second_tp.x
         y2 = second_tp.y
         for objects in matrix[y1][x1]:
-            if objects.name != first_tp.name and rule_object.can_iteract(objects, level_rules):
+            if objects.name != first_tp.name and rule_object.can_interact(objects, level_rules):
                 matrix[y1][x1].pop(objects.get_index(matrix))
                 objects.update_parameters(x2 - x1, y2 - y1, matrix)
         for objects in matrix[y2][x2]:
-            if objects.name != second_tp.name and rule_object.can_iteract(objects, level_rules):
+            if objects.name != second_tp.name and rule_object.can_interact(objects, level_rules):
                 matrix[y2][x2].pop(objects.get_index(matrix))
                 objects.update_parameters(-(x2 - x1), -(y2 - y1), matrix)
+
+
+class Color:
+    colors = {
+        "rosy": (4, 2),
+        "pink": (4, 1),
+        "red": (2, 2),
+        "orange": (2, 3),
+        "yellow": (2, 4),
+        "lime": (5, 3),
+        "green": (5, 2),
+        "cyan": (1, 4),
+        "blue": (3, 3),  # Синего цвета нету в палитре, приходится импровизировать
+        "purple": (3, 1),
+        "brown": (6, 1),
+        "black": (1, 1),
+        "grey": (0, 1),
+        "silver": (0, 2),
+        "white": (0, 3)
+    }
+
+    def __init__(self, color: str):
+        self.color_name = color
+
+    def apply(self, rule_object: Object, **_):
+        sprite_manager.default_colors[rule_object.name] = self.colors[self.color_name]
+        rule_object.animation = rule_object.animation_init()
+
+
+class Sad:
+    def __init__(self):
+        self.particle_helper = ParticleMover(
+            x_offset=range(-50, 51),
+            y_offset=range(-50, 51),
+            size=range(5, 10),
+            max_rotation=range(0, 1),
+            wait_delay=3,
+            duration=1
+        )
+
+    def apply(self, *_, **kwargs):
+        self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], 'text/sad', "circle")
+
+    def on_changed(self, rules: List[TextRule]):
+        self.particle_helper.update_on_rules_changed(rules, 'sad')
+
+
+class Best:
+    def __init__(self):
+        self.particle_helper = ParticleMover(
+            x_offset=range(-80, 81),
+            y_offset=range(-80, 81),
+            size=range(10, 31),
+            max_rotation=range(0, 360),
+            wait_delay=0.4,
+            duration=0.7
+        )
+
+    def apply(self, *_, **kwargs):
+        self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], 'text/best', "plus")
+
+    def on_changed(self, rules: List[TextRule]):
+        self.particle_helper.update_on_rules_changed(rules, 'best')
+
+
+class Sleep:
+    def __init__(self):
+        self.particle_helper = ParticleMover(
+            x_offset=range(30, 61),
+            y_offset=range(-80, -30),
+            size=range(20, 41),
+            max_rotation=range(1),
+            wait_delay=1,
+            duration=3,
+            count=range(1, 2)
+        )
+
+    def apply(self, *_, **kwargs):
+        kwargs['rule_object'].is_sleep = True
+        kwargs['rule_object'].animation = kwargs['rule_object'].animation_init()
+        self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], 'text/sleep', "text/z")
+
+    def on_changed(self, rules: List[TextRule]):
+        def set_sleep(rule):
+            rule.is_sleep = False
+            rule.animation = rule.animation_init()
+        self.particle_helper.for_rule_objects(set_sleep)
+        self.particle_helper.update_on_rules_changed(rules, 'sleep')
 
 
 class RuleProcessor:
     def __init__(self):
         self.matrix = None
-        self.object = None
+        self.object: Optional[Object] = None
         self.events = None
-        self.rules = None
+        self.rules: List[TextRule] = []
         self.level_processor = None
         self.objects_for_tp = None
         self.num_obj_3d = None
 
+        color_names = (
+            "rosy",
+            "pink",
+            "red",
+            "orange",
+            "yellow",
+            "lime",
+            "green",
+            "cyan",
+            "blue",
+            "purple",
+            "brown",
+            "black",
+            "grey",
+            "silver",
+            "white",
+        )
         self.dictionary = {
             'broken': Broken(),
             'you': You(1),
@@ -491,51 +619,68 @@ class RuleProcessor:
             'write': Write(),
             'fear': Fear(),
             'eat': Eat(),
-            'follow': Follow()
+            'follow': Follow(),
+            'sad': Sad(),
+            'best': Best(),
+            'sleep': Sleep()
         }
+        for color in color_names:
+            self.dictionary[color] = Color(color)
 
-    def update_lists(self, level_processor, matrix, events):
+    def update_lists(self, level_processor: "PlayLevel", matrix: List[List[List[Object]]], events):
         self.level_processor = level_processor
         self.matrix = matrix
         self.events = events
-        self.rules = level_processor.level_rules
+        changed = self.rules is not None and \
+                  list(i.text_rule for i in self.rules) != list(i.text_rule for i in level_processor.level_rules)
+        self.rules = level_processor.level_rules.copy()
         self.objects_for_tp = level_processor.objects_for_tp
         self.num_obj_3d = level_processor.num_obj_3d
+        if changed:
+            print("PlayLevel was caught changing rules by RuleProcessor. New rules will be processed")
+            sprite_manager.default_colors = SpriteManager.default_colors.copy()
+            for process in self.dictionary.values():
+                on_changed = getattr(process, "on_changed", None)
+                if on_changed is not None and callable(on_changed):
+                    on_changed(self.rules)
 
-    def update_object(self, rule_object):
+    def update_object(self, rule_object: Object):
         self.object = rule_object
 
     def process(self, rule: TextRule) -> bool:
         text_rule = rule.text_rule
-        status_rule = None
+        status_rule = rule_name = None
         if text_rule.split()[-1] in self.dictionary:
             status_rule = 'property'
+            rule_name = text_rule.split()[-1]
+
         if text_rule.split()[-2] in self.dictionary:
             status_rule = 'verb'
+            rule_name = text_rule.split()[-2]
         try:
-            if status_rule == 'property':
-                if rule.check_fix(self.object, self.matrix, self.rules):
-                    self.dictionary[text_rule.split()[-1]].apply(matrix=self.matrix,
-                                                            rule_object=self.object,
-                                                            events=self.events,
-                                                            level_rules=self.rules,
-                                                            objects_for_tp=self.objects_for_tp,
-                                                            num_obj_3d=self.num_obj_3d,
-                                                            level_processor=self.level_processor)
-            elif status_rule == 'verb':
-                if rule.check_fix(self.object, self.matrix, self.rules):
-                    self.dictionary[text_rule.split()[-2]].apply(matrix=self.matrix,
-                                                            rule_object=self.object,
-                                                            events=self.events,
-                                                            level_rules=self.rules,
-                                                            rule_noun=text_rule.split(
-                                                            )[-1],
-                                                            num_obj_3d=self.num_obj_3d,
-                                                            level_processor=self.level_processor)
+            if rule_name is not None:
+                if status_rule == 'property':
+                    if rule.check_fix(self.object, self.matrix, self.rules):
+                        self.dictionary[rule_name].apply(matrix=self.matrix,
+                                                         rule_object=self.object,
+                                                         events=self.events,
+                                                         level_rules=self.rules,
+                                                         objects_for_tp=self.objects_for_tp,
+                                                         num_obj_3d=self.num_obj_3d,
+                                                         level_processor=self.level_processor)
+                elif status_rule == 'verb':
+                    if rule.check_fix(self.object, self.matrix, self.rules):
+                        self.dictionary[rule_name].apply(matrix=self.matrix,
+                                                         rule_object=self.object,
+                                                         events=self.events,
+                                                         level_rules=self.rules,
+                                                         rule_noun=text_rule.split()[-1],
+                                                         num_obj_3d=self.num_obj_3d,
+                                                         level_processor=self.level_processor)
 
         except RecursionError:
             print(
-                f'!!! RecursionError appeared somewhere in {rule.split()[-1]} rule')
+                f'!!! RecursionError appeared somewhere in {text_rule.split()[-1]} rule')
         return True
 
 

@@ -75,7 +75,7 @@ class SpriteManager(BaseDownloadManager):
                       'text/trees': (5, 2), 'text/trumpet': (2, 4), 'text/turnip': (6, 2), 'text/turtle': (5, 4),
                       'text/ufo': (4, 1), 'text/vase': (0, 1), 'text/vine': (5, 2), 'text/wall': (0, 1),
                       'text/water': (1, 3), 'text/what': (0, 3), 'text/wind': (1, 4), 'text/worm': (0, 3),
-                      'tile': (0, 0), 'tower': (0, 1), 'track': (6, 0), 'train': (5, 2), 'tree': (5, 2),
+                      'tile': (1, 0), 'tower': (0, 1), 'track': (6, 0), 'train': (5, 2), 'tree': (5, 2),
                       'trees': (5, 2), 'trumpet': (3, 4), 'turnip': (6, 2), 'turtle': (5, 4), 'ufo': (4, 2),
                       'vase': (0, 2), 'vine': (5, 2), 'wall': (1, 1), 'water': (1, 3), 'what': (0, 3), 'wind': (1, 4),
                       'worm': (0, 3), 'text/3d': (4, 1), 'text/all': (0, 3), 'text/auto': (4, 1), 'text/best': (2, 4),
@@ -95,15 +95,15 @@ class SpriteManager(BaseDownloadManager):
                       'text/sleep': (1, 4), 'text/still': (2, 2), 'text/stop': (5, 1), 'text/swap': (3, 1),
                       'text/tele': (1, 4), 'text/turn': (1, 4), 'text/up': (1, 4), 'text/weak': (1, 2),
                       'text/white': (0, 3), 'text/win': (2, 4), 'text/wonder': (0, 3), 'text/word': (0, 3),
-                      'text/yellow': (2, 4), 'text/you': (4, 1), 'text/you2': (4, 1)
+                      'text/yellow': (2, 4), 'text/you': (4, 1), 'text/you2': (4, 1),
+                      'text/sad': (3, 3)
                       }
 
     def __init__(self):
         super().__init__()
         self._sprites: Dict[SpriteInfo, SURFACE] = {}
 
-    @staticmethod
-    def _get_sprite_info(*args, **kwargs) -> SpriteInfo:
+    def _get_sprite_info(self, *args, **kwargs) -> SpriteInfo:
         def get_from_kwargs(kwarg_key: str, expected_types: Sequence[type]):
             """Функция получения `keyword` из kwargs, вместе с проверкой типа"""
             kwarg = kwargs.pop(kwarg_key, None)
@@ -114,7 +114,8 @@ class SpriteManager(BaseDownloadManager):
 
         default: bool = get_from_kwargs("default", (bool,))
         palette: Palette = get_from_kwargs("palette", (Palette,))
-        color: COLOR = get_from_kwargs("color", (tuple, str, pygame.color.Color, pygame.Color))
+        color: COLOR = get_from_kwargs(
+            "color", (tuple, str, pygame.color.Color, pygame.Color))
         sprite_info = get_from_kwargs("sprite_info", (SpriteInfo,))
         if sprite_info is None:
             sprite_info = args[0]
@@ -131,11 +132,10 @@ class SpriteManager(BaseDownloadManager):
             return sprite_info
 
         if default:
-            sprite_path = "/".join(sprite_info.path.parts[1:-1])
-            if sprite_path in SpriteManager.default_colors.keys():
-                palette_pixel_position = SpriteManager.default_colors[sprite_path]
-                sprite_info.color = palette.pixels[palette_pixel_position[1]
-                                                   ][palette_pixel_position[0]]
+            sprite_name = "/".join(sprite_info.path.parts[1:-1])
+            if sprite_name in self.default_colors.keys():
+                palette_pixel_position = self.default_colors[sprite_name]
+                sprite_info.color = palette.pixels[palette_pixel_position[1]][palette_pixel_position[0]]
         return sprite_info
 
     def get(self, *args, **kwargs) -> SURFACE:

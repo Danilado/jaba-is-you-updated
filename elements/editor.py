@@ -163,7 +163,7 @@ class Editor(GameStrategy):
 
             for border in borders:
                 pygame.draw.rect(self.border_screen,
-                                 self.current_palette.pixels[3][6], border)
+                                 self.current_palette.pixels[0][1], border)
 
             self.border_screen = pygame.transform.scale(
                 self.border_screen, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
@@ -428,7 +428,7 @@ class Editor(GameStrategy):
                             game_object.neighbours = neighbours
                             game_object.animation = game_object.animation_init()
 
-        self.screen.fill("black")
+        self.screen.fill(self.current_palette.pixels[4][6])
         for event in events:
             event: pygame.event.Event
             if event.type == pygame.QUIT:
@@ -512,6 +512,7 @@ class Editor(GameStrategy):
         ]
 
         matrix_screen = pygame.Surface((self.size[0]*50, self.size[1]*50))
+        matrix_screen.fill(self.current_palette.pixels[4][6])
 
         pygame.draw.rect(matrix_screen, (44, 44, 44),
                          (self.focus[0] * 50, self.focus[1] * 50, 50, 50))

@@ -245,6 +245,13 @@ class Object:
                     or does not exist. This shouldn't happen in any circumstances")
                 state_max = 0
 
+            if settings.DEBUG:
+                print(self.__repr__(), end=" ")
+                for k in sorted(self.__dict__.keys()):
+                    if k.startswith('is_'):
+                        print(k, self.__dict__[k], end=', ')
+                print()
+
             try:
                 if state_max == 0:
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
@@ -277,11 +284,16 @@ class Object:
                                      f'{index}'), default=True, palette=self.palette),
                         (50, 50)) for index in range(1, 4)]
                 elif state_max == 31:
+                    keke_state = self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0) - int(
+                        self.is_sleep
+                    )
+                    if keke_state < 0:
+                        keke_state = 31
                     animation.sprites = [pygame.transform.scale(sprite_manager.get(
                         os.path.join(
                             path,
                             f'{self.name}_'
-                            f'{self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0)}_'
+                            f'{keke_state}_'
                             f'{index}'), default=True, palette=self.palette),
                         (50, 50)) for index in range(1, 4)]
                 else:
@@ -1063,7 +1075,7 @@ class Object:
                                   or self.name in NOUNS and self.is_text):
                 matrix[self.y][self.x].pop(self.get_index(matrix))
                 self.pull_objects(delta_x, delta_y, matrix, level_rules)
-                self.update_parameters(delta_x, delta_y, matrix)  # TODO: NONE
+                self.update_parameters(delta_x, delta_y, matrix)
 
             for rule in level_rules:
                 if ((f'{self.name} is pull' in rule.text_rule and status == 'pull' and not self.is_text) or
@@ -1162,6 +1174,7 @@ class Object:
             level_size=self.level_size,
             smooth_movement=self._movement
         )
+        copied_object.is_sleep = self.is_sleep
         return copied_object
 
     def __repr__(self):
