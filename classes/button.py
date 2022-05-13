@@ -91,7 +91,7 @@ class Button:
         :return: В случае если был вызван action, True, иначе False
         """
         for event in events:
-            if event.type == pygame.MOUSEBUTTONUP \
+            if event.type == pygame.MOUSEBUTTONDOWN \
                     and self.is_over(pygame.mouse.get_pos()) \
                     and self.action:
                 self.action()

@@ -33,7 +33,7 @@ SPRITE_ONLY = [
 
 STICKY = [
     'lava', 'wall', 'cloud', 'brick', 'plank', 'rubble', 'hedge', 'cliff', 'grass', 'ice', 'line', 'road', 'track',
-    'water'
+    'water', 'pipe'
 ]
 
 OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt',

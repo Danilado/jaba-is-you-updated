@@ -163,7 +163,7 @@ class Editor(GameStrategy):
 
             for border in borders:
                 pygame.draw.rect(self.border_screen,
-                                 self.current_palette.pixels[3][6], border)
+                                 self.current_palette.pixels[0][1], border)
 
             self.border_screen = pygame.transform.scale(
                 self.border_screen, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
@@ -179,7 +179,6 @@ class Editor(GameStrategy):
         string_state, counter = unparse_all(state)
         if counter > 0:
             string += string_state
-            print(name)
             if name is None:
                 name = 'autosave_' + datetime.now().strftime("%m_%d_%Y_%H_%M_%S")
             with open(f"levels/{name}.omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
@@ -232,7 +231,6 @@ class Editor(GameStrategy):
 
     def safe_exit(self):
         """Функция подготовки к безопасному выходу из редактора без потери изменений"""
-        print(self.level_name)
         self.save(self.current_state, self.level_name)
         self.unresize()
 
@@ -430,7 +428,7 @@ class Editor(GameStrategy):
                             game_object.neighbours = neighbours
                             game_object.animation = game_object.animation_init()
 
-        self.screen.fill("black")
+        self.screen.fill(self.current_palette.pixels[4][6])
         for event in events:
             event: pygame.event.Event
             if event.type == pygame.QUIT:
@@ -514,6 +512,7 @@ class Editor(GameStrategy):
         ]
 
         matrix_screen = pygame.Surface((self.size[0]*50, self.size[1]*50))
+        matrix_screen.fill(self.current_palette.pixels[4][6])
 
         pygame.draw.rect(matrix_screen, (44, 44, 44),
                          (self.focus[0] * 50, self.focus[1] * 50, 50, 50))
