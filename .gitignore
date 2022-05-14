@@ -682,4 +682,4 @@ FodyWeavers.xsd
 
 .vscode
 sounds/*/*
-saves/option_settings
+saves/*
