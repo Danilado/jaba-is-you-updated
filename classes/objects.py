@@ -157,7 +157,7 @@ class Object:
     @x.setter
     def x(self, value: int):
         self._x = value
-        self._xpx = int(value * 50 * settings.WINDOW_SCALE)
+        self._xpx = int(value * 50)
 
     @property
     def y(self) -> int:
@@ -166,7 +166,7 @@ class Object:
     @y.setter
     def y(self, value: int):
         self._y = value
-        self._ypx = int(value * 50 * settings.WINDOW_SCALE)
+        self._ypx = int(value * 50)
 
     @property
     def xpx(self) -> int:
@@ -175,7 +175,7 @@ class Object:
     @xpx.setter
     def xpx(self, value: int):
         self._xpx = value
-        self._x = int(value / 50 * settings.WINDOW_SCALE)
+        self._x = int(value / 50)
 
     @property
     def ypx(self) -> int:
@@ -184,7 +184,7 @@ class Object:
     @ypx.setter
     def ypx(self, value: int):
         self._ypx = value
-        self._y = int(value / 50 * settings.WINDOW_SCALE)
+        self._y = int(value / 50)
 
     def investigate_neighbours(self):
         """Исследует соседей объекта и возвращает правильный ключ к спрайту

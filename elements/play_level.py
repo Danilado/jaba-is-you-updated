@@ -19,15 +19,17 @@ from elements.global_classes import sound_manager
 from elements.loader_util import parse_file
 from global_types import SURFACE
 from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
-from utils import my_deepcopy, settings_saves
+from utils import my_deepcopy, settings_saves, map_saves
 
 
 class PlayLevel(GameStrategy):
-    def __init__(self, level_name: str, path_to_level: str, screen: SURFACE):
+    def __init__(self, level_name: str, path_to_level: str, is_complete: bool, screen: SURFACE):
         super().__init__(screen)
         self.old_rules = []
         self.state: Optional[State] = None
         self.show_grid = settings_saves()[0]
+        self.path_to_level = path_to_level
+        self.is_complete = is_complete
 
         self.matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
@@ -623,7 +625,19 @@ class PlayLevel(GameStrategy):
                 self.circle_radius += 8 * settings.WINDOW_SCALE
 
             if self.circle_radius >= 650 * settings.WINDOW_SCALE:
+                self.upd_map_saves()
                 self.state = State(GameState.BACK)
+
+    def upd_map_saves(self):
+        if self.path_to_level.split('/')[0] == 'map_levels' and not self.is_complete:
+            saves = map_saves()
+            if self.path_to_level.split('/')[-1] == 'map_levels':
+                saves['main'] += 1
+            else:
+                saves[self.path_to_level.split('/')[-1]] += 1
+            with open('./saves/map_saves', mode='w', encoding='utf-8') as file:
+                for param in saves:
+                    file.write(f'{param} {saves[param]}\n')
 
     def functional_event_check(self, events: List[pygame.event.Event]):
         flag = False

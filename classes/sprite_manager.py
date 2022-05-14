@@ -23,7 +23,8 @@ class SpriteManager(BaseDownloadManager):
                       'dog': (0, 2), 'donut': (4, 1), 'door': (2, 2), 'dot': (0, 3), 'drink': (4, 4), 'drum': (2, 3),
                       'dust': (6, 2), 'ear': (3, 1), 'egg': (0, 3), 'eye': (3, 1), 'fence': (6, 1), 'fire': (2, 3),
                       'fish': (1, 3), 'flag': (2, 4), 'fofo': (5, 2), 'foliage': (6, 0), 'foot': (3, 1), 'fort': (1, 1),
-                      'frog': (2, 4), 'fruit': (2, 2), 'fungi': (6, 1), 'fungus': (6, 1), 'gate': (2, 2), 'gem': (4, 2),
+                      'frog': (2, 4), 'fruit': (2, 2), 'fungi': (6, 1), 'fungus': (6, 1), 'flower': (4, 1),
+                      'gate': (2, 2), 'gem': (4, 2),
                       'ghost': (4, 2), 'grass': (5, 0), 'guitar': (6, 2), 'hand': (0, 3), 'hedge': (5, 1),
                       'hihat': (2, 4), 'husk': (6, 1), 'husks': (6, 1), 'ice': (1, 2), 'it': (1, 4), 'jelly': (1, 4),
                       'jiji': (2, 3), 'key': (2, 4), 'knight': (2, 2), 'ladder': (2, 3), 'lamp': (2, 4), 'lava': (2, 3),
@@ -95,8 +96,10 @@ class SpriteManager(BaseDownloadManager):
                       'text/sleep': (1, 4), 'text/still': (2, 2), 'text/stop': (5, 1), 'text/swap': (3, 1),
                       'text/tele': (1, 4), 'text/turn': (1, 4), 'text/up': (1, 4), 'text/weak': (1, 2),
                       'text/white': (0, 3), 'text/win': (2, 4), 'text/wonder': (0, 3), 'text/word': (0, 3),
-                      'text/yellow': (2, 4), 'text/you': (4, 1), 'text/you2': (4, 1),
-                      'text/sad': (3, 3)
+                      'text/yellow': (2, 4), 'text/you': (4, 1), 'text/you2': (4, 1), 'text/sad': (3, 3),
+                      'text/0_n': (0, 1), 'text/10_n': (0, 1), 'cursor': (4, 1), 'text/9_n': (0, 1),
+                      'text/1_n': (0, 1), 'text/2_n': (0, 1), 'text/3_n': (0, 1), 'text/4_n': (0, 1),
+                      'text/5_n': (0, 1), 'text/6_n': (0, 1), 'text/7_n': (0, 1), 'text/8_n': (0, 1)
                       }
 
     def __init__(self):
@@ -135,7 +138,8 @@ class SpriteManager(BaseDownloadManager):
             sprite_name = "/".join(sprite_info.path.parts[1:-1])
             if sprite_name in self.default_colors.keys():
                 palette_pixel_position = self.default_colors[sprite_name]
-                sprite_info.color = palette.pixels[palette_pixel_position[1]][palette_pixel_position[0]]
+                sprite_info.color = palette.pixels[palette_pixel_position[1]
+                                                   ][palette_pixel_position[0]]
         return sprite_info
 
     def get(self, *args, **kwargs) -> SURFACE:

@@ -103,7 +103,7 @@ class SettingsMenu(GameStrategy):
                              self.circle_music, 5, (250, 100, 250), self.set_music_volume)
 
     def save_file(self):
-        with open('option_settings', mode='w', encoding='utf-8') as file:
+        with open('saves/option_settings', mode='w', encoding='utf-8') as file:
             for _, param in enumerate(self.options):
                 file.write(f'{param}\n')
             file.close()

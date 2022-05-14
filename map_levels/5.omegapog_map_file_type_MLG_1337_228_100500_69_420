@@ -1,0 +1,9 @@
+default 32 18
+29 1 1 circle True
+30 1 1 is False
+31 1 1 you False
+29 2 1 cliff True
+30 2 1 is False
+31 2 1 win False
+20 5 1 circle False
+21 5 1 cliff False

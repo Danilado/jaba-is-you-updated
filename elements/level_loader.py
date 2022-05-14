@@ -71,7 +71,7 @@ class Loader(GameStrategy):
         :type level_name: str
         """
         # Gospodin: Надеюсь, когда-нибудь это будет игрой.
-        self._state = State(GameState.SWITCH, partial(PlayLevel, level_name, 'levels'))
+        self._state = State(GameState.SWITCH, partial(PlayLevel, level_name, 'levels', True))
 
     def go_back(self):
         """Простая отмена (выход в предыдущее меню)"""

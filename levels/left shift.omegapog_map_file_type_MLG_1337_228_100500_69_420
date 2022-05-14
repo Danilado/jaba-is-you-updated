@@ -1,0 +1,5 @@
+default 32 18
+0 0 1 banana True
+1 0 1 is False
+2 0 1 you False
+13 7 1 banana False

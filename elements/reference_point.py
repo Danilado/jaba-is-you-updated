@@ -3,11 +3,12 @@ from functools import partial
 
 import pygame
 import settings
+from elements.editor import unparse_all
 from elements.global_classes import sound_manager, palette_manager
 from elements.loader_util import parse_file
 from elements.play_level import PlayLevel
 
-from settings import SHOW_GRID, STICKY
+from settings import STICKY
 from global_types import SURFACE
 
 from classes.cursor import MoveCursor
@@ -15,6 +16,7 @@ from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
+from utils import map_saves
 
 
 class ReferencePoint(GameStrategy):
@@ -24,26 +26,184 @@ class ReferencePoint(GameStrategy):
         self.matrix: List[List[List[Object]]] = [[[]
                                                   for _ in range(32)] for _ in range(18)]
         self.cursor = MoveCursor()
-        self.ref_point_name = f'map_levels/{name}'
+        self.ref_point_name = name
         self._state: Optional[State] = None
         self.first_iteration = True
         self.parse_file(name, 'map_levels')
         self.empty_object = Object(-1, -1, 0, 'empty', False)
         self.radius = 0
+        self.complete_levels = map_saves()
         self.flag_anime = False
         self.delay = 0
         self.current_palette = palette_manager.get_palette('default')
         self.scale = 1
         self.size = (32, 18)
+        self.win_offsets = [[(775, 325), 0], [(825, 325), 0], [(725, 325), 0], [(875, 325), 0], [(675, 325), 0],
+                            [(925, 325), 0], [(625, 325), 0], [(975, 325), 0], [
+                                (575, 325), 0], [(1025, 325), 0], [(525, 325), 0], [(1075, 325), 0], [(475, 325), 0],
+                            [(1100, 325), 0], [(450, 325), 0], [(1125, 325), 0], [(425, 325), 0]]
+        for i, _ in enumerate(self.win_offsets):
+            self.win_offsets[i][0] = (
+                self.win_offsets[i][0][0] * settings.WINDOW_SCALE, self.win_offsets[i][0][1] * settings.WINDOW_SCALE)
+        self.circle_radius = 0
+        self.flag_to_delay = False
+        self.flag_to_win_animation = False
 
     def set_pallete(self, level_name: str):
-        path_to_file = f'./{self.ref_point_name}/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
+        path_to_file = \
+            f'./map_levels/{self.ref_point_name}/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'
         with open(path_to_file, mode='r', encoding='utf-8') as level_file:
             for line in level_file.readlines():
                 parameters = line.strip().split(' ')
                 self.current_palette = palette_manager.get_palette(
                     parameters[0])
                 break
+
+    def check_levels(self):
+        _, _, all_map_matrix = parse_file('all_{}'.format(self.ref_point_name), 'map_levels/open_maps')
+        for i, line in enumerate(self.matrix):
+            for j, cell in enumerate(line):
+                for k, rule_object in enumerate(cell):
+                    if k < len(cell) and j < 31:
+                        if rule_object.name == 'cursor' and not rule_object.is_text:
+                            if len(all_map_matrix[i][j + 1]) >= 1 and all_map_matrix[i][j + 1][-1].name \
+                                    in self.cursor.levels and self.matrix[i][j + 1][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i][j + 1].append(Object(j + 1, i, 1,
+                                                                    all_map_matrix[i][j + 1][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i][j - 1]) >= 1 and all_map_matrix[i][j - 1][-1].name \
+                                    in self.cursor.levels and self.matrix[i][j - 1][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i][j - 1].append(Object(j - 1, i, 1,
+                                                                    all_map_matrix[i][j - 1][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i + 1][j]) >= 1 and all_map_matrix[i + 1][j][-1].name \
+                                    in self.cursor.levels and self.matrix[i + 1][j][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i + 1][j].append(Object(j, i + 1, 1,
+                                                                    all_map_matrix[i + 1][j][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i - 1][j]) >= 1 and all_map_matrix[i - 1][j][-1].name \
+                                    in self.cursor.levels and self.matrix[i - 1][j][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i - 1][j].append(Object(j, i - 1, 1,
+                                                                    all_map_matrix[i - 1][j][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
+                                self.matrix[i][j].insert(-2, Object(j, i, 1,
+                                                                    f'{self.matrix[i][j][-2].name.split("_")[0]}_n',
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                                self.matrix[i][j].pop(-2)
+
+                            if len(all_map_matrix[i - 1][j]) > 0 and len(self.matrix[i - 1][j]) == 0 \
+                                    and all_map_matrix[i - 1][j][0].name.split("_")[0] == 'line' \
+                                    or len(all_map_matrix[i + 1][j]) > 0 and len(self.matrix[i + 1][j]) == 0 \
+                                    and all_map_matrix[i + 1][j][0].name.split("_")[0] == 'line' \
+                                    or len(all_map_matrix[i][j - 1]) > 0 and len(self.matrix[i][j - 1]) == 0 \
+                                    and all_map_matrix[i][j - 1][0].name.split("_")[0] == 'line' \
+                                    or len(all_map_matrix[i][j + 1]) > 0 and len(self.matrix[i][j + 1]) == 0 \
+                                    and all_map_matrix[i][j + 1][0].name.split("_")[0] == 'line':
+                                for num in range(1, 4):
+                                    try:
+                                        _, _, part_matrix = parse_file(f'part_{self.ref_point_name}_{num}',
+                                                                       f'map_levels/parts_of_map/{self.ref_point_name}')
+                                        if len(part_matrix[i - 1][j]) > 0 and len(self.matrix[i - 1][j]) == 0 \
+                                                and part_matrix[i - 1][j][0].name.split("_")[0] == 'line' \
+                                                or len(part_matrix[i + 1][j]) > 0 and len(self.matrix[i + 1][j]) == 0 \
+                                                and part_matrix[i + 1][j][0].name.split("_")[0] == 'line' \
+                                                or len(part_matrix[i][j - 1]) > 0 and len(self.matrix[i][j - 1]) == 0 \
+                                                and part_matrix[i][j - 1][0].name.split("_")[0] == 'line' \
+                                                or len(part_matrix[i][j + 1]) > 0 and len(self.matrix[i][j + 1]) == 0 \
+                                                and part_matrix[i][j + 1][0].name.split("_")[0] == 'line':
+                                            for ix, linex in enumerate(part_matrix):
+                                                for jx, cellx in enumerate(linex):
+                                                    for _, rule_objectx in enumerate(cellx):
+                                                        self.matrix[ix][jx].append(rule_objectx)
+                                            self.first_iteration = True
+                                    except FileNotFoundError:
+                                        pass
+
+        if self.complete_levels[self.ref_point_name] == 10:
+            saves = map_saves()
+            saves['reference_point'] += 1
+            with open('./saves/map_saves', mode='w', encoding='utf-8') as file:
+                for param in saves:
+                    file.write(f'{param} {saves[param]}\n')
+            self.flag_to_win_animation = True
+        self.save()
+
+    def text_to_png(self, text):
+        if len(text) >= 32:
+            x_offset = 0
+        else:
+            x_offset = (32 - len(text)) // 2
+        text_in_objects = []
+
+        for letter in text:
+            if letter in settings.TEXT_ONLY:
+                img_letter = Object(x_offset, 6, 1, letter,
+                                    True, self.current_palette)
+                text_in_objects.append(img_letter)
+            x_offset += 1
+
+        return text_in_objects
+
+    def win_animation(self):
+        border_offsets = [(0 * settings.WINDOW_SCALE, 0 * settings.WINDOW_SCALE), (600 * settings.WINDOW_SCALE, 0),
+                          (1000 * settings.WINDOW_SCALE, 0),
+                          (1600 * settings.WINDOW_SCALE,
+                           0), (0, 900 * settings.WINDOW_SCALE),
+                          (300 * settings.WINDOW_SCALE,
+                           900 * settings.WINDOW_SCALE),
+                          (800 * settings.WINDOW_SCALE,
+                           900 * settings.WINDOW_SCALE),
+                          (1200 * settings.WINDOW_SCALE,
+                           900 * settings.WINDOW_SCALE),
+                          (0, 300 * settings.WINDOW_SCALE),
+                          (0, 600 * settings.WINDOW_SCALE),
+                          (1600 * settings.WINDOW_SCALE,
+                           100 * settings.WINDOW_SCALE),
+                          (1600 * settings.WINDOW_SCALE,
+                           500 * settings.WINDOW_SCALE),
+                          (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE)]
+        max_radius = 100 * settings.WINDOW_SCALE
+        for offset, radius in self.win_offsets:
+            pygame.draw.circle(self.screen, self.current_palette.pixels[3][6],
+                               offset, radius)
+        if self.win_offsets[0][1] < max_radius:
+            self.win_offsets[0][1] += 0.1 * (len(self.win_offsets))
+            for index in range(1, len(self.win_offsets), 2):
+                self.win_offsets[index][1] += 0.1 * \
+                    (len(self.win_offsets) - index)
+                self.win_offsets[index + 1][1] += 0.1 * \
+                    (len(self.win_offsets) - index)
+        if self.win_offsets[0][1] >= max_radius and not self.flag_to_delay:
+            self.flag_to_delay = True
+            self.delay = pygame.time.get_ticks()
+        if self.win_offsets[0][1] >= max_radius / 2:
+            text_surface = pygame.Surface(
+                (1600, 900), pygame.SRCALPHA, 32)
+            for character_object in self.text_to_png('area complete'):
+                character_object.draw(text_surface)
+            text_surface = pygame.transform.scale(
+                text_surface, (1600 * settings.WINDOW_SCALE, 900 * settings.WINDOW_SCALE))
+            text_surface = text_surface.convert_alpha()
+            self.screen.blit(text_surface, (0, 0))
+
+        if self.win_offsets[0][1] >= max_radius and pygame.time.get_ticks() - self.delay >= 1000:
+            for offset1 in border_offsets:
+                pygame.draw.circle(
+                    self.screen, self.current_palette.pixels[3][6], offset1, self.circle_radius)
+            self.circle_radius += 8 * settings.WINDOW_SCALE
+        if self.circle_radius >= 650 * settings.WINDOW_SCALE:
+            self._state = State(GameState.BACK)
 
     def animation_level(self):
         if self.flag_anime:
@@ -106,14 +266,25 @@ class ReferencePoint(GameStrategy):
                 neighbours[index] = self.matrix[x + offset[1]][y + offset[0]]
         return neighbours
 
+    def save(self):
+        string = f"{self.current_palette.name} {self.size[0]} {self.size[1]}\n"
+        string_state, counter = unparse_all(self.matrix)
+        if counter > 0:
+            string += string_state
+            with open(f"map_levels/{self.ref_point_name}"
+                      f".omegapog_map_file_type_MLG_1337_228_100500_69_420", 'w',
+                      encoding='utf-8') as file:
+                file.write(string)
+
     def level_name(self):
         for i, line in enumerate(self.matrix):
             for j, cell in enumerate(line):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
-                                self.matrix[i][j][1].name in self.cursor.levels:
-                            return self.matrix[i][j][1].name
+                                (self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels
+                                 or self.matrix[i][j][-2].name.split('_')[0] == 'teeth'):
+                            return self.matrix[i][j][-2].name.split('_')[0]
 
     def go_to_game(self):
         for i, line in enumerate(self.matrix):
@@ -121,10 +292,19 @@ class ReferencePoint(GameStrategy):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
-                                self.matrix[i][j][1].name in self.cursor.levels:
-                            self._state = State(GameState.SWITCH,
-                                                partial(PlayLevel, self.matrix[i][j][1].name.split("/")[0],
-                                                        self.ref_point_name))
+                                self.matrix[i][j][-2].name.split('_')[0] in [*self.cursor.levels, 'teeth']:
+                            if self.matrix[i][j][-2].name.split('_')[0] == 'teeth':
+                                self._state = State(GameState.BACK)
+                            elif len(self.matrix[i][j][-2].name.split('_')) == 1:
+                                self._state = State(GameState.SWITCH, partial(PlayLevel,
+                                                                              self.matrix[i][j][-2].name[0],
+                                                                              f"map_levels/{self.ref_point_name}",
+                                                                              False))
+                            else:
+                                self._state = State(GameState.SWITCH, partial(PlayLevel,
+                                                                              self.matrix[i][j][-2].name[0],
+                                                                              f"map_levels/{self.ref_point_name}",
+                                                                              True))
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int) -> Optional[State]:
         """Отрисовывает интерфейс загрузчика и обрабатывает все события
@@ -137,19 +317,23 @@ class ReferencePoint(GameStrategy):
         """
         map_surface = pygame.Surface((self.size[0] * 50, self.size[1] * 50))
         self._state = None
+        saves = map_saves()
+        if self.complete_levels[self.ref_point_name] != saves[self.ref_point_name]:
+            self.complete_levels[self.ref_point_name] = saves[self.ref_point_name]
+            self.check_levels()
         for event in events:
             if event.type == pygame.QUIT:
                 self._state = State(GameState.BACK)
+                self.save()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_ESCAPE:
                     self._state = State(GameState.BACK)
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self._state = State(GameState.BACK)
-                    if event.key == pygame.K_RETURN and self.level_name() in self.cursor.levels:
-                        self.delay = pygame.time.get_ticks()
+                    self.save()
+                if event.key == pygame.K_RETURN and self.level_name() in [*self.cursor.levels, 'teeth']:
+                    self.delay = pygame.time.get_ticks()
+                    if self.level_name() in self.cursor.levels:
                         self.set_pallete(self.level_name())
-                        self.flag_anime = True
+                    self.flag_anime = True
         if not self.flag_anime:
             self.cursor.check_events()
             needed_to_redraw_objects = self.cursor.turning_side != -1
@@ -186,6 +370,8 @@ class ReferencePoint(GameStrategy):
             self.animation_level()
         if self.first_iteration:
             self.first_iteration = False
+        if self.flag_to_win_animation:
+            self.win_animation()
 
         return self._state
 
