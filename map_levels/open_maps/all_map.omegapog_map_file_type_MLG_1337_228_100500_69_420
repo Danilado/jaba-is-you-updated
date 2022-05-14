@@ -1,20 +1,16 @@
 default 32 18
-10 1 1 road False
-10 1 1 blossom False
 15 1 1 square False
 15 1 1 9 False
 16 1 1 square False
 16 1 1 8 False
 17 1 1 square False
 17 1 1 10 False
-10 2 1 line False
-11 2 1 line False
-16 2 1 gate False
+16 2 1 line False
 20 2 1 road False
 20 2 2 moon False
 11 3 3 road False
 11 3 2 skull False
-12 3 1 gate False
+12 3 1 line False
 13 3 1 line False
 16 3 1 line False
 20 3 1 line False
@@ -50,7 +46,7 @@ default 32 18
 16 8 1 jelly False
 20 8 1 line False
 24 8 1 road False
-24 8 2 sprout False
+24 8 2 dot False
 16 9 1 line False
 20 9 1 line False
 11 10 1 square False

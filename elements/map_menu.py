@@ -37,6 +37,7 @@ class MapMenu(GameStrategy):
         self.flag_anime = False
         self.delay = 0
         self.scale = 1
+        self.is_6or7_complete = False
         self.count_gate = 0
         self.complete_levels = map_saves()
         self.size = (32, 18)
@@ -56,7 +57,7 @@ class MapMenu(GameStrategy):
                 break
 
     def save(self):
-        string = f"{self.current_palette.name} {self.size[0]} {self.size[1]}\n"
+        string = f"default {self.size[0]} {self.size[1]}\n"
         string_state, counter = unparse_all(self.matrix)
         if counter > 0:
             string += string_state
@@ -65,23 +66,40 @@ class MapMenu(GameStrategy):
                 file.write(string)
 
     def check_levels(self):
+        _, _, all_map_matrix = parse_file('all_map', 'map_levels/open_maps')
         for i, line in enumerate(self.matrix):
             for j, cell in enumerate(line):
                 for k, rule_object in enumerate(cell):
                     if k < len(cell) and j < 31:
                         if rule_object.name == 'cursor' and not rule_object.is_text:
-                            if len(self.matrix[i][j + 1]) >= 2 and self.matrix[i][j + 1][-2].name \
-                                    in self.cursor.levels:
-                                self.matrix[i][j + 1].pop()
-                            if len(self.matrix[i][j - 1]) >= 2 and self.matrix[i][j - 1][-2].name \
-                                    in self.cursor.levels:
-                                self.matrix[i][j - 1].pop()
-                            if len(self.matrix[i + 1][j]) >= 2 and self.matrix[i + 1][j][-2].name \
-                                    in self.cursor.levels:
-                                self.matrix[i + 1][j].pop()
-                            if len(self.matrix[i - 1][j]) >= 2 and self.matrix[i - 1][j][-2].name \
-                                    in self.cursor.levels:
-                                self.matrix[i - 1][j].pop()
+                            if len(all_map_matrix[i][j + 1]) >= 1 and all_map_matrix[i][j + 1][-1].name \
+                                    in self.cursor.levels and self.matrix[i][j + 1][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i][j + 1].append(Object(j + 1, i, 1,
+                                                                    all_map_matrix[i][j + 1][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i][j - 1]) >= 1 and all_map_matrix[i][j - 1][-1].name \
+                                    in self.cursor.levels and self.matrix[i][j - 1][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i][j - 1].append(Object(j - 1, i, 1,
+                                                                    all_map_matrix[i][j - 1][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i + 1][j]) >= 1 and all_map_matrix[i + 1][j][-1].name \
+                                    in self.cursor.levels and self.matrix[i + 1][j][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i + 1][j].append(Object(j, i + 1, 1,
+                                                                    all_map_matrix[i + 1][j][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
+                            if len(all_map_matrix[i - 1][j]) >= 1 and all_map_matrix[i - 1][j][-1].name \
+                                    in self.cursor.levels and self.matrix[i - 1][j][-1].name.split("_")[-1] == 'square':
+                                self.matrix[i - 1][j].append(Object(j, i - 1, 1,
+                                                                    all_map_matrix[i - 1][j][-1].name,
+                                                                    True,
+                                                                    palette=palette_manager.get_palette('default'),
+                                                                    level_size=(32, 18)))
                             if self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels:
                                 self.matrix[i][j].insert(-2, Object(j, i, 1,
                                                                     f'{self.matrix[i][j][-2].name.split("_")[0]}_n',
@@ -89,66 +107,72 @@ class MapMenu(GameStrategy):
                                                                     palette=palette_manager.get_palette('default'),
                                                                     level_size=(32, 18)))
                                 self.matrix[i][j].pop(-2)
+                            if self.matrix[i][j][-2].name.split('_')[0] == '6' \
+                                    or self.matrix[i][j][-2].name.split('_')[0] == '7':
+                                _, _, matrix = parse_file('part_map_2', 'map_levels/parts_of_map/map')
+                                for ix, linex in enumerate(matrix):
+                                    for jx, cellx in enumerate(linex):
+                                        for _, rule_objectx in enumerate(cellx):
+                                            self.matrix[ix][jx].append(rule_objectx)
+                                self.first_iteration = True
 
         if self.complete_levels['main'] == 1:
-            _, _, matrix = parse_file('part_map_1', 'map_levels')
+            _, _, matrix = parse_file('part_map_1', 'map_levels/parts_of_map/map')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
+                    for _, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
-
-        elif self.complete_levels['main'] == 8:
-            _, _, matrix = parse_file('part_map_2', 'map_levels')
-            for i, line in enumerate(matrix):
-                for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
-                        self.matrix[i][j].append(rule_object)
+            self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 1:
-            _, _, matrix = parse_file('part_map_3', 'map_levels')
+            _, _, matrix = parse_file('part_map_3', 'map_levels/parts_of_map/map')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
+                    for _, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
+            self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 2:
-            _, _, matrix = parse_file('part_map_4', 'map_levels')
+            _, _, matrix = parse_file('part_map_4', 'map_levels/parts_of_map/map')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
+                    for _, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
+            self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 3:
-            _, _, matrix = parse_file('part_map_5', 'map_levels')
+            _, _, matrix = parse_file('part_map_5', 'map_levels/parts_of_map/map')
             for i, line in enumerate(matrix):
                 for j, cell in enumerate(line):
-                    for k, rule_object in enumerate(cell):
+                    for _, rule_object in enumerate(cell):
                         self.matrix[i][j].append(rule_object)
+            self.first_iteration = True
 
         elif self.complete_levels['reference_point'] == 4:
             for i, line in enumerate(self.matrix):
                 for j, cell in enumerate(line):
                     for k, rule_object in enumerate(cell):
-                        if k < len(cell) and j < 31:
-                            if rule_object.name == 'gate' and not rule_object.is_text and self.count_gate == 0:
-                                self.matrix[i][j].pop()
-                                self.matrix[i][j].append(Object(i, j, 1, 'line', False,
-                                                                palette=palette_manager.get_palette('default'),
-                                                                level_size=(32, 18)))
-                                self.count_gate += 1
-                                break
+                        if rule_object.name == 'gate' and not rule_object.is_text and self.count_gate == 0:
+                            self.matrix[i][j].pop()
+                            self.matrix[i][j].append(Object(j, i, 1, 'line', False,
+                                                            palette=palette_manager.get_palette('default'),
+                                                            level_size=(32, 18)))
+                            self.count_gate += 1
+                            self.first_iteration = True
+                            break
 
         elif self.complete_levels['reference_point'] == 10:
             for i, line in enumerate(self.matrix):
                 for j, cell in enumerate(line):
                     for k, rule_object in enumerate(cell):
-                        if k < len(cell) and j < 31:
-                            if rule_object.name == 'gate' and not rule_object.is_text:
-                                self.matrix[i][j].pop()
-                                self.matrix[i][j].append(Object(i, j, 1, 'line', False,
-                                                                palette=palette_manager.get_palette('default'),
-                                                                level_size=(32, 18)))
-                                break
+                        if rule_object.name == 'gate' and not rule_object.is_text:
+                            self.matrix[i][j].pop()
+                            self.matrix[i][j].append(Object(j, i, 1, 'line', False,
+                                                            palette=palette_manager.get_palette('default'),
+                                                            level_size=(32, 18)))
+                            self.first_iteration = True
+                            break
+        self.save()
 
     def animation_level(self):
         if self.flag_anime:
@@ -198,12 +222,12 @@ class MapMenu(GameStrategy):
         neighbours = [None for _ in range(4)]
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == settings.RESOLUTION[1] // 50 * settings.WINDOW_SCALE - 1:
+        elif x == settings.RESOLUTION[1] // 50 - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == settings.RESOLUTION[0] // 50 * settings.WINDOW_SCALE - 1:
+        elif y == settings.RESOLUTION[0] // 50 - 1:
             neighbours[1] = [self.empty_object]
 
         for index, offset in enumerate(offsets):
