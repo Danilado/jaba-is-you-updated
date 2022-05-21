@@ -16,6 +16,7 @@ class ParticleMover:
     """
     Класс двигающий партиклы
     """
+
     def __init__(self, x_offset: Sequence[int], y_offset: Sequence[int], size: Sequence[int],
                  max_rotation: Sequence[int], wait_delay: float, duration: float, particle_sprite_name: str,
                  count: Optional[Sequence[int]] = None, sprite_colors: Optional[Sequence[COLOR]] = None):
@@ -77,8 +78,8 @@ class ParticleMover:
             self._rule_objects.add(rule_object)
         if color is not None:
             palette_pixel_position = sprite_manager.default_colors[color]
-            self.sprite_colors = list(self._level_processor.current_palette.pixels[
-                palette_pixel_position[1]][palette_pixel_position[0]])
+            self.sprite_colors = [self._level_processor.current_palette.pixels[
+                palette_pixel_position[1]][palette_pixel_position[0]]]
         if not self.started and not force_not_start:
             self.start()
 
@@ -146,6 +147,7 @@ class ParticleMover:
                     palette_pixel_position[0]]
             else:
                 color = choice(self.sprite_colors)
+            print('йух', color, self.sprite_colors)
             self._level_processor.particles.append(Particle(self.particle_sprite_name, ParticleStrategy(
                 (rule_object.xpx, rule_object.xpx + x_offset),
                 (rule_object.ypx, rule_object.ypx + y_offset),
