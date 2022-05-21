@@ -1,8 +1,7 @@
-from typing import List, Tuple, Union, Optional, Sequence, Dict
+from typing import List, Tuple, Dict
 
 import pygame
 
-from elements.global_classes import sprite_manager
 from global_types import SURFACE
 
 # Вот как мне не нравится всё это. ключ - задержка, значение - время
@@ -19,7 +18,7 @@ class Animation:
     :ivar synchronize: Синхронизировать с остальными анимациями, чтобы кадры менялись одновременно в всех анимациях.
     """
 
-    def __init__(self, sprites: Sequence[Optional[Union[pygame.surface.Surface, str]]], sprite_switch_delay: int,
+    def __init__(self, sprites: List[pygame.surface.Surface], sprite_switch_delay: int,
                  position: Tuple[int, int], synchronize: bool = True):
         """
         Инициализация анимации
@@ -34,12 +33,7 @@ class Animation:
         # if len(sprites) == 0:
         #     raise ValueError("Sprites are empty")
         self.position: Tuple[int, int] = position
-        self.sprites: List[pygame.surface.Surface] = []
-        for sprite in sprites:
-            if isinstance(sprite, str):
-                self.sprites.append(sprite_manager.get(sprite))
-            if isinstance(sprite, pygame.surface.Surface):
-                self.sprites.append(sprite)
+        self.sprites: List[pygame.surface.Surface] = sprites
         self.sprite_switch_delay: int = sprite_switch_delay
         self._current_sprites_index: int = 0
         self.synchronize = synchronize
@@ -99,13 +93,15 @@ class Animation:
         copy.current_sprites_index = self.current_sprites_index
         return copy
 
-    def update(self) -> None:
+    @property
+    def is_need_to_switch_frames(self) -> bool:
+        return pygame.time.get_ticks() - self._timer >= self.sprite_switch_delay
+
+    def update(self) -> bool:
         """
         Обновление :attr:`~.Animation.current_sprite`.
-
-        :return: Ничего
         """
-        if pygame.time.get_ticks() - self._timer >= self.sprite_switch_delay:
+        if self.is_need_to_switch_frames:
             if self.synchronize:
                 _sync[self.sprite_switch_delay] = pygame.time.get_ticks()
                 self._timer = _sync[self.sprite_switch_delay]
@@ -113,6 +109,8 @@ class Animation:
                 self._timer = pygame.time.get_ticks()
             self.current_sprites_index = (
                 self._current_sprites_index + 1) % len(self.sprites)
+            return True
+        return False
 
     def draw(self, screen: SURFACE) -> None:
         """

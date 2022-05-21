@@ -1,14 +1,15 @@
 import math
 from typing import Final, Tuple
 
-DEBUG: bool = True
+DEBUG: bool = False
 
-RESOLUTION: Final[Tuple[int, int]] = (1600, 900)  # 32x18
+RESOLUTION: Tuple[int, int] = (800, 450)  # 32x18
 SHOW_GRID: Final[bool] = False
 FRAMES_PER_SECOND: Final[int] = 60
+WINDOW_SCALE: float = 1
 
 TEXT_ONLY = [
-    '0', '1', '2', '3', '3d', '4', '5', '6', '7', '8', '9', 'a', 'ab', 'above',
+    '0', '1', '2', '3', '3d', '4', '5', '6', '7', '8', '9', '10',  'a', 'ab', 'above',
     'all', 'and', 'auto', 'b', 'ba', 'back', 'below', 'besideleft', 'besideright',
     'best', 'black', 'blue', 'bog', 'bonus', 'boom', 'broken', 'brown',
     'c', 'chill', 'cyan', 'd', 'defeat', 'deturn', 'done', 'down',
@@ -22,7 +23,7 @@ TEXT_ONLY = [
     'play', 'power', 'power2', 'power3', 'powered', 'powered2', 'powered3', 'pull',
     'purple', 'push', 'q', 'r', 'red', 'reverse', 'right', 'rosy', 's', 'sad', 'safe',
     'scary', 'seeing', 'seldom', 'sharp', 'shift', 'shut', 'silver', 'sink',
-    'sleep', 'still', 'stop', 'swap', 't', 'tele', 'turn', 'u', 'up', 'v', 'w', 'weak',
+    'sleep', 'still', 'stop', 'swap', 't', 'tele', 'text', 'turn', 'u', 'up', 'v', 'w', 'weak',
     'white', 'win', 'without', 'wonder', 'word', 'write', 'x', 'y', 'yellow', 'you', 'you2', 'z'
 ]
 
@@ -32,7 +33,7 @@ SPRITE_ONLY = [
 
 STICKY = [
     'lava', 'wall', 'cloud', 'brick', 'plank', 'rubble', 'hedge', 'cliff', 'grass', 'ice', 'line', 'road', 'track',
-    'water'
+    'water', 'pipe', 'fence'
 ]
 
 OBJECTS = [*TEXT_ONLY, 'algae', 'arrow', 'baba', 'badbad', 'banana', 'bat', 'bed', 'bee', 'belt',
@@ -81,15 +82,21 @@ NOUNS = [
 ]
 
 OPERATORS = [
-    'and', 'eat', 'facing', 'fear', 'follow', 'has', 'idle', 'is', 'lonely',
-    'make', 'mimic', 'near', 'never', 'not', 'on', 'operator', 'play',
-    'powered', 'seldom', 'sharp', 'without', 'write'
+    'on', 'facing', 'without', 'above', 'below', 'seeing', 'nextto', 'feeling', 'near', 'and', 'not',
+    'has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play', 'lonely', 'idle', 'powered', 'is'
 ]
+
+VERBS = ['has', 'make', 'write', 'fear', 'eat', 'follow', 'mimic', 'play']
+
+PREFIX = ['lonely', 'idle', 'powered', 'not']
+
+INFIX = ['on', 'facing', 'without', 'above',
+         'below', 'seeing', 'nextto', 'feeling', 'near']
 
 PROPERTIES = [
     '3d', 'auto', 'back', 'best', 'bonus', 'boom', 'broken', 'chill', 'crash', 'rosy', 'pink', 'red', 'orange',
     'yellow', 'lime', 'green', 'cyan', 'blue', 'purple', 'brown', 'black', 'black', 'black', 'grey', 'silver',
-    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right', 'end', 'fall', 'float', 'hide', 'hold', 'white',
+    'defeat', 'deturn', 'done', 'up', 'left', 'down', 'right', 'end', 'fall', 'float', 'hide', 'white',
     'lockeddown', 'lockedup', 'lockedleft', 'lockedright', 'melt', 'more', 'move', 'nudgeup', 'nudgeleft', 'hot',
     'nudgedown', 'nudgeright', 'open', 'shut', 'phantom', 'party', 'pet', 'power', 'pull', 'push', 'reverse',
     'sad', 'safe', 'scary', 'shift', 'sink', 'sleep', 'still', 'stop', 'swap', 'tele', 'turn', 'weak', 'win',

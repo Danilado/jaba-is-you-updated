@@ -1,0 +1,26 @@
+factory 15 8
+0 0 1 water True
+1 0 1 is True
+2 0 1 sink True
+6 0 3 frog True
+7 0 3 is False
+8 0 3 you False
+12 0 3 cog True
+13 0 3 is False
+14 0 3 push False
+6 3 1 water False
+7 3 1 water False
+8 3 3 water False
+13 3 3 cog False
+1 4 1 text True
+2 4 1 is True
+3 4 1 float True
+6 4 1 water False
+7 4 1 water False
+7 4 3 win False
+8 4 3 water False
+11 4 3 frog False
+6 5 1 water False
+7 5 1 water False
+8 5 3 water False
+12 5 3 cog False
