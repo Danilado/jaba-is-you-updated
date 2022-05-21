@@ -42,39 +42,28 @@ class MainMenu(GameStrategy):
         self._state = State(GameState.SWITCH, SettingsMenu)
 
     def draw(self, events: List[pygame.event.Event], delta_time_in_milliseconds: int):
+        centered_x = settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE)
+        centered_y = settings.RESOLUTION[1] // 2
         buttons = [
-            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 - int(
-                       120 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0,
-                                                     0), GuiSettings(), f"{language_words()[0]}",
+            Button(centered_x,
+                   centered_y - int(60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[0]}",
                    self._start_the_game),
-            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 - int(
-                       60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[1]}"),
-            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE), settings.RESOLUTION[1] // 2,
-                   int(400 * settings.WINDOW_SCALE), int(50 *
-                                                         settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
+            Button(centered_x, centered_y,
+                   int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
                    f"{language_words()[2]}", self._go_to_editor),
-            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 + int(
-                       60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0,
-                                                     0), GuiSettings(), f"{language_words()[3]}",
+            Button(centered_x,
+                   centered_y + int(60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[3]}",
                    self._go_to_loader),
-            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 + int(
-                       120 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0,
-                                                     0), GuiSettings(), f"{language_words()[4]}",
+            Button(centered_x,
+                   centered_y + int(120 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[4]}",
                    self._go_to_options),
-            Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
-                   settings.RESOLUTION[1] // 2 + int(
-                       180 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0,
-                                                     0), GuiSettings(), f"{language_words()[5]}",
-                   self._exit_the_game),
+            Button(centered_x,
+                   centered_y + int(180 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[5]}",
+                   self._exit_the_game)
         ]
         self._state = None
 

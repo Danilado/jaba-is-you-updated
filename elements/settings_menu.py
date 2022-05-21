@@ -33,8 +33,8 @@ class SettingsMenu(GameStrategy):
                              settings.RESOLUTION[1] // 2 -
                              300 * settings.WINDOW_SCALE,
                              400 * settings.WINDOW_SCALE, 6 *
-                             settings.WINDOW_SCALE, (50, 10, 250),
-                             self.circle_music, 5, (250, 100, 250), self.set_music_volume)
+                             settings.WINDOW_SCALE, (255, 255, 255),
+                             self.circle_music, 5, (80, 80, 80), self.set_music_volume)
         self.buttons = [
             Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
