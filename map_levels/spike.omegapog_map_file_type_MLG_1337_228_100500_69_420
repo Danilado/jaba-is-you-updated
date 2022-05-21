@@ -50,13 +50,12 @@ factory 32 18
 7 10 0 robot False
 9 10 1 tile False
 9 10 1 teeth False
+9 10 1 cursor False
 10 10 1 line False
 11 10 1 line False
 12 10 1 square False
-12 10 1 1_n True
+12 10 2 1 False
 13 10 1 square False
-13 10 1 2 True
-13 10 1 cursor False
 14 10 1 square False
 21 10 2 grass False
 24 10 2 water False
