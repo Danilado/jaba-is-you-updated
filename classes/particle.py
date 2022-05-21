@@ -120,11 +120,8 @@ class Particle:
 
     def _get_sprites(self):
         path = os.path.join('./', 'sprites', self.sprite_name)
-        try:
-            states = [sprite_manager.get(os.path.join(
-                path, name), color=self.color) for name in os.listdir(path)]
-        except:
-            print('хуй', self.color)
+        states = [sprite_manager.get(os.path.join(
+            path, name), color=self.color) for name in os.listdir(path)]
         return states
 
     def update(self):

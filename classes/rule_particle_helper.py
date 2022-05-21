@@ -75,6 +75,7 @@ class ParticleMover:
                 have_rule_object = True
                 break
         if not have_rule_object:
+            self._rule_objects.clear()
             self._rule_objects.add(rule_object)
         if color is not None:
             palette_pixel_position = sprite_manager.default_colors[color]
@@ -147,7 +148,6 @@ class ParticleMover:
                     palette_pixel_position[0]]
             else:
                 color = choice(self.sprite_colors)
-            print('йух', color, self.sprite_colors)
             self._level_processor.particles.append(Particle(self.particle_sprite_name, ParticleStrategy(
                 (rule_object.xpx, rule_object.xpx + x_offset),
                 (rule_object.ypx, rule_object.ypx + y_offset),
