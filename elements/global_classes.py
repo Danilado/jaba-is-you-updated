@@ -48,6 +48,7 @@ class EuiSettings(AbstractButtonSettings):
 @dataclass
 class IuiSettings(AbstractButtonSettings):
     text_size: int = 20
+    text_color: "COLOR" = (255, 255, 255)
     button_color: "COLOR" = (0, 0, 0)
     button_color_hover: "COLOR" = (20, 20, 20)
 
