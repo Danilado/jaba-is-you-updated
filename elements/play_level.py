@@ -1044,6 +1044,7 @@ class PlayLevel(GameStrategy):
             if count_3d_obj != 0:
                 self.num_obj_3d %= self.count_3d_obj
         else:
+            rules.processor.on_every_frame()
             level_surface = pygame.Surface(
                 (self.size[0] * 50, self.size[1] * 50))
             level_surface.fill(self.current_palette.pixels[4][6])
