@@ -70,7 +70,7 @@ class Button:
             lines = self.text.split('\n')
             text_height = 0
             for index, line in enumerate(lines):
-                render_line = font.render(line, True, (255, 255, 255))
+                render_line = font.render(line, True, self.settings.text_color)
                 text_height += render_line.get_height()
                 screen.blit(
                     render_line,
