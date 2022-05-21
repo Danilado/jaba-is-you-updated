@@ -29,6 +29,7 @@ class ReferencePoint(GameStrategy):
         self.ref_point_name = name
         self._state: Optional[State] = None
         self.first_iteration = True
+        self.level_palette = palette_manager.get_palette('default')
         self.parse_file(name, 'map_levels')
         self.empty_object = Object(-1, -1, 0, 'empty', False)
         self.radius = 0
@@ -231,7 +232,7 @@ class ReferencePoint(GameStrategy):
         :param level_name: Название уровня в папке
         :raises OSError: Если какая либо проблема с открытием файла.
         """
-        palette, self.size, self.matrix = parse_file(level_name, path_to_file)
+        self.level_palette, self.size, self.matrix = parse_file(level_name, path_to_file)
 
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -267,7 +268,7 @@ class ReferencePoint(GameStrategy):
         return neighbours
 
     def save(self):
-        string = f"{self.current_palette.name} {self.size[0]} {self.size[1]}\n"
+        string = f"{self.level_palette.name} {self.size[0]} {self.size[1]}\n"
         string_state, counter = unparse_all(self.matrix)
         if counter > 0:
             string += string_state
