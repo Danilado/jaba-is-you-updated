@@ -32,11 +32,11 @@ ocean 32 18
 3 4 3 hedge False
 8 4 1 tile False
 8 4 1 teeth False
+8 4 1 cursor False
 9 4 1 line False
 10 4 1 line False
 11 4 1 square False
 11 4 1 1 True
-11 4 1 cursor False
 12 4 1 square False
 20 4 3 pillar False
 21 4 3 brick False
