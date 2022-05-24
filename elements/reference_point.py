@@ -254,12 +254,12 @@ class ReferencePoint(GameStrategy):
         neighbours = [None for _ in range(4)]
         if x == 0:
             neighbours[0] = [self.empty_object]
-        elif x == settings.RESOLUTION[1] // 50 * settings.WINDOW_SCALE - 1:
+        elif x == self.size[1] - 1:
             neighbours[2] = [self.empty_object]
 
         if y == 0:
             neighbours[3] = [self.empty_object]
-        elif y == settings.RESOLUTION[0] // 50 * settings.WINDOW_SCALE - 1:
+        elif y == self.size[0] - 1:
             neighbours[1] = [self.empty_object]
 
         for index, offset in enumerate(offsets):
