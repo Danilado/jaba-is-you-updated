@@ -145,3 +145,5 @@ class MoveCursor:
     def check_events(self):
         """Метод обработки событий"""
         self.turning_side = get_pressed_direction()
+
+"UMGxRymcSuW3nMiPOn5jXwvao8ROHsrDDXBbqQcp4HrbbZtANybMUOu8H7z4I8KJp1JT2s1XluRN6MIymLzrX7w6J63E19RXQX6GXk3iqqyDtMHzL1BhmPtAQKgmCaxrogs05"
