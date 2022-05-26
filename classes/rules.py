@@ -81,12 +81,18 @@ class Is3d:
     @staticmethod
     def apply(matrix: List[List[List[Object]]], rule_object: Object, events, level_rules,
               level_processor: "PlayLevel", num_obj_3d, *_, **__):
-        if rule_object.num_3d == num_obj_3d:
-            rule_object.check_events(events, 1)
-            if events[0].key == pygame.K_s:
-                num_obj_3d += 1
-            level_processor.num_obj_3d = num_obj_3d
-            rule_object.move(matrix, level_rules, level_processor)
+        try:
+            if rule_object.num_3d == num_obj_3d:
+                rule_object.check_events(events, 1)
+                try:
+                    if events[0].key == pygame.K_s:
+                        num_obj_3d += 1
+                except AttributeError:
+                    pass
+                level_processor.num_obj_3d = num_obj_3d
+                rule_object.move(matrix, level_rules, level_processor)
+        except IndexError:
+            pass
 
 
 class Chill:
