@@ -2,6 +2,7 @@ import math
 
 import pygame
 
+import settings
 from settings import TILE, HALF_FOV, RESOLUTION, NUM_RAYS, PROJ_COEFF, TEXTURE_SCALE, SCALE, HALF_HEIGHT, DELTA_ANGLE
 
 
@@ -61,8 +62,8 @@ def raycasting(screen, player_pos, player_angle, matrix):
                 wall_column = texture.subsurface(
                     (TILE - offset - 1) * TEXTURE_SCALE, 0, TEXTURE_SCALE, 50)
                 wall_column = pygame.transform.scale(
-                    wall_column, (SCALE, proj_height))
-                screen.blit(wall_column, (ray * SCALE,
-                            HALF_HEIGHT - proj_height // 2))
+                    wall_column, (SCALE * settings.WINDOW_SCALE, proj_height * settings.WINDOW_SCALE))
+                screen.blit(wall_column, (ray * SCALE * settings.WINDOW_SCALE,
+                            (HALF_HEIGHT - proj_height // 2) * settings.WINDOW_SCALE))
 
             cur_angle += DELTA_ANGLE

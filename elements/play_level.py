@@ -1025,8 +1025,8 @@ class PlayLevel(GameStrategy):
                     if game_object.is_3d:
                         level_3d = True
                         if game_object.num_3d == self.num_obj_3d:
-                            raycasting(self.screen, (game_object.xpx + int(50 // 2 * settings.WINDOW_SCALE),
-                                                     game_object.ypx + int(50 // 2 * settings.WINDOW_SCALE)),
+                            raycasting(self.screen, (game_object.xpx + int(50 // 2),
+                                                     game_object.ypx + int(50 // 2)),
                                        game_object.angle_3d / 180 * math.pi, self.matrix)
                         count_3d_obj += 1
 
