@@ -26,7 +26,7 @@ class PaletteChoose(GameStrategy):
             f"{self.lang_words[19]}:", True, (255, 255, 255))
         super().__init__(screen)
 
-    def _process_palette(self, x_pixel_offset=0, y_pixel_offset=0) -> Optional[Palette]:
+    def _process_palette(self, x_pixel_offset=0, y_pixel_offset=0, events: List[pygame.event.Event] = None) -> Optional[Palette]:
         """
         Отрисовка и обработка палитр
 
@@ -54,8 +54,9 @@ class PaletteChoose(GameStrategy):
                 color_mask.fill("lightgray")
                 palette_surface.blit(color_mask, (0, 0),
                                      special_flags=pygame.BLEND_MULT)
-                if pygame.mouse.get_pressed()[0]:
-                    return palette
+                for event in events:
+                    if event.type == pygame.MOUSEBUTTONDOWN:
+                        return palette
             self.screen.blit(palette_surface, (x_pixel_offset, y_pixel_offset))
 
             x_pixel_offset += length_of_palette_pixels_abscissa * \
@@ -76,7 +77,7 @@ class PaletteChoose(GameStrategy):
 
         self.screen.blit(self._choose_palette_text, (0, 0))
         palette = self._process_palette(
-            0, self._choose_palette_text.get_height())
+            0, self._choose_palette_text.get_height(), events)
         pygame.display.flip()
 
         if palette is not None:
