@@ -1,21 +1,20 @@
-from typing import List, Optional
 from functools import partial
+from typing import List, Optional
 
 import pygame
+
 import settings
-from elements.editor import unparse_all
-from elements.global_classes import sound_manager, palette_manager
-from elements.loader_util import parse_file
-from elements.play_level import PlayLevel
-
-from settings import STICKY
-from global_types import SURFACE
-
 from classes.cursor import MoveCursor
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
+from elements.editor import unparse_all
+from elements.global_classes import sound_manager, palette_manager
+from elements.loader_util import parse_file
+from elements.play_level import PlayLevel
+from global_types import SURFACE
+from settings import STICKY
 from utils import map_saves
 
 
@@ -285,7 +284,7 @@ class ReferencePoint(GameStrategy):
                         if rule_object.name == 'cursor' and not rule_object.is_text and \
                                 (self.matrix[i][j][-2].name.split('_')[0] in self.cursor.levels
                                  or self.matrix[i][j][-2].name.split('_')[0] == 'teeth'):
-                            return self.matrix[i][j][-2].name.split('_')[0]
+                            return self.matrix[i][j][-2].name.split('_')[0], i, j
 
     def go_to_game(self):
         for i, line in enumerate(self.matrix):
@@ -330,10 +329,20 @@ class ReferencePoint(GameStrategy):
                 if event.key == pygame.K_ESCAPE:
                     self._state = State(GameState.BACK)
                     self.save()
-                if event.key == pygame.K_RETURN and self.level_name() in [*self.cursor.levels, 'teeth']:
+                level_name = self.level_name()
+                if event.key == pygame.K_RETURN and level_name is not None and \
+                        level_name[0] in [*self.cursor.levels, 'teeth']:
                     self.delay = pygame.time.get_ticks()
-                    if self.level_name() in self.cursor.levels:
-                        self.set_pallete(self.level_name())
+                    if level_name[0] in self.cursor.levels:
+                        try:
+                            self.set_pallete(level_name[0])
+                        except FileNotFoundError:
+                            level_cell = self.matrix[level_name[1]][level_name[2]]
+                            object_list = [i for i in level_cell if i.name.isdigit()]
+                            assert len(object_list) == 1
+                            level_object = object_list[0]
+                            level_object.name = "error"
+                            level_object.animation = level_object.animation_init()
                     self.flag_anime = True
         if not self.flag_anime:
             self.cursor.check_events()
