@@ -380,7 +380,7 @@ class Object:
         :rtype: int
         """
         for i in range(len(matrix[self.y][self.x])):
-            if matrix[self.y][self.x][i].name == self.name:
+            if matrix[self.y][self.x][i].name == self.name and self.text == matrix[self.y][self.x][i].text:
                 return i
         return -1
 
