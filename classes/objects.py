@@ -1004,7 +1004,6 @@ class Object:
 
     def motion(self, delta_x, delta_y, matrix, level_rules, status=None) -> bool:
         """Осуществляет движение объектаd
-
         :param delta_x: Сдвиг объекта по оси x
         :type delta_x: int
         :param delta_y: Сдвиг объекта по оси y
