@@ -30,7 +30,7 @@ class MapMenu(GameStrategy):
         self._state: Optional[State] = None
         self.first_iteration = True
         self.current_palette = palette_manager.get_palette('default')
-        if settings.DEBUG:
+        if settings.FREEMAP:
             self.parse_file('all_map', 'map_levels/open_maps')
         else:
             self.parse_file('map', 'map_levels')

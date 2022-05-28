@@ -2,6 +2,7 @@ import math
 from typing import Final, Tuple
 
 DEBUG: bool = False
+FREEMAP: bool = False
 
 RESOLUTION: Tuple[int, int] = (1600, 900)  # 32x18
 SHOW_GRID: Final[bool] = False
