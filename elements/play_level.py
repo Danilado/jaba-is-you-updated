@@ -510,6 +510,13 @@ class PlayLevel(GameStrategy):
 
     @staticmethod
     def copy_matrix(matrix: List[List[List[Object]]]) -> List[List[List[Object]]]:
+        """
+        .. warning::
+            Избегать при любых обстоятельствах. copy is slow. slow is bad. Функция крайне дорогая по производительности.
+
+        :param matrix: Матрица которую надо скопировать
+        :return: Та же матрица в другом блоке памяти
+        """
         copy_matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
 
@@ -972,6 +979,7 @@ class PlayLevel(GameStrategy):
         if self.status_cancel:
             new_time = pygame.time.get_ticks()
             if new_time > self.delta_cancel + 200:
+                # Тормозит при большом количестве объектов в матрице. TODO: Need optimization, algorithm is slow
                 is_history_of_matrix_empty = len(self.history_of_matrix) > 0
                 if is_history_of_matrix_empty:
                     self.matrix = self.copy_matrix(self.history_of_matrix[-1])
