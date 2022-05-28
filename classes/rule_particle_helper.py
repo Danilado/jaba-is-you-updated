@@ -1,4 +1,4 @@
-import threading
+import time
 from random import choice
 from typing import Optional, TYPE_CHECKING, Sequence, Set, List, Callable
 
@@ -16,9 +16,10 @@ class ParticleMover:
     """
     Класс двигающий партиклы
     """
+
     def __init__(self, x_offset: Sequence[int], y_offset: Sequence[int], size: Sequence[int],
-                 max_rotation: Sequence[int], wait_delay: float, duration: float,
-                 count: Optional[Sequence[int]] = None):
+                 max_rotation: Sequence[int], wait_delay: float, duration: float, particle_sprite_name: str,
+                 count: Optional[Sequence[int]] = None, sprite_colors: Optional[Sequence[COLOR]] = None):
         """
         Конструктор класса
 
@@ -26,37 +27,43 @@ class ParticleMover:
         :param y_offset: Диапазон чисел в котором случайно будет выбираться отступ для партикла по оси y
         :param size: Диапазон чисел в котором случайно будет выбираться размер для партикла
         :param max_rotation: Диапазон чисел в котором случайно будет выбираться градус поворота в конце анимации
-        :param wait_delay: Число, обозначающее задержку между созданием партиклов
+        :param wait_delay:
+            Число, обозначающее задержку между созданием партиклов, отрицательное если всегда вызывается вручную
         :param duration: Длительность партикла
         :param count: Диапазон чисел в котором случайно будет выбираться количество частиц за раз
+        :param particle_sprite_name: Название спрайта для партикла
         """
+        # Настройки частиц
         self.count = count if count is not None else range(1, 4)
         self.wait_delay: float = wait_delay
         self.duration: float = duration
-        self._stop_event = threading.Event()
         self.x_offset = x_offset
         self.y_offset = y_offset
         self.size = size
         self.max_rotation = max_rotation
+        self.particle_sprite_name = particle_sprite_name
+        self.sprite_colors: Optional[Sequence[COLOR]] = sprite_colors
+        # Ужасная подноготная TODO: которую желательно сделать отдельным классом
         self._level_processor: Optional["PlayLevel"] = None
         self._rule_objects: Set[Object] = set()
-        self._thread: Optional[threading.Thread] = None
-        self._force_sprite_color: Optional[COLOR] = None
+        self._timer: Optional[float] = None
 
     def for_rule_objects(self, func: Callable):
         for rule in self._rule_objects:
             func(rule)
 
-    def update_on_apply(self, level_processor: "PlayLevel", rule_object: Object, color: str,
-                        particle_sprite_name: str = ""):
+    def update_on_apply(self, level_processor: "PlayLevel", rule_object: Object, color: Optional[str] = None,
+                        force_not_start: bool = False):
         """
-        Инкапсуляция :attr:`~.RuleObjectParticleHelper.rule_object` и :attr:`~.RuleObjectParticleHelper.level_processor`
+        Инкапсуляция :attr:`~.ParticleMover.rule_object` и :attr:`~.ParticleMover.level_processor`
         То есть устанавливает их.
 
+        :param force_not_start:
+            Костыль. Если True, не вызывает :meth:`~.ParticleMover.start`.
+            Ставьте True, только если вы осознаёте что вы делаете.
         :param level_processor: Обработчик уровня
         :param rule_object: Объект к которому применяются партиклы
         :param color: Объект из которого необходимо брать цвет
-        :param particle_sprite_name: Название спрайта для партикла
         :return: Ничего
         """
         if level_processor != self._level_processor:
@@ -68,14 +75,16 @@ class ParticleMover:
                 have_rule_object = True
                 break
         if not have_rule_object:
+            self._rule_objects.clear()
             self._rule_objects.add(rule_object)
-        palette_pixel_position = sprite_manager.default_colors[color]
-        self._force_sprite_color = self._level_processor.current_palette.pixels[
-            palette_pixel_position[1]][palette_pixel_position[0]]
-        if not self.started:
-            self.start(particle_sprite_name)
+        if color is not None:
+            palette_pixel_position = sprite_manager.default_colors[color]
+            self.sprite_colors = [self._level_processor.current_palette.pixels[
+                palette_pixel_position[1]][palette_pixel_position[0]]]
+        if not self.started and not force_not_start:
+            self.start()
 
-    def update_on_rules_changed(self, new_rules: List[TextRule], rule_name: str):
+    def update_on_rules_changed(self, new_rules: List[TextRule], rule_name: str, force_not_start: bool = False):
         need_to_stop = True
         for rule in new_rules:
             rule_end = f' is {rule_name}'
@@ -89,29 +98,23 @@ class ParticleMover:
 
     def stop(self):
         """
-        Посылает запрос на остановку потока(изменения частицы)
+        Посылает запрос на остановку изменения частиц
 
-        :raises RuntimeError: Если что-то пошло не так, например поток уже остановлен или не запущен
-        :raises ChildProcessError: Если поток не может(или не хочет) остановиться за 5 секунд.
         :return: Ничего
         """
         if not self.started:
-            raise RuntimeError("Thread already stopped or didn't started")
-        self._stop_event.set()
-        self._thread.join(5)
-        if self._thread.is_alive():
-            raise ChildProcessError("Can't join thread. Thread is dead or frozen")
+            return
+        self._timer = None
         self._rule_objects.clear()
 
-    def start(self, particle_sprite_name: str = ""):
+    def start(self):
         """
-        Запускает поток
+        Запускает изменение частиц
         :return: Ничего
         """
-        thread = threading.Thread(target=self._thread_work, args=(particle_sprite_name,), daemon=True)
-        self._stop_event.clear()
-        thread.start()
-        self._thread = thread
+        if self.started:
+            return
+        self._timer = time.time()
 
     @property
     def started(self) -> bool:
@@ -120,12 +123,16 @@ class ParticleMover:
 
         .. setter:
             Нету.
-            Используйте :meth:`~.RuleObjectParticleHelper.start` для запуска
-            или :meth:`~.RuleObjectParticleHelper.stop` для остановки
+            Используйте :meth:`~.ParticleMover.start` для запуска
+            или :meth:`~.ParticleMover.stop` для остановки
         """
-        return self._thread.is_alive() if self._thread is not None else False
+        return self._timer is not None
 
-    def _thread_work_one_particle(self, rule_object: Object, particle_sprite_name: str):
+    @property
+    def rule_objects(self) -> Set[Object]:
+        return self._rule_objects
+
+    def _work_one_particle(self, rule_object: Object):
         if self._level_processor is None:
             raise RuntimeError("self._level_processor is not initialized")
         for _ in range(choice(self.count)):
@@ -134,14 +141,14 @@ class ParticleMover:
             size = choice(self.size)
             max_rotation = choice(self.max_rotation)
             color: COLOR
-            if self._force_sprite_color is None:
+            if self.sprite_colors is None:
                 palette_pixel_position = sprite_manager.default_colors[rule_object.name]
                 color = self._level_processor.current_palette.pixels[
                     palette_pixel_position[1]][
                     palette_pixel_position[0]]
             else:
-                color = self._force_sprite_color
-            self._level_processor.particles.append(Particle(particle_sprite_name, ParticleStrategy(
+                color = choice(self.sprite_colors)
+            self._level_processor.particles.append(Particle(self.particle_sprite_name, ParticleStrategy(
                 (rule_object.xpx, rule_object.xpx + x_offset),
                 (rule_object.ypx, rule_object.ypx + y_offset),
                 (size, size),
@@ -150,16 +157,9 @@ class ParticleMover:
                 randomize_start_values=True
             ), color))
 
-    def _thread_work(self, particle_sprite_name: str):
-        while not self._stop_event.is_set():
-
-            rule_objects = self._rule_objects.copy()
-            # Нужно чтобы если другой поток поменял _rule_objects цикл не вылетел
-
-            for rule_object in rule_objects:
-                self._thread_work_one_particle(rule_object, particle_sprite_name)
-            self._stop_event.wait(self.wait_delay)
-
-    def __del__(self):
-        if self.started:
-            self.stop()
+    def every_frame(self, force_draw: bool = False):
+        if not force_draw and (self._timer is None or self.wait_delay < 0 or (time.time() - self._timer) < self.wait_delay):
+            return
+        for rule_object in self._rule_objects:
+            self._work_one_particle(rule_object)
+        self._timer = time.time()

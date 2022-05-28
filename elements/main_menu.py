@@ -90,4 +90,5 @@ class MainMenu(GameStrategy):
             pygame.mixer.music.play()
         pygame.event.set_allowed(
             [pygame.QUIT, pygame.KEYDOWN, pygame.MOUSEBUTTONUP])
-        print("QUIT, KEYDOWN, MOUSEBUTTONUP")
+        if settings.DEBUG:
+            print("QUIT, KEYDOWN, MOUSEBUTTONUP")

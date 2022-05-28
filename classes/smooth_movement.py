@@ -2,6 +2,7 @@ import sys
 import time
 import traceback
 from typing import Optional, Tuple
+from settings import DEBUG
 
 from utils import map_value
 
@@ -14,8 +15,9 @@ class SmoothMove:
     def __init__(self, start_x_pixel: int, start_y_pixel: int, x_pixel_delta: int, y_pixel_delta: int,
                  duration_seconds: float, start_time: Optional[float] = None):
         if x_pixel_delta == y_pixel_delta and y_pixel_delta == duration_seconds and duration_seconds == 0:
-            print("ERROR: Possible division by zero!!!!", file=sys.stderr)
-            traceback.print_exc()
+            if DEBUG:
+                print("ERROR: Possible division by zero!!!!", file=sys.stderr)
+                traceback.print_exc()
         self.start_x_pixel: int = start_x_pixel
         self.start_y_pixel: int = start_y_pixel
         self.x_pixel_delta: int = x_pixel_delta

@@ -18,7 +18,7 @@ from classes.text_rule import TextRule
 from elements.global_classes import sound_manager
 from elements.loader_util import parse_file
 from global_types import SURFACE
-from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
+from settings import DEBUG, NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
 from utils import my_deepcopy, settings_saves, map_saves
 
 
@@ -151,7 +151,8 @@ class PlayLevel(GameStrategy):
         self.current_palette, self.size, self.start_matrix = parse_file(
             level_name, path_to_level)
         self.matrix = my_deepcopy(self.start_matrix)
-        print(self.size)
+        if DEBUG:
+            print(self.size)
 
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева
@@ -509,6 +510,13 @@ class PlayLevel(GameStrategy):
 
     @staticmethod
     def copy_matrix(matrix: List[List[List[Object]]]) -> List[List[List[Object]]]:
+        """
+        .. warning::
+            Избегать при любых обстоятельствах. copy is slow. slow is bad. Функция крайне дорогая по производительности.
+
+        :param matrix: Матрица которую надо скопировать
+        :return: Та же матрица в другом блоке памяти
+        """
         copy_matrix: List[List[List[Object]]] = [
             [[] for _ in range(32)] for _ in range(18)]
 
@@ -971,6 +979,7 @@ class PlayLevel(GameStrategy):
         if self.status_cancel:
             new_time = pygame.time.get_ticks()
             if new_time > self.delta_cancel + 200:
+                # Тормозит при большом количестве объектов в матрице. TODO: Need optimization, algorithm is slow
                 is_history_of_matrix_empty = len(self.history_of_matrix) > 0
                 if is_history_of_matrix_empty:
                     self.matrix = self.copy_matrix(self.history_of_matrix[-1])
@@ -1025,8 +1034,8 @@ class PlayLevel(GameStrategy):
                     if game_object.is_3d:
                         level_3d = True
                         if game_object.num_3d == self.num_obj_3d:
-                            raycasting(self.screen, (game_object.xpx + int(50 // 2 * settings.WINDOW_SCALE),
-                                                     game_object.ypx + int(50 // 2 * settings.WINDOW_SCALE)),
+                            raycasting(self.screen, (game_object.xpx + int(50 // 2),
+                                                     game_object.ypx + int(50 // 2)),
                                        game_object.angle_3d / 180 * math.pi, self.matrix)
                         count_3d_obj += 1
 
@@ -1044,6 +1053,7 @@ class PlayLevel(GameStrategy):
             if count_3d_obj != 0:
                 self.num_obj_3d %= self.count_3d_obj
         else:
+            rules.processor.on_every_frame()
             level_surface = pygame.Surface(
                 (self.size[0] * 50, self.size[1] * 50))
             level_surface.fill(self.current_palette.pixels[4][6])

@@ -2,8 +2,9 @@ import math
 from typing import Final, Tuple
 
 DEBUG: bool = False
+FREEMAP: bool = False
 
-RESOLUTION: Tuple[int, int] = (800, 450)  # 32x18
+RESOLUTION: Tuple[int, int] = (1600, 900)  # 32x18
 SHOW_GRID: Final[bool] = False
 FRAMES_PER_SECOND: Final[int] = 60
 WINDOW_SCALE: float = 1

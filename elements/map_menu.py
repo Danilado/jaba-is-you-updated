@@ -1,24 +1,23 @@
 import os
-from typing import List, Optional
 from functools import partial
+from typing import List, Optional
 
 import pygame
+
 import settings
 from classes.animation import Animation
-from elements.global_classes import sound_manager, palette_manager, sprite_manager
-from elements.loader_util import parse_file
-from elements.play_level import PlayLevel
-from elements.editor import unparse_all
-from elements.reference_point import ReferencePoint
-
-from settings import STICKY
-from global_types import SURFACE
-
 from classes.cursor import MoveCursor
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.objects import Object
 from classes.state import State
+from elements.editor import unparse_all
+from elements.global_classes import sound_manager, palette_manager, sprite_manager
+from elements.loader_util import parse_file
+from elements.play_level import PlayLevel
+from elements.reference_point import ReferencePoint
+from global_types import SURFACE
+from settings import STICKY
 from utils import map_saves
 
 
@@ -31,7 +30,10 @@ class MapMenu(GameStrategy):
         self._state: Optional[State] = None
         self.first_iteration = True
         self.current_palette = palette_manager.get_palette('default')
-        self.parse_file('map', 'map_levels')
+        if settings.FREEMAP:
+            self.parse_file('all_map', 'map_levels/open_maps')
+        else:
+            self.parse_file('map', 'map_levels')
         self.empty_object = Object(-1, -1, 0, 'empty', False)
         self.radius = 0
         self.flag_anime = False

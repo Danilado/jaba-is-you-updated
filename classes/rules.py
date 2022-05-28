@@ -10,9 +10,11 @@ from classes.rule_particle_helper import ParticleMover
 from classes.sprite_manager import SpriteManager
 from classes.text_rule import TextRule
 from elements.global_classes import sprite_manager
+from settings import DEBUG
 
 if TYPE_CHECKING:
     from elements.play_level import PlayLevel
+
 
 class Broken:
     @staticmethod
@@ -81,12 +83,18 @@ class Is3d:
     @staticmethod
     def apply(matrix: List[List[List[Object]]], rule_object: Object, events, level_rules,
               level_processor: "PlayLevel", num_obj_3d, *_, **__):
-        if rule_object.num_3d == num_obj_3d:
-            rule_object.check_events(events, 1)
-            if events[0].key == pygame.K_s:
-                num_obj_3d += 1
-            level_processor.num_obj_3d = num_obj_3d
-            rule_object.move(matrix, level_rules, level_processor)
+        try:
+            if rule_object.num_3d == num_obj_3d:
+                rule_object.check_events(events, 1)
+                try:
+                    if events[0].key == pygame.K_s:
+                        num_obj_3d += 1
+                except AttributeError:
+                    pass
+                level_processor.num_obj_3d = num_obj_3d
+                rule_object.move(matrix, level_rules, level_processor)
+        except IndexError:
+            pass
 
 
 class Chill:
@@ -247,12 +255,13 @@ class Win:
             size=range(10, 41),
             max_rotation=range(0, 360),
             wait_delay=1.5,
-            duration=0.5
+            duration=0.5,
+            particle_sprite_name="plus"
         )
 
     def apply(self, matrix: List[List[List[Object]]], rule_object: Object, level_rules,
               level_processor: "PlayLevel", *_, **__):
-        self.particle_helper.update_on_apply(level_processor, rule_object, "text/win", "plus")
+        self.particle_helper.update_on_apply(level_processor, rule_object, "text/win")
         for level_object in matrix[rule_object.y][rule_object.x]:
             rule_object.level_processor = level_processor
             level_object.level_processor = level_processor
@@ -513,11 +522,12 @@ class Sad:
             size=range(5, 10),
             max_rotation=range(0, 1),
             wait_delay=3,
-            duration=1
+            duration=1,
+            particle_sprite_name="circle"
         )
 
     def apply(self, *_, **kwargs):
-        self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], 'text/sad', "circle")
+        self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], 'text/sad')
 
     def on_changed(self, rules: List[TextRule]):
         self.particle_helper.update_on_rules_changed(rules, 'sad')
@@ -525,20 +535,21 @@ class Sad:
 
 class Best:
     def __init__(self):
-        self.particle_helper = ParticleMover(
+        self._particle_helper = ParticleMover(
             x_offset=range(-80, 81),
             y_offset=range(-80, 81),
             size=range(10, 31),
             max_rotation=range(0, 360),
             wait_delay=0.4,
-            duration=0.7
+            duration=0.7,
+            particle_sprite_name="plus"
         )
 
     def apply(self, *_, **kwargs):
-        self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], 'text/best', "plus")
+        self._particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], 'text/best')
 
     def on_changed(self, rules: List[TextRule]):
-        self.particle_helper.update_on_rules_changed(rules, 'best')
+        self._particle_helper.update_on_rules_changed(rules, 'best')
 
 
 class Sleep:
@@ -550,13 +561,14 @@ class Sleep:
             max_rotation=range(1),
             wait_delay=1,
             duration=3,
+            particle_sprite_name="text/z",
             count=range(1, 2)
         )
 
     def apply(self, *_, **kwargs):
         kwargs['rule_object'].is_sleep = True
         kwargs['rule_object'].animation = kwargs['rule_object'].animation_init()
-        self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], 'text/sleep', "text/z")
+        self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], 'text/sleep')
 
     def on_changed(self, rules: List[TextRule]):
         def set_sleep(rule):
@@ -564,6 +576,33 @@ class Sleep:
             rule.animation = rule.animation_init()
         self.particle_helper.for_rule_objects(set_sleep)
         self.particle_helper.update_on_rules_changed(rules, 'sleep')
+
+
+class Party:
+    def __init__(self):
+        self.particle_helper = ParticleMover(
+            x_offset=list(range(-80, -60))+list(range(60, 80)),
+            y_offset=list(range(-180, -100))+list(range(100, 181)),
+            size=range(10, 21),
+            max_rotation=range(1),
+            wait_delay=-1,
+            duration=2,
+            particle_sprite_name="circle",
+            count=range(5, 7)
+        )
+
+    def apply(self, *_, **kwargs):
+        # НЕ СМОТРИТЕ НА ЭТОТ МЕТОД!
+
+        self.particle_helper.sprite_colors = [x for y in kwargs['level_processor'].current_palette.pixels for x in y]
+        # Good luck with debugging this comprehension.
+
+        self.particle_helper.rule_objects.clear()
+        self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], None, True)
+        self.particle_helper.every_frame(True)
+
+    def on_changed(self, rules: List[TextRule]):
+        self.particle_helper.update_on_rules_changed(rules, 'party')
 
 
 class RuleProcessor:
@@ -622,7 +661,8 @@ class RuleProcessor:
             'follow': Follow(),
             'sad': Sad(),
             'best': Best(),
-            'sleep': Sleep()
+            'sleep': Sleep(),
+            'party': Party()
         }
         for color in color_names:
             self.dictionary[color] = Color(color)
@@ -632,12 +672,13 @@ class RuleProcessor:
         self.matrix = matrix
         self.events = events
         changed = self.rules is not None and \
-                  list(i.text_rule for i in self.rules) != list(i.text_rule for i in level_processor.level_rules)
+            list(i.text_rule for i in self.rules) != list(i.text_rule for i in level_processor.level_rules)
         self.rules = level_processor.level_rules.copy()
         self.objects_for_tp = level_processor.objects_for_tp
         self.num_obj_3d = level_processor.num_obj_3d
         if changed:
-            print("PlayLevel was caught changing rules by RuleProcessor. New rules will be processed")
+            if DEBUG:
+                print("PlayLevel was caught changing rules by RuleProcessor. New rules will be processed")
             sprite_manager.default_colors = SpriteManager.default_colors.copy()
             for process in self.dictionary.values():
                 on_changed = getattr(process, "on_changed", None)
@@ -679,9 +720,16 @@ class RuleProcessor:
                                                          level_processor=self.level_processor)
 
         except RecursionError:
-            print(
-                f'!!! RecursionError appeared somewhere in {text_rule.split()[-1]} rule')
+            if DEBUG:
+                print(
+                    f'!!! RecursionError appeared somewhere in {text_rule.split()[-1]} rule')
         return True
+
+    def on_every_frame(self):
+        for rule in self.dictionary.values():
+            particle_helper: Optional[ParticleMover] = getattr(rule, "particle_helper", None)
+            if particle_helper is not None:
+                particle_helper.every_frame()
 
 
 # exports

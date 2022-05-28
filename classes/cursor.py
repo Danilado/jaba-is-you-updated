@@ -11,7 +11,7 @@ class MoveCursor:
         self.turning_side = -1
         self.levels = ('0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '10')
         self.reference_point = ('moon', 'skull', 'pillar', 'pumpkin', 'flower',
-                                'spike', 'jelly', 'dot', 'leaf', 'tree')
+                                'spike', 'jelly', 'dot', 'leaf', 'tree', 'blossom')
         self.some_obj = ('line', 'square')
         self.blocks = (*self.levels, *self.reference_point)
         self.last_time = 0
