@@ -10,9 +10,11 @@ from classes.rule_particle_helper import ParticleMover
 from classes.sprite_manager import SpriteManager
 from classes.text_rule import TextRule
 from elements.global_classes import sprite_manager
+from settings import DEBUG
 
 if TYPE_CHECKING:
     from elements.play_level import PlayLevel
+
 
 class Broken:
     @staticmethod
@@ -598,7 +600,6 @@ class Party:
         self.particle_helper.rule_objects.clear()
         self.particle_helper.update_on_apply(kwargs['level_processor'], kwargs['rule_object'], None, True)
         self.particle_helper.every_frame(True)
-        print("f")
 
     def on_changed(self, rules: List[TextRule]):
         self.particle_helper.update_on_rules_changed(rules, 'party')
@@ -676,7 +677,8 @@ class RuleProcessor:
         self.objects_for_tp = level_processor.objects_for_tp
         self.num_obj_3d = level_processor.num_obj_3d
         if changed:
-            print("PlayLevel was caught changing rules by RuleProcessor. New rules will be processed")
+            if DEBUG:
+                print("PlayLevel was caught changing rules by RuleProcessor. New rules will be processed")
             sprite_manager.default_colors = SpriteManager.default_colors.copy()
             for process in self.dictionary.values():
                 on_changed = getattr(process, "on_changed", None)
@@ -718,8 +720,9 @@ class RuleProcessor:
                                                          level_processor=self.level_processor)
 
         except RecursionError:
-            print(
-                f'!!! RecursionError appeared somewhere in {text_rule.split()[-1]} rule')
+            if DEBUG:
+                print(
+                    f'!!! RecursionError appeared somewhere in {text_rule.split()[-1]} rule')
         return True
 
     def on_every_frame(self):
@@ -727,6 +730,7 @@ class RuleProcessor:
             particle_helper: Optional[ParticleMover] = getattr(rule, "particle_helper", None)
             if particle_helper is not None:
                 particle_helper.every_frame()
+
 
 # exports
 processor = RuleProcessor()

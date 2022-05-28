@@ -18,7 +18,7 @@ from classes.text_rule import TextRule
 from elements.global_classes import sound_manager
 from elements.loader_util import parse_file
 from global_types import SURFACE
-from settings import NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
+from settings import DEBUG, NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
 from utils import my_deepcopy, settings_saves, map_saves
 
 
@@ -151,7 +151,8 @@ class PlayLevel(GameStrategy):
         self.current_palette, self.size, self.start_matrix = parse_file(
             level_name, path_to_level)
         self.matrix = my_deepcopy(self.start_matrix)
-        print(self.size)
+        if DEBUG:
+            print(self.size)
 
     def get_neighbours(self, y, x) -> List:
         """Ищет соседей клетки сверху, справа, снизу и слева

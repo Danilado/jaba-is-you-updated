@@ -7,7 +7,7 @@ from classes.animation import Animation
 from classes.button import Button
 from classes.palette import Palette
 from elements.global_classes import sprite_manager, palette_manager
-from settings import TEXT_ONLY, SPRITE_ONLY
+from settings import DEBUG, TEXT_ONLY, SPRITE_ONLY
 
 
 class ObjectButton(Button):
@@ -54,12 +54,14 @@ class ObjectButton(Button):
                     os.path.join(path, name))]
                 state_max = max(states)
             except IndexError:
-                print(
-                    f'{self.text} fucked up while counting states -> probably filename is invalid')
+                if DEBUG:
+                    print(
+                        f'{self.text} fucked up while counting states -> probably filename is invalid')
                 state_max = 0
             except FileNotFoundError:
-                print(
-                    f"{self.text} fucked up while searching for files. Probably folder is corrupt or \
+                if DEBUG:
+                    print(
+                        f"{self.text} fucked up while searching for files. Probably folder is corrupt or \
                     does not exist. This shouldn't happen in any circumstances")
                 state_max = 0
 
@@ -99,7 +101,7 @@ class ObjectButton(Button):
                                      f'_{index + 1}'), default=True, palette=self.palette),
                         (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
                     200, (self.x, self.y))
-            else:
+            elif DEBUG:
                 print(f'{self.text} somehow fucked up while setting animation')
 
     def draw(self, screen: pygame.surface.Surface):

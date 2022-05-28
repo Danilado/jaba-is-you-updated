@@ -8,6 +8,7 @@ import pygame
 
 from elements.global_classes import sprite_manager
 from global_types import COLOR
+from settings import DEBUG
 
 
 class ParticleStrategy:
@@ -69,13 +70,15 @@ class ParticleStrategy:
 
             self.start_timestamp = pygame.time.get_ticks()
         except IndexError:
-            print('IndexError в партиклах, ёпта. Что-то не ладно.')
-            print(x_dimensions, y_dimensions, rotation, duration, loop)
-            print('^ В создание стратегии партикла переданы неправильные аргументы ^')
+            if DEBUG:
+                print('IndexError в партиклах, ёпта. Что-то не ладно.')
+                print(x_dimensions, y_dimensions, rotation, duration, loop)
+                print('^ В создание стратегии партикла переданы неправильные аргументы ^')
         except TypeError:
-            print('TypeError в партиклах, ёпта. Что-то не ладно.')
-            print(x_dimensions, y_dimensions, rotation, duration, loop)
-            print('^ В создание стратегии партикла переданы неправильные аргументы ^')
+            if DEBUG:
+                print('TypeError в партиклах, ёпта. Что-то не ладно.')
+                print(x_dimensions, y_dimensions, rotation, duration, loop)
+                print('^ В создание стратегии партикла переданы неправильные аргументы ^')
 
     def update_values(self):
         timestamp = pygame.time.get_ticks()

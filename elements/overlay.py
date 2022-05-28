@@ -26,7 +26,8 @@ class EditorOverlay(GameStrategy):
     def on_init(self):
         pygame.event.set_allowed(
             [pygame.QUIT, pygame.KEYDOWN, pygame.KEYUP, pygame.MOUSEBUTTONUP])
-        print("QUIT KEYDOWN KEYUP MOUSEBUTTONUP")
+        if settings.DEBUG:
+            print("QUIT KEYDOWN KEYUP MOUSEBUTTONUP")
 
     def __init__(self, editor: "Editor", screen: pygame.Surface):
         """Инициализирует оверлей

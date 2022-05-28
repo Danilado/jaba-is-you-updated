@@ -12,7 +12,7 @@ from classes.palette import Palette
 from classes.smooth_movement import SmoothMove
 from elements.global_classes import sprite_manager, palette_manager
 from global_types import SURFACE
-from settings import TEXT_ONLY, SPRITE_ONLY, NOUNS, OPERATORS, PROPERTIES
+from settings import DEBUG, TEXT_ONLY, SPRITE_ONLY, NOUNS, OPERATORS, PROPERTIES
 from utils import get_pressed_direction
 
 pygame.font.init()
@@ -296,10 +296,10 @@ class Object:
                             f'{keke_state}_'
                             f'{index}'), default=True, palette=self.palette),
                         (50, 50)) for index in range(1, 4)]
-                else:
+                elif DEBUG:
                     print(f'{self.name} somehow fucked up while setting animation')
             except FileNotFoundError:
-                if self.movement_state == 0:
+                if self.movement_state == 0 and DEBUG:
                     print(f'{self.name} somehow fucked up while setting animation')
                 else:
                     self.movement_state = 0
@@ -1085,7 +1085,7 @@ class Object:
                     self.update_parameters(delta_x, delta_y, matrix)
 
             return True
-        else:
+        elif DEBUG:
             print(
                 "NOTE: Object can not move. Calling from classes/objects.py->Object.motion()")
         return False

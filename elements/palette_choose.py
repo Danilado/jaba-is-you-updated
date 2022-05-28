@@ -84,16 +84,19 @@ class PaletteChoose(GameStrategy):
             self.editor.current_palette = palette
             self.editor.define_border_and_scale()
             state = State(GameState.BACK)
-            print(f"choose: {self.editor.current_palette.name}")
+            if settings.DEBUG:
+                print(f"choose: {self.editor.current_palette.name}")
 
             if state is None:
                 state = State(GameState.FLIP)
             else:
                 pygame.event.set_allowed(None)
-                print("none")
+                if settings.DEBUG:
+                    print("none")
 
         return state
 
     def on_init(self):
         pygame.event.set_allowed([pygame.QUIT, pygame.KEYDOWN])
-        print("QUIT and KEYDOWN")
+        if settings.DEBUG:
+            print("QUIT and KEYDOWN")
