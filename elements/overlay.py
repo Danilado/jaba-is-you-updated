@@ -3,16 +3,15 @@ from typing import List, Optional, TYPE_CHECKING
 
 import pygame
 
+import settings
 from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.input import Input
 from classes.state import State
-from elements.global_classes import GuiSettings, EuiSettings
+from elements.global_classes import GuiSettings, EuiSettings, language_manager
 from elements.level_loader import Loader
 from elements.palette_choose import PaletteChoose
-import settings
-from utils import language_words
 
 if TYPE_CHECKING:
     from elements.editor import Editor
@@ -40,53 +39,52 @@ class EditorOverlay(GameStrategy):
         self.editor: "Editor" = editor
         self.loaded_flag = False
         self.label = self.editor.level_name
-        self.lang_words = language_words()
         if self.label is None:
-            self.label = self.lang_words[7]
+            self.label = language_manager['New level']
         self.buttons = [
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
                    int(280 * settings.WINDOW_SCALE),
                    int(400 * settings.WINDOW_SCALE), int(50 *
                                                          settings.WINDOW_SCALE), (0, 0, 0), EuiSettings(),
-                   f"{self.lang_words[6]} {self.label}"),
+                   f"{language_manager['You change']} {self.label}"),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
                    int(120 * settings.WINDOW_SCALE),
                    int(400 * settings.WINDOW_SCALE),
                    int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
-                   f"{self.lang_words[10]}",
+                   language_manager['Back'],
                    self.cancel),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
                    int(60 * settings.WINDOW_SCALE),
                    int(400 * settings.WINDOW_SCALE),
                    int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
-                   f"{self.lang_words[11]}",
+                   language_manager['Load level'],
                    self.load),
             Input(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE), settings.RESOLUTION[1] // 2,
                   int(400 * settings.WINDOW_SCALE),
-                  int(50 * settings.WINDOW_SCALE), (255, 255, 255), EuiSettings(), f"{self.lang_words[12]}"),
+                  int(50 * settings.WINDOW_SCALE), (255, 255, 255), EuiSettings(), language_manager['New name']),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 +
                    int(60 * settings.WINDOW_SCALE),
                    int(400 * settings.WINDOW_SCALE),
                    int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
-                   f"{self.lang_words[13]}",
+                   f"{language_manager['Save']}",
                    self.save),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 +
                    int(120 * settings.WINDOW_SCALE),
                    int(400 * settings.WINDOW_SCALE),
                    int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
-                   f"{self.lang_words[14]}",
+                   f"{language_manager['Save and exit']}",
                    self.force_exit),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 +
                    int(180 * settings.WINDOW_SCALE),
                    int(400 * settings.WINDOW_SCALE),
                    int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
-                   f"{self.lang_words[15]}",
+                   f"{language_manager['Exit without saving']}",
                    self.hard_force_exit),
             Button(settings.RESOLUTION[0] // 2 - int(200 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
@@ -98,7 +96,7 @@ class EditorOverlay(GameStrategy):
                    int(180 * settings.WINDOW_SCALE),
                    int(400 * settings.WINDOW_SCALE),
                    int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
-                   f"{self.lang_words[9]}",
+                   f"{language_manager['Change palette']}",
                    self.switch_to_palette_choose),
             Button(settings.RESOLUTION[0] - 150,
                    int(100 * settings.WINDOW_SCALE), int(50 *
@@ -182,17 +180,16 @@ class EditorOverlay(GameStrategy):
         """
         self.state = State(GameState.BACK) if self.loaded_flag else None
         self.editor.new_loaded = bool(self.loaded_flag)
-        self.buttons[7].text = f"{self.lang_words[8]}: {self.editor.current_palette.name}"
+        self.buttons[7].text = f"{language_manager['current palette']}: {self.editor.current_palette.name}"
         self.screen.fill('black')
 
         for event in events:
             if event.type == pygame.QUIT:
                 self.state = State(GameState.BACK)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self.editor.level_name = str(self.buttons[3])
-                    self.editor.define_border_and_scale()
-                    self.state = State(GameState.BACK)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self.editor.level_name = str(self.buttons[3])
+                self.editor.define_border_and_scale()
+                self.state = State(GameState.BACK)
             if event.type == pygame.KEYUP:
                 if str(self.buttons[3]):
                     self.label = str(self.buttons[3])
@@ -201,7 +198,7 @@ class EditorOverlay(GameStrategy):
                                          int(280 * settings.WINDOW_SCALE),
                                          int(400 * settings.WINDOW_SCALE),
                                          int(50 * settings.WINDOW_SCALE), (0, 0, 0),
-                                         EuiSettings(), f"{self.lang_words[6]} {self.label}")
+                                         EuiSettings(), f"{language_manager['You change']} {self.label}")
 
         for button in self.buttons:
             button.update(events)

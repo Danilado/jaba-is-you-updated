@@ -65,23 +65,11 @@ def settings_saves():
         options[4] = float(options[4])
     else:
         options.append(True)
-        options.append('Eng')
+        options.append('eng')
         options.append(1.0)
         options.append(0)
         options.append(1.0)
     return options
-
-
-def language_words():
-    if settings_saves()[1] == 'Ru':
-        file = 'ru_words'
-    else:
-        file = 'eng_words'
-    with open(file, mode='r', encoding='utf-8') as words_file:
-        words = []
-        for param in words_file:
-            words.append(param.strip())
-        return words
 
 
 def map_value(x, in_min, in_max, out_min, out_max):

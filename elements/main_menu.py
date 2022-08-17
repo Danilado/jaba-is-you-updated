@@ -7,13 +7,12 @@ from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.state import State
-from elements.settings_menu import SettingsMenu
 from elements.editor import Editor
+from elements.global_classes import GuiSettings, sound_manager, sprite_manager, language_manager
 from elements.level_loader import Loader
-from elements.global_classes import GuiSettings, sound_manager, sprite_manager
 from elements.map_menu import MapMenu
+from elements.settings_menu import SettingsMenu
 from global_types import SURFACE
-from utils import language_words
 
 
 class MainMenu(GameStrategy):
@@ -47,22 +46,22 @@ class MainMenu(GameStrategy):
         buttons = [
             Button(centered_x,
                    centered_y - int(60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[0]}",
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), language_manager['Start game'],
                    self._start_the_game),
             Button(centered_x, centered_y,
                    int(400 * settings.WINDOW_SCALE), int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
-                   f"{language_words()[2]}", self._go_to_editor),
+                   language_manager['Level Editor'], self._go_to_editor),
             Button(centered_x,
                    centered_y + int(60 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[3]}",
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), language_manager['Levels'],
                    self._go_to_loader),
             Button(centered_x,
                    centered_y + int(120 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[4]}",
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),language_manager['Settings'],
                    self._go_to_options),
             Button(centered_x,
                    centered_y + int(180 * settings.WINDOW_SCALE), int(400 * settings.WINDOW_SCALE),
-                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), f"{language_words()[5]}",
+                   int(50 * settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(), language_manager['Exit'],
                    self._exit_the_game)
         ]
         self._state = None
@@ -82,8 +81,9 @@ class MainMenu(GameStrategy):
         else:
             pygame.event.set_allowed(None)
 
-        self.screen.blit(pygame.transform.scale(sprite_manager.get("./jaba_is_logo.png"), (400*settings.WINDOW_SCALE,)*2),
-                         (settings.RESOLUTION[0]//2 - 200*settings.WINDOW_SCALE, 0))
+        self.screen.blit(
+            pygame.transform.scale(sprite_manager.get("./jaba_is_logo.png"), (400 * settings.WINDOW_SCALE,) * 2),
+            (settings.RESOLUTION[0] // 2 - 200 * settings.WINDOW_SCALE, 0))
 
         return self._state
 
