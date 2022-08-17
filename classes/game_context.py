@@ -1,11 +1,12 @@
-from pprint import pprint
 from typing import Final, TYPE_CHECKING, Callable, List, Union, Type
+
 import pygame
 
 import settings
-from settings import FRAMES_PER_SECOND, DEBUG
 from classes.game_state import GameState
+from elements.global_classes import language_manager
 from global_types import SURFACE
+from settings import FRAMES_PER_SECOND, DEBUG
 from utils import settings_saves
 
 if TYPE_CHECKING:
@@ -25,11 +26,13 @@ class GameContext:
 
         :param game_strategy: GameStrategy которая будет отрисовываться по умолчанию.
         """
-        if settings_saves()[3] == 0:
-            settings.RESOLUTION = [1600, 900]
+        saves = settings_saves()
+        if saves[3] == 0:
+            settings.RESOLUTION = (1600, 900)
         else:
-            settings.RESOLUTION = [800, 450]
-        settings.WINDOW_SCALE = settings_saves()[4]
+            settings.RESOLUTION = (800, 450)
+        settings.WINDOW_SCALE = saves[4]
+        language_manager.current_language = saves[1]
         self.screen: Final[SURFACE] = pygame.display.set_mode(
             settings.RESOLUTION)
         self._running: bool = True

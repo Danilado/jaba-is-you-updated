@@ -23,8 +23,5 @@ def main():
 
 
 if __name__ == '__main__':
-    try:
-        main()
-        GameContext(ProgressBarMenu).run()
-    except:
-        print("Возникла страшная критическая ошибка, но мы будем делать вид, что нет")
+    main()
+    GameContext(ProgressBarMenu).run()
