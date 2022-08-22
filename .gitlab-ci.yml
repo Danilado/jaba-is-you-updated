@@ -17,7 +17,7 @@ linux build:
     - source venv/bin/activate
     - python -m pip install -U pyinstaller
     - python -m pip install -r requirements.txt
-    - pyinstaller -y -w --add-data "ru_words:." --add-data "eng_words:." --add-data "map_levels:map_levels" --add-data "fonts:fonts" --add-data "sprites:sprites" --add-data "palettes:palettes" --add-data "jaba_is_logo.png:." --add-data "saves:saves" --add-data "levels:levels" main.py
+    - pyinstaller -y -w --add-data "lang:lang" --add-data "map_levels:map_levels" --add-data "fonts:fonts" --add-data "sprites:sprites" --add-data "palettes:palettes" --add-data "jaba_is_logo.png:." --add-data "saves:saves" --add-data "levels:levels" main.py
     - tar cfJ jaba_is_you-linux.tar.xz dist/main/
     - deactivate
   cache:
@@ -78,7 +78,7 @@ windows build:
     - wine python -m pip install wheel
     - wine python -m pip install pyinstaller
     - wine python -m pip install -r requirements.txt
-    - wine pyinstaller -y -w --add-data "ru_words;." --add-data "eng_words;." --add-data "map_levels;map_levels" --add-data "fonts;fonts" --add-data "sprites;sprites" --add-data "palettes;palettes" --add-binary "jaba_is_logo.png;." --add-data "saves;saves" --add-data "levels;levels" main.py
+    - wine pyinstaller -y -w --add-data "lang;lang" --add-data "map_levels;map_levels" --add-data "fonts;fonts" --add-data "sprites;sprites" --add-data "palettes;palettes" --add-binary "jaba_is_logo.png;." --add-data "saves;saves" --add-data "levels;levels" main.py
     - tar cfJ jaba_is_you-windows.tar.xz dist/
     - echo -e "\e[0Ksection_end:`date +%s`:building_project\r\e[0K"
   cache:
