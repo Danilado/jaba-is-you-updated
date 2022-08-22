@@ -15,6 +15,7 @@ from classes.state import State
 from elements.global_classes import EuiSettings, IuiSettings, sound_manager, palette_manager
 from elements.overlay import EditorOverlay
 from settings import OBJECTS, STICKY
+from sys import exit
 from utils import my_deepcopy, settings_saves
 
 
