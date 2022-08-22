@@ -8,6 +8,7 @@ from classes.button import Button
 from classes.palette import Palette
 from elements.global_classes import sprite_manager, palette_manager
 from settings import DEBUG, TEXT_ONLY, SPRITE_ONLY
+from typing import Optional
 
 
 class ObjectButton(Button):
@@ -28,8 +29,10 @@ class ObjectButton(Button):
     """
 
     def __init__(self, x, y, width, height, outline, button_settings, text="",
-                 palette: Palette = palette_manager.get_palette("default"), action=None,
+                 palette: Optional[Palette] = None, action=None,
                  is_text=0, direction=0, movement_state=0):
+        if palette is None:
+            palette = palette_manager.get_palette("default")
         super().__init__(x, y, width, height, outline, button_settings, text, action)
         self.is_text = is_text
         self.direction = direction
