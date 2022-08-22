@@ -10,11 +10,10 @@ from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.state import State
-from elements.play_level import PlayLevel
-from elements.global_classes import GuiSettings
+from elements.global_classes import GuiSettings, language_manager
 from elements.loader_util import parse_file
+from elements.play_level import PlayLevel
 from global_types import SURFACE
-from utils import language_words
 
 
 class Loader(GameStrategy):
@@ -41,14 +40,13 @@ class Loader(GameStrategy):
         super().__init__(screen)
         self.overlay = from_editor_overlay
         self._state: Optional[State] = None
-        self.lang_words = language_words()
         self.buttons = [
             Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
                    settings.RESOLUTION[1] // 2 -
                    int(400 * settings.WINDOW_SCALE),
                    int(1200 * settings.WINDOW_SCALE), int(50 *
                                                           settings.WINDOW_SCALE), (0, 0, 0), GuiSettings(),
-                   f"{self.lang_words[10]}",
+                   f"{language_manager['Back']}",
                    self.go_back),
         ]
         for index, level in enumerate(self.find_levels()):
@@ -124,9 +122,8 @@ class Loader(GameStrategy):
         for event in events:
             if event.type == pygame.QUIT:
                 self._state = State(GameState.BACK)
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_ESCAPE:
-                    self._state = State(GameState.BACK)
+            if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                self._state = State(GameState.BACK)
         for button in self.buttons:
             button.draw(self.screen)
             button.update(events)

@@ -8,7 +8,7 @@ from classes.button import Button
 from classes.game_state import GameState
 from classes.game_strategy import GameStrategy
 from classes.state import State
-from elements.global_classes import GuiSettings
+from elements.global_classes import GuiSettings, language_manager
 from global_types import SURFACE
 from utils import settings_saves
 
@@ -114,16 +114,19 @@ class SettingsMenu(GameStrategy):
         self._state = State(GameState.BACK)
 
     def set_language(self):
-        if self.options[1] == 'Ru':
-            self.options[1] = 'Eng'
-        else:
-            self.options[1] = 'Ru'
+        current_language_index = language_manager.available_languages.index(self.options[1])
+
+        # Most likely this code can be shortened to `new_index = current_language_index + 1 % len(
+        # language_manager.available_languages)` but i can't make it work. :(
+        new_index = current_language_index + 1
+        if new_index >= len(language_manager.available_languages):
+            new_index = 0
+
+        self.options[1] = language_manager.available_languages[new_index]
+        language_manager.current_language = self.options[1]
 
     def set_show_grid(self):
-        if self.options[0]:
-            self.options[0] = False
-        else:
-            self.options[0] = True
+        self.options[0] = not self.options[0]
 
     def set_music_volume(self):
         if pygame.mouse.get_pos()[0] > settings.RESOLUTION[0] // 2 + 200 * settings.WINDOW_SCALE:
@@ -140,61 +143,25 @@ class SettingsMenu(GameStrategy):
         self.options[2] = pygame.mixer.music.get_volume()
 
     def check_options(self):
-        if self.options[0]:
-            if self.options[1] == 'Ru':
-                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
-                                         settings.RESOLUTION[1] // 2 -
-                                         int(180 * settings.WINDOW_SCALE),
-                                         int(1200 * settings.WINDOW_SCALE),
-                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
-                                         GuiSettings(), "Выключить сетку", self.set_show_grid)
-            else:
-                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
-                                         settings.RESOLUTION[1] // 2 -
-                                         int(180 * settings.WINDOW_SCALE),
-                                         int(1200 * settings.WINDOW_SCALE),
-                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
-                                         GuiSettings(), "Turn off grid", self.set_show_grid)
-        else:
-            if self.options[1] == 'Ru':
-                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
-                                         settings.RESOLUTION[1] // 2 -
-                                         int(180 * settings.WINDOW_SCALE),
-                                         int(1200 * settings.WINDOW_SCALE),
-                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
-                                         GuiSettings(), "Включить сетку", self.set_show_grid)
-            else:
-                self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
-                                         settings.RESOLUTION[1] // 2 -
-                                         int(180 * settings.WINDOW_SCALE),
-                                         int(1200 * settings.WINDOW_SCALE),
-                                         int(50 * settings.WINDOW_SCALE), (0, 0, 0),
-                                         GuiSettings(), "Turn on grid", self.set_show_grid)
+        grid_status = 'on' if self.options[0] else 'off'
+        self.buttons[0] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                 settings.RESOLUTION[1] // 2 -
+                                 int(180 * settings.WINDOW_SCALE),
+                                 int(1200 * settings.WINDOW_SCALE),
+                                 int(50 * settings.WINDOW_SCALE), (0, 0, 0),
+                                 GuiSettings(), language_manager[f'Turn {grid_status} grid'], self.set_show_grid)
 
-        if self.options[1] == 'Ru':
-            self.buttons[1] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
-                                     settings.RESOLUTION[1] // 2 -
-                                     int(120 * settings.WINDOW_SCALE),
-                                     int(1200 * settings.WINDOW_SCALE), int(50 *
-                                                                            settings.WINDOW_SCALE), (0, 0, 0),
-                                     GuiSettings(), "Язык: Русский", self.set_language)
-            self.buttons[2] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
-                                     settings.RESOLUTION[1] // 2,
-                                     int(1200 * settings.WINDOW_SCALE), int(50 *
-                                                                            settings.WINDOW_SCALE), (0, 0, 0),
-                                     GuiSettings(), "Назад", self.go_back)
-        else:
-            self.buttons[1] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
-                                     settings.RESOLUTION[1] // 2 -
-                                     int(120 * settings.WINDOW_SCALE),
-                                     int(1200 * settings.WINDOW_SCALE), int(50 *
-                                                                            settings.WINDOW_SCALE), (0, 0, 0),
-                                     GuiSettings(), "Language: English", self.set_language)
-            self.buttons[2] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
-                                     settings.RESOLUTION[1] // 2,
-                                     int(1200 * settings.WINDOW_SCALE), int(50 *
-                                                                            settings.WINDOW_SCALE), (0, 0, 0),
-                                     GuiSettings(), "Back", self.go_back)
+        self.buttons[1] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                 settings.RESOLUTION[1] // 2 -
+                                 int(120 * settings.WINDOW_SCALE),
+                                 int(1200 * settings.WINDOW_SCALE), int(50 *
+                                                                        settings.WINDOW_SCALE), (0, 0, 0),
+                                 GuiSettings(), f"Language: {language_manager['Language']}", self.set_language)
+        self.buttons[2] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
+                                 settings.RESOLUTION[1] // 2,
+                                 int(1200 * settings.WINDOW_SCALE), int(50 *
+                                                                        settings.WINDOW_SCALE), (0, 0, 0),
+                                 GuiSettings(), language_manager["Back"], self.go_back)
 
         self.buttons[3] = Button(settings.RESOLUTION[0] // 2 - int(600 * settings.WINDOW_SCALE),
                                  settings.RESOLUTION[1] // 2 -
@@ -223,13 +190,9 @@ class SettingsMenu(GameStrategy):
         if events:
             font = pygame.font.Font(
                 'fonts/ConsolateElf.ttf', int(20 * settings.WINDOW_SCALE))
-            if self.options[1] == 'Ru':
-                text = 'Громкость музыки'
-                text1 = font.render(text, True, (255, 255, 255))
-            else:
-                text = 'Music volume'
-                text1 = font.render(text, True, (255, 255, 255))
-            self.screen.blit(text1, (
+            text = language_manager['Music volume']
+            text_surface = font.render(text, True, (255, 255, 255))
+            self.screen.blit(text_surface, (
                 settings.RESOLUTION[0] // 2 +
                 (200 - 14 * len(text)) * settings.WINDOW_SCALE,
                 settings.RESOLUTION[1] // 2 + (-300 - 15) * settings.WINDOW_SCALE))
@@ -237,10 +200,9 @@ class SettingsMenu(GameStrategy):
                 if event.type == pygame.QUIT:
                     self._state = State(GameState.BACK)
                     self.save_file()
-                if event.type == pygame.KEYDOWN:
-                    if event.key == pygame.K_ESCAPE:
-                        self.save_file()
-                        self._state = State(GameState.BACK)
+                if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
+                    self.save_file()
+                    self._state = State(GameState.BACK)
             self.check_options()
             self.slider.update(events)
             self.slider.draw(self.screen)
