@@ -1,4 +1,4 @@
-# Копия итогового проекта с курса "промышленное программирование" [школы программистов](informatics.ru)
+# Копия итогового проекта с курса "промышленное программирование" [школы программистов](https://informatics.ru)
 ---
 
 # Baba is u limited Жaba edition with new level, textures, multiplayer, open-source, and best refactored code.
