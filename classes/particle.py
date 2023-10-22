@@ -8,7 +8,9 @@ import pygame
 
 from elements.global_classes import sprite_manager
 from global_types import COLOR
-from settings import DEBUG
+from settings import DEBUG, FPS
+
+FADE_OUT_DURATION = int(FPS/3)
 
 
 class ParticleStrategy:
@@ -59,6 +61,9 @@ class ParticleStrategy:
 
             self.time_randomizer = 0
 
+            self.fade_out_frames = 0
+            self.opacity = 1
+
             if randomize_start_values:
                 self.x_position = randint(min(x_dimensions[0], x_dimensions[1]), max(
                     x_dimensions[0], x_dimensions[1]))
@@ -73,12 +78,14 @@ class ParticleStrategy:
             if DEBUG:
                 print('IndexError в партиклах, ёпта. Что-то не ладно.')
                 print(x_dimensions, y_dimensions, rotation, duration, loop)
-                print('^ В создание стратегии партикла переданы неправильные аргументы ^')
+                print(
+                    '^ В создание стратегии партикла переданы неправильные аргументы ^')
         except TypeError:
             if DEBUG:
                 print('TypeError в партиклах, ёпта. Что-то не ладно.')
                 print(x_dimensions, y_dimensions, rotation, duration, loop)
-                print('^ В создание стратегии партикла переданы неправильные аргументы ^')
+                print(
+                    '^ В создание стратегии партикла переданы неправильные аргументы ^')
 
     def update_values(self):
         timestamp = pygame.time.get_ticks()
@@ -91,7 +98,14 @@ class ParticleStrategy:
                 self.angle = self.angle_start
                 self.size = self.size_start
                 return self.update_values()
-            return False
+            elif self.fade_out_frames < FADE_OUT_DURATION:
+                self.fade_out_frames += 1
+                self.opacity = 1 - self.fade_out_frames/FADE_OUT_DURATION
+                self.size = self.size_start / FADE_OUT_DURATION * \
+                    (FADE_OUT_DURATION - self.fade_out_frames)
+            else:
+                return False
+
         time_offset = time_position / self.duration
 
         self.x_position = self.x_start + self.x_offset * time_offset
@@ -103,9 +117,11 @@ class ParticleStrategy:
             self.y_position += self.wobble * \
                 sin((timestamp+self.time_randomizer)/1000)
 
-        self.size = self.size_start + self.size_offset * time_offset
+        if time_position < self.duration:
+            self.size = self.size_start + self.size_offset * time_offset
 
         self.angle = self.angle_start + self.angle_offset * time_offset
+
         return True
 
 
@@ -138,10 +154,13 @@ class Particle:
 
     def draw(self, screen):
         if self.update():
+            cur_sprite = pygame.transform.scale(
+                pygame.transform.rotate(
+                    self._get_sprites()[self.sprite_index], int(self.strategy.angle)),
+                (self.strategy.size, )*2)
+            cur_sprite.set_alpha(self.strategy.opacity*255)
             screen.blit(
-                pygame.transform.scale(
-                    pygame.transform.rotate(
-                        self._get_sprites()[self.sprite_index], int(self.strategy.angle)),
-                    (self.strategy.size, )*2), (self.strategy.x_position, self.strategy.y_position))
+                cur_sprite,
+                (self.strategy.x_position, self.strategy.y_position))
             return True
         return False

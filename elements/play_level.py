@@ -679,7 +679,6 @@ class PlayLevel(GameStrategy):
 
     def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
         pressed = pygame.key.get_pressed()
-        self.apply_rules_cache.clear()
         if any(pressed[key] for key in [pygame.K_w, pygame.K_a, pygame.K_SPACE, pygame.K_UP,
                                         pygame.K_LEFT]):
             rules.processor.update_lists(level_processor=self,

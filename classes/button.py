@@ -88,13 +88,16 @@ class Button:
         Метод проверки нажатия.
 
         :param events: Список событий полученных путём вызова pygame.event.get()
-        :return: В случае если был вызван action, True, иначе False
+        :return: В случае если кнопку нажали action, True, иначе False
+
+        .. note::
+            Если action пустой, True при нажатии всё равно вернётся.
         """
         for event in events:
             if event.type == pygame.MOUSEBUTTONDOWN \
-                    and self.is_over(pygame.mouse.get_pos()) \
-                    and self.action:
-                self.action()
+                    and self.is_over(pygame.mouse.get_pos()):
+                if self.action is not None:
+                    self.action()
                 return True
         return False
 
