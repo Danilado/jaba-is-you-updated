@@ -14,7 +14,7 @@ if TYPE_CHECKING:
 
 class ParticleMover:
     """
-    Класс двигающий партиклы
+    Класс, двигающий партиклы
     """
 
     def __init__(self, x_offset: Sequence[int], y_offset: Sequence[int], size: Sequence[int],

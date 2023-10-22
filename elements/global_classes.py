@@ -41,6 +41,14 @@ class GuiSettings(AbstractButtonSettings):
 
 
 @dataclass
+class GuiSettingsInactive(AbstractButtonSettings):
+    text_size: int = 32
+    text_color: "COLOR" = (16, 16, 16)
+    button_color: "COLOR" = (169, 169, 169)
+    button_color_hover: "COLOR" = (169, 169, 169)
+
+
+@dataclass
 class EuiSettings(AbstractButtonSettings):
     text_size: int = 20
     text_color: "COLOR" = (255, 255, 255)
