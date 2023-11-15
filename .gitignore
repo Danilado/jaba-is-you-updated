@@ -153,7 +153,7 @@ pip-delete-this-directory.txt
 htmlcov/
 .tox/
 .nox/
-.coverage
+a.coverage
 .coverage.*
 .cache
 nosetests.xml
@@ -684,3 +684,4 @@ FodyWeavers.xsd
 sounds/*/*
 saves/*
 map_levels/*
+*.cpp
