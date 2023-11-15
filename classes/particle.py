@@ -78,14 +78,12 @@ class ParticleStrategy:
             if DEBUG:
                 print('IndexError в партиклах, ёпта. Что-то не ладно.')
                 print(x_dimensions, y_dimensions, rotation, duration, loop)
-                print(
-                    '^ В создание стратегии партикла переданы неправильные аргументы ^')
+                print('^ В создание стратегии партикла переданы неправильные аргументы ^')
         except TypeError:
             if DEBUG:
                 print('TypeError в партиклах, ёпта. Что-то не ладно.')
                 print(x_dimensions, y_dimensions, rotation, duration, loop)
-                print(
-                    '^ В создание стратегии партикла переданы неправильные аргументы ^')
+                print('^ В создание стратегии партикла переданы неправильные аргументы ^')
 
     def update_values(self):
         timestamp = pygame.time.get_ticks()
@@ -126,28 +124,37 @@ class ParticleStrategy:
 
 
 class Particle:
-    def __init__(self, name: str = None,
+    def __init__(self, name: str,
                  strategy: Union[ParticleStrategy, str] = None, color: COLOR = 'white'):
-        self.sprite_name = name
+        self._sprite_name: str = name
         self.color = color
 
         self.strategy = strategy
 
-        self.sprites_count = len(self._get_sprites())
+        self._sprites = self._get_sprites()
         self.sprite_index = 0
         self.animation_timestamp = pygame.time.get_ticks()
 
     def _get_sprites(self):
-        path = os.path.join('./', 'sprites', self.sprite_name)
+        path = os.path.join('./', 'sprites', self._sprite_name)
         states = [sprite_manager.get(os.path.join(
             path, name), color=self.color) for name in os.listdir(path)]
         return states
+
+    @property
+    def sprite_name(self):
+        return self._sprite_name
+
+    @sprite_name.setter
+    def sprite_name(self, value: str):
+        self._sprite_name = value
+        self._sprites = self._get_sprites()
 
     def update(self):
         if self.strategy.update_values():
             if pygame.time.get_ticks() - self.animation_timestamp >= 200:
                 self.sprite_index += 1
-                self.sprite_index %= self.sprites_count
+                self.sprite_index %= len(self._sprites)
                 self.animation_timestamp = pygame.time.get_ticks()
             return True
         return False
@@ -156,7 +163,7 @@ class Particle:
         if self.update():
             cur_sprite = pygame.transform.scale(
                 pygame.transform.rotate(
-                    self._get_sprites()[self.sprite_index], int(self.strategy.angle)),
+                    self._sprites[self.sprite_index], int(self.strategy.angle)),
                 (self.strategy.size, )*2)
             cur_sprite.set_alpha(self.strategy.opacity*255)
             screen.blit(
