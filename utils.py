@@ -54,10 +54,6 @@ def settings_saves():
     return options
 
 
-def map_value(x, in_min, in_max, out_min, out_max):
-    return int((x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min)
-
-
 def map_saves():
     open_levels = {}
     with open('saves/map_saves', mode='r', encoding='utf-8') as saves:

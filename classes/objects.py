@@ -9,7 +9,8 @@ import pygame
 import settings
 from classes.animation import Animation
 from classes.palette import Palette
-from classes.smooth_movement import SmoothMove
+# noinspection PyUnresolvedReferences
+from jaba_speedup import SmoothMove
 from elements.global_classes import sprite_manager, palette_manager
 from global_types import SURFACE
 from settings import DEBUG, TEXT_ONLY, SPRITE_ONLY, NOUNS, OPERATORS, PROPERTIES
