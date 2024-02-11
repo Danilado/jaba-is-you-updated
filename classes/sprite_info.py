@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Union
+from typing import Union, Tuple, Optional
 
 from global_types import COLOR
 
@@ -9,5 +9,5 @@ from global_types import COLOR
 class SpriteInfo:
     """Необходим для грамотного хранения спрайтов в кэше"""
     path: Union[Path, str]
-    have_alpha_channel: bool = True
+    size: Optional[Tuple[int, int]] = None   #: None for default
     color: COLOR = (255, 255, 255)

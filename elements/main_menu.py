@@ -82,7 +82,7 @@ class MainMenu(GameStrategy):
         else:
             pygame.event.set_allowed(None)
 
-        self.screen.blit(pygame.transform.scale(sprite_manager.get("./jaba_is_logo.png"), (400*settings.WINDOW_SCALE,)*2),
+        self.screen.blit(sprite_manager.get("./jaba_is_logo.png", size=(400*settings.WINDOW_SCALE,)*2),
                          (settings.RESOLUTION[0]//2 - 200*settings.WINDOW_SCALE, 0))
 
         return self._state

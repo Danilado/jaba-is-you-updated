@@ -227,9 +227,9 @@ class Object:
         animation = Animation([], 200, (self.xpx, self.ypx))
         if (self.is_text or self.name in TEXT_ONLY) and self.name not in SPRITE_ONLY:
             path = os.path.join('./', 'sprites', 'text')
-            animation.sprites = [pygame.transform.scale(sprite_manager.get(
-                os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}"), default=True, palette=self.palette),
-                (50, 50)) for index in range(0, 3)]
+            animation.sprites = [sprite_manager.get(
+                os.path.join(f"{path}", self.name, f"{self.name}_0_{index + 1}"), default=True, palette=self.palette,
+                size=(50, 50)) for index in range(0, 3)]
         else:
             path = os.path.join('./', 'sprites', self.name)
             try:
@@ -255,48 +255,43 @@ class Object:
 
             try:
                 if state_max == 0:
-                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
-                        os.path.join(path,
-                                     f'{self.name}_0_{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                    animation.sprites = [sprite_manager.get(
+                        os.path.join(path, f'{self.name}_0_{index}'), default=True, palette=self.palette, size=(50, 50))
+                        for index in range(1, 4)]
                 elif state_max == 15:
                     frame = self.investigate_neighbours()
-                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
-                        os.path.join(path,
-                                     f'{self.name}_{frame}_{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                    animation.sprites = [sprite_manager.get(
+                        os.path.join(path, f'{self.name}_{frame}_{index}'), default=True, palette=self.palette,
+                        size=(50, 50)) for index in range(1, 4)]
                 elif state_max == 3:
-                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                    animation.sprites = [sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{self.movement_state % 4}_{index}'), default=True,
-                        palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        palette=self.palette, size=(50, 50)) for index in range(1, 4)]
                 elif state_max == 24:
-                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                    animation.sprites = [sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_{self.direction_key_map[self.direction] * 8}_{index}'), default=True,
-                        palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                        palette=self.palette, size=(50, 50)) for index in range(1, 4)]
                 elif state_max == 27:
-                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                    animation.sprites = [sprite_manager.get(
                         os.path.join(path,
                                      f'{self.name}_'
                                      f'{self.movement_state % 4 + self.direction_key_map[self.direction] * 8}_'
-                                     f'{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                                     f'{index}'), default=True, palette=self.palette, size=(50, 50))
+                        for index in range(1, 4)]
                 elif state_max == 31:
                     keke_state = self.movement_state % 4 + max(self.direction_key_map[self.direction] * 8, 0) - int(
                         self.is_sleep
                     )
                     if keke_state < 0:
                         keke_state = 31
-                    animation.sprites = [pygame.transform.scale(sprite_manager.get(
+                    animation.sprites = [sprite_manager.get(
                         os.path.join(
                             path,
                             f'{self.name}_'
                             f'{keke_state}_'
-                            f'{index}'), default=True, palette=self.palette),
-                        (50, 50)) for index in range(1, 4)]
+                            f'{index}'), default=True, palette=self.palette, size=(50, 50)) for index in range(1, 4)]
                 elif DEBUG:
                     print(f'{self.name} somehow fucked up while setting animation')
             except FileNotFoundError:
