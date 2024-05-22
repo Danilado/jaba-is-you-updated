@@ -48,8 +48,16 @@ jobs:
       run: python -m pip install -r requirements.txt
     - name: Install installer
       run: python -m pip install pyinstaller
+    - name: Install compiler
+      run: >
+        Invoke-WebRequest -UseBasicParsing -Uri https://aka.ms/vs/17/release/vs_BuildTools.exe
+        -OutFile .\vs_BuildTools.exe &&
+        Start-Process -Wait .\vs_BuildTools.exe -ArgumentList 
+        "--quiet", "--nocache", "--wait", "--norestart", "--add", 
+        "Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
+      if: runner.os == 'Windows'
     - name: Build cython
-      run: pip install -v .
+      run: pip install -v -e .
     - name: Build
       run: >
         pyinstaller -y -w --contents-directory .
