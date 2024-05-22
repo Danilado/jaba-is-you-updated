@@ -3,7 +3,8 @@ from typing import Optional
 import pygame
 
 from global_types import COLOR, SURFACE
-from utils import map_value
+# noinspection PyUnresolvedReferences
+from jaba_speedup import map_value
 
 
 class ProgressBar:
