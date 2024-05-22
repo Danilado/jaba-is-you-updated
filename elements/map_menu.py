@@ -45,9 +45,9 @@ class MapMenu(GameStrategy):
         self.size = (32, 18)
         self.animation = Animation([], 200, (-30, -30))
         path = os.path.join('./', 'sprites', 'map')
-        self.animation.sprites = [pygame.transform.scale(sprite_manager.get(
-            os.path.join(path, f'map_0_{index}'), default=True),
-            (1700, 925)) for index in range(1, 4)]
+        self.animation.sprites = [sprite_manager.get(
+            os.path.join(path, f'map_0_{index}'), default=True,
+            size=(1700, 925)) for index in range(1, 4)]
 
     def set_pallete(self, level_name: str):
         path_to_file = f'./map_levels/{level_name}.omegapog_map_file_type_MLG_1337_228_100500_69_420'

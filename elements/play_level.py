@@ -19,7 +19,8 @@ from elements.global_classes import sound_manager
 from elements.loader_util import parse_file
 from global_types import SURFACE
 from settings import DEBUG, NOUNS, PROPERTIES, STICKY, VERBS, INFIX, PREFIX, TEXT_ONLY, OPERATORS
-from utils import my_deepcopy, settings_saves, map_saves
+from utils import settings_saves, map_saves
+from jaba_speedup import copy_matrix  # type: ignore
 
 
 class PlayLevel(GameStrategy):
@@ -85,8 +86,8 @@ class PlayLevel(GameStrategy):
                                                     60 + randint(-20, 20), True, True),
                                    self.current_palette.pixels[0][1]) for _ in range(40)]
 
-        self.apply_rules_cache: Dict[Object, Tuple[bool, bool, bool, bool, bool, bool, bool, bool, bool,
-                                                   bool, bool, bool, bool, bool, List[str], List[str]]] = {}
+        self.apply_rules_cache: Dict[str, Tuple[bool, bool, bool, bool, bool, bool, bool, bool, bool,
+                                                bool, bool, bool, bool, bool, List[str], List[str]]] = {}
 
     def define_border_and_scale(self):
         if self.size != (32, 18):
@@ -150,7 +151,7 @@ class PlayLevel(GameStrategy):
         """
         self.current_palette, self.size, self.start_matrix = parse_file(
             level_name, path_to_level)
-        self.matrix = my_deepcopy(self.start_matrix)
+        self.matrix = copy_matrix(self.start_matrix)
         if DEBUG:
             print(self.size)
 
@@ -508,26 +509,6 @@ class PlayLevel(GameStrategy):
             for rule in rules:
                 self.level_rules.append(rule)
 
-    @staticmethod
-    def copy_matrix(matrix: List[List[List[Object]]]) -> List[List[List[Object]]]:
-        """
-        .. warning::
-            Избегать при любых обстоятельствах. copy is slow. slow is bad. Функция крайне дорогая по производительности.
-
-        :param matrix: Матрица которую надо скопировать
-        :return: Та же матрица в другом блоке памяти
-        """
-        copy_matrix: List[List[List[Object]]] = [
-            [[] for _ in range(32)] for _ in range(18)]
-
-        for i, line in enumerate(matrix):
-            for j, cell in enumerate(line):
-                for obj in cell:
-                    copy_object = copy(obj)
-                    copy_matrix[i][j].append(copy_object)
-
-        return copy_matrix
-
     def on_init(self):
         # TODO by Gospodin: add music choice in editor
         # Issue created.
@@ -679,7 +660,6 @@ class PlayLevel(GameStrategy):
 
     def detect_iteration_direction(self, events: List[pygame.event.Event], matrix):
         pressed = pygame.key.get_pressed()
-        self.apply_rules_cache.clear()
         if any(pressed[key] for key in [pygame.K_w, pygame.K_a, pygame.K_SPACE, pygame.K_UP,
                                         pygame.K_LEFT]):
             rules.processor.update_lists(level_processor=self,
@@ -701,7 +681,7 @@ class PlayLevel(GameStrategy):
                         rule_object.reset_movement()
 
     def _create_in_cache_rules_thing(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int,
-                                     rule_cache_key: Object):
+                                     rule_cache_key: str):
         is_hot = is_hide = is_safe = is_open = is_shut = is_phantom = \
             is_text = is_still = is_sleep = is_weak = is_float = is_3d = is_fall = is_power = False
         locked_sides: List[str] = []
@@ -823,7 +803,7 @@ class PlayLevel(GameStrategy):
                                                   is_float, is_3d, is_fall, locked_sides, has_objects)
 
     def apply_rules(self, matrix: List[List[List[Object]]], rule_object: Object, i: int, j: int):
-        rule_cache_key: Object = rule_object
+        rule_cache_key: str = repr(rule_object)
         if rule_cache_key not in self.apply_rules_cache:
             self._create_in_cache_rules_thing(
                 matrix, rule_object, i, j, rule_cache_key)
@@ -836,7 +816,7 @@ class PlayLevel(GameStrategy):
         rule_object.is_power = is_power
         rule_object.is_hide = is_hide
         rule_object.is_safe = is_safe
-        rule_object.locked_sides = my_deepcopy(locked_sides)
+        rule_object.locked_sides = locked_sides.copy()
         rule_object.is_open = is_open
         rule_object.is_shut = is_shut
         rule_object.is_phantom = is_phantom
@@ -982,12 +962,11 @@ class PlayLevel(GameStrategy):
                 # Тормозит при большом количестве объектов в матрице. TODO: Need optimization, algorithm is slow
                 is_history_of_matrix_empty = len(self.history_of_matrix) > 0
                 if is_history_of_matrix_empty:
-                    self.matrix = self.copy_matrix(self.history_of_matrix[-1])
-                    self.history_of_matrix.pop()
+                    self.matrix = self.history_of_matrix.pop()
                     self.check_matrix()
                     self.delta_cancel = new_time
                 else:
-                    self.matrix = self.copy_matrix(self.start_matrix)
+                    self.matrix = copy_matrix(self.start_matrix)
                     self.first_iteration = True
                     self.check_matrix()
                     self.delta_cancel = new_time
@@ -1009,10 +988,10 @@ class PlayLevel(GameStrategy):
                             obj.movement.rerun(0.05)
 
         if self.moved and not self.flag_to_win_animation:
-            copy_matrix = self.copy_matrix(self.matrix)
-            self.detect_iteration_direction(events, copy_matrix)
-            self.history_of_matrix.append(self.copy_matrix(self.matrix))
-            self.matrix = copy_matrix
+            matrix_copy = copy_matrix(self.matrix)
+            self.detect_iteration_direction(events, matrix_copy)
+            self.history_of_matrix.append(copy_matrix(self.matrix))
+            self.matrix = matrix_copy
             self.find_rules()
 
             if self.flag:
@@ -1026,7 +1005,7 @@ class PlayLevel(GameStrategy):
 
         if self.first_iteration:
             self.find_rules()
-            self.matrix = self.copy_matrix(self.start_matrix)
+            self.matrix = copy_matrix(self.start_matrix)
 
         for line in self.matrix:
             for cell in line:

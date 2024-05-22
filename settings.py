@@ -6,7 +6,7 @@ FREEMAP: bool = False
 
 RESOLUTION: Tuple[int, int] = (1600, 900)  # 32x18
 SHOW_GRID: Final[bool] = False
-FRAMES_PER_SECOND: Final[int] = 60
+FRAMES_PER_SECOND: Final[int] = 200
 WINDOW_SCALE: float = 1
 
 TEXT_ONLY = [

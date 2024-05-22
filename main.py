@@ -7,6 +7,11 @@ from elements.progressbar_menu import ProgressBarMenu
 
 
 def main():
+    try:
+        # noinspection PyPackageRequirements
+        import jaba_speedup  # type: ignore
+    except ImportError:
+        raise RuntimeError("Can't find speedup extension. You need to run `setup.py build_ext --inplace`")
     parser = argparse.ArgumentParser(description='Jaba')
     parser.add_argument("-d", "--debug", help='Logs some useful information', action="store_true")
     parser.add_argument("-m", "--map", help='Opens the whole map', action="store_true")
@@ -20,8 +25,8 @@ def main():
         print("Вся карта открыта, но вы туда не ходите. Там опасно.")
 
     sound_manager.start_download()
+    GameContext(ProgressBarMenu).run()
 
 
 if __name__ == '__main__':
     main()
-    GameContext(ProgressBarMenu).run()

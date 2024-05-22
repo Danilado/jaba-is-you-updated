@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Dict, Sequence
+from typing import Dict, Sequence, Optional, Any
 
 import pygame
 
@@ -109,21 +109,18 @@ class SpriteManager(BaseDownloadManager):
     def _get_sprite_info(self, *args, **kwargs) -> SpriteInfo:
         def get_from_kwargs(kwarg_key: str, expected_types: Sequence[type]):
             """Функция получения `keyword` из kwargs, вместе с проверкой типа"""
-            kwarg = kwargs.pop(kwarg_key, None)
+            kwarg: Optional[Any] = kwargs.pop(kwarg_key, None)
             if kwarg is not None and not isinstance(kwarg, tuple(expected_types)):
                 raise TypeError(f"type of keyword `{kwarg_key}` is not "
                                 f"{' or '.join(expected_type.__name__ for expected_type in expected_types)}")
             return kwarg
 
-        default: bool = get_from_kwargs("default", (bool,))
-        palette: Palette = get_from_kwargs("palette", (Palette,))
-        color: COLOR = get_from_kwargs(
+        default: Optional[bool] = get_from_kwargs("default", (bool,))
+        palette: Optional[Palette] = get_from_kwargs("palette", (Palette,))
+        color: Optional[COLOR] = get_from_kwargs(
             "color", (tuple, str, pygame.color.Color, pygame.Color))
-        sprite_info = get_from_kwargs("sprite_info", (SpriteInfo,))
-        if sprite_info is None:
-            sprite_info = args[0]
-        if sprite_info is None or not isinstance(sprite_info, SpriteInfo):
-            sprite_info = SpriteInfo(*args, **kwargs)
+
+        sprite_info = SpriteInfo(*args, **kwargs)
 
         if not isinstance(sprite_info.path, Path):
             sprite_info.path = Path(sprite_info.path)
@@ -144,14 +141,12 @@ class SpriteManager(BaseDownloadManager):
 
     def get(self, *args, **kwargs) -> SURFACE:
         """
-        Функция для получения спрайта из кэша. Если в кэше нету нужного спрайта, он загрузится и
+        Функция для получения спрайта из кэша. Если в кэше нет нужного спрайта, он загрузится и
         сконвертируется используя параметр `alpha`.
 
         :keyword path: Путь до спрайта, например sprites/jaba/b00
-        :keyword alpha: Если этот параметр установлен,будет происходить convert_alpha вместо convert
+        :keyword size: Если этот параметр установлен, будет происходить сохранение в кэше изменённого спрайта
         :keyword color: Цвет спрайта
-        :keyword sprite_info:
-            Если вы хотите использовать :class:`~classes.sprite_info.SpriteInfo` вместо передавания аргументов
         :return: Загруженный спрайт через pygame.image.load
         """
         while self.thread.is_alive() and not self.thread_done:
@@ -162,10 +157,9 @@ class SpriteManager(BaseDownloadManager):
 
         if sprite_info not in self._sprites:  # Если нет в кеше
             sprite = pygame.image.load(sprite_info.path)  # Загружаем спрайт
-            if sprite_info.have_alpha_channel:  # Если есть альфа канал
-                sprite = sprite.convert_alpha()  # Конвертируем с альфа каналом
-            else:  # Иначе
-                sprite = sprite.convert()  # Просто конвертируем
+            sprite = sprite.convert_alpha()  # Конвертируем с альфа каналом
+            if sprite_info.size is not None:
+                sprite = pygame.transform.scale(sprite, sprite_info.size)  # Меняем размер
             # Затем создаём цветную маску
             color_mask = pygame.Surface(sprite.get_size())
             color_mask.fill(sprite_info.color)  # И закрашиваем её цветом

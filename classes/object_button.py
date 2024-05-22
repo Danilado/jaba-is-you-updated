@@ -45,10 +45,10 @@ class ObjectButton(Button):
         if (self.is_text or self.text in TEXT_ONLY) and self.text not in SPRITE_ONLY:
             path = os.path.join('./', 'sprites', 'text')
             self.animation = Animation(
-                [pygame.transform.scale(sprite_manager.get(
+                [sprite_manager.get(
                     os.path.join(f"{path}", self.text, f"{self.text}_0_{index + 1}"), default=True,
-                    palette=self.palette),
-                    (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
+                    palette=self.palette,
+                    size=(50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
                 200, (self.x, self.y))
         else:
             path = os.path.join('./', 'sprites', self.text)
@@ -70,39 +70,39 @@ class ObjectButton(Button):
 
             if state_max in (0, 15):
                 self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
-                        os.path.join(path, f'{self.text}_0_{index + 1}'), default=True, palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
+                    [sprite_manager.get(
+                        os.path.join(path, f'{self.text}_0_{index + 1}'), default=True, palette=self.palette,
+                        size=(50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
                     200, (self.x, self.y))
             elif state_max == 3:
                 self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
+                    [sprite_manager.get(
                         os.path.join(path, f'{self.text}_{self.movement_state % 4}_{index + 1}'), default=True,
-                        palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
+                        palette=self.palette, size=(50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE))
+                        for index in range(0, 3)],
                     200, (self.x, self.y))
             elif state_max == 24:
                 self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
+                    [sprite_manager.get(
                         os.path.join(path, f'{self.text}_{self.direction * 8}_{index + 1}'), default=True,
-                        palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
+                        palette=self.palette,
+                        size=(50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
                     200, (self.x, self.y))
             elif state_max == 27:
                 self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
+                    [sprite_manager.get(
                         os.path.join(
                             path, f'{self.text}_{self.movement_state % 4 + self.direction * 8}_{index + 1}'),
-                        default=True, palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
+                        default=True, palette=self.palette,
+                        size=(50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
                     200, (self.x, self.y))
             elif state_max == 31:
                 self.animation = Animation(
-                    [pygame.transform.scale(sprite_manager.get(
+                    [sprite_manager.get(
                         os.path.join(path,
                                      f'{self.text}_{self.movement_state % 4 + max(self.direction * 8, 0)}' +
-                                     f'_{index + 1}'), default=True, palette=self.palette),
-                        (50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
+                                     f'_{index + 1}'), default=True, palette=self.palette,
+                        size=(50 * settings.WINDOW_SCALE, 50 * settings.WINDOW_SCALE)) for index in range(0, 3)],
                     200, (self.x, self.y))
             elif DEBUG:
                 print(f'{self.text} somehow fucked up while setting animation')

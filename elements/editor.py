@@ -1,9 +1,12 @@
 from datetime import datetime
 from functools import partial
 from math import ceil
+from sys import exit
 from typing import List, Optional
 
 import pygame
+from jaba_speedup import copy_matrix
+
 import settings
 from classes.button import Button
 from classes.game_state import GameState
@@ -15,8 +18,7 @@ from classes.state import State
 from elements.global_classes import EuiSettings, IuiSettings, sound_manager, palette_manager
 from elements.overlay import EditorOverlay
 from settings import OBJECTS, STICKY
-from sys import exit
-from utils import my_deepcopy, settings_saves
+from utils import settings_saves
 
 
 def unparse_all(state):
@@ -334,7 +336,7 @@ class Editor(GameStrategy):
                     # ЭТО НУЖНО ДЕЛАТЬ ДО ДОБАВЛЕНИЯ В МАТРИЦУ
                     neighbours = self.get_neighbours(
                         self.focus[0], self.focus[1])
-                self.changes.append(my_deepcopy(self.current_state))
+                self.changes.append(copy_matrix(self.current_state))
                 self.current_state[self.focus[1]][self.focus[0]].append(
                     Object(x=self.focus[0], y=self.focus[1], direction=self.direction, name=self.name,
                            is_text=self.is_text, movement_state=0, neighbours=neighbours, palette=self.current_palette))
@@ -351,7 +353,7 @@ class Editor(GameStrategy):
         """Если в клетке есть объекты, удаляет последний созданный из них"""
         # ? Нужно ли выбирать что удалять?
         if len(self.current_state[self.focus[1]][self.focus[0]]) > 0:
-            self.changes.append(my_deepcopy(self.current_state))
+            self.changes.append(copy_matrix(self.current_state))
             self.current_state[self.focus[1]][self.focus[0]].pop()
             neighbours = self.get_neighbours(
                 self.focus[0], self.focus[1])
