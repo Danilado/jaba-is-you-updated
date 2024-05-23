@@ -52,7 +52,7 @@ jobs:
         -OutFile .\vs_BuildTools.exe &&
         Start-Process -Wait .\vs_BuildTools.exe -ArgumentList 
         "--quiet", "--nocache", "--wait", "--norestart", "--add", 
-        "Microsoft.VisualStudio.Workload.VCTools;includeRecommended"
+        "Microsoft.VisualStudio.Component.VC.Tools.x86.x64"
       if: runner.os == 'Windows'
     - name: Build project
       run: pip install -v .
