@@ -8,6 +8,7 @@ on:
       - '**.png'
       - 'requirements.txt'
       - '**.omegapog_map_file_type_MLG_1337_228_100500_69_420'
+      - 'VERSION'
   pull_request:
     types: [opened]
 

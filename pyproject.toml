@@ -3,9 +3,8 @@ requires = ['setuptools ~= 70.0.0', 'cython ~= 3.0.3']
 build-backend = 'setuptools.build_meta'
 
 [project]
-dynamic = ['dependencies', 'readme']
+dynamic = ['dependencies', 'readme', 'version']
 name = 'jaba-is-you'
-version = '0.16.0'
 requires-python = '>=3.8'
 authors = [
   {name = 'epsinenta'},
@@ -30,3 +29,4 @@ packages = ['classes', 'elements']
 [tool.setuptools.dynamic]
 readme = {file = 'README.md', content-type = 'text/x-markdown'}
 dependencies = {file = 'requirements.txt'}
+version = {file = 'VERSION'}
