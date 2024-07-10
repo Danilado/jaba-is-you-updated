@@ -101,14 +101,16 @@ jobs:
       run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
     - name: Download an artifacts
       uses: actions/download-artifact@v4
+    - name: IDK1
+      run: ls -R .
     - name: Reorganize artifacts
       run: >
-        for d in */; do 
+        for d in build*/; do 
           f=("$d"*); # array variable that will store the file names in each directory
           ext="${f[0]##*.}"; # extracting extension first file in folder
           fname="${d%/}"; # Removing trailing slash
           mv "${f[0]}" "${fname}.${ext}";
           rmdir "$d";
         done
-    - name: IDK
+    - name: IDK2
       run: ls -R .
