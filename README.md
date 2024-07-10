@@ -11,13 +11,23 @@ Baba is you is a puzzle videogame, where you have ability to change the game's r
 In each level **the rules are represented with blocks** which you can move and interact with.
 
 ## How to launch
+
+There are two ways: from source and from a binary file.
+To install from source, you need Python 3.8+. For a binary file you need amd64 Linux or Windows.
+
+### From source
 ```sh
 git clone https://github.com/Danilado/jaba-is-you.git
 cd ./jaba-is-you
-pip install -r requirements.txt
-pip install -v -e .
+pip install .
 python main.py
 ```
+
+### From binary files
+Go to [GitHub Releases](https://github.com/Danilado/jaba-is-you/releases) and download the archive you need. 
+Unpack it and run the executable file. 
+
+---
 
 ### Profiling
 ```sh
