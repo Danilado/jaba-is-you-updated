@@ -1,32 +1,28 @@
-# Копия итогового проекта с курса "промышленное программирование" [школы программистов](https://informatics.ru)
----
+### [Русский вариант тут!](README-ru.md)
 
-# Baba is u limited Жaba edition with new level, textures, multiplayer, open-source, and best refactored code.
-## Концепция
+# The original game is called [Baba is You](https://store.steampowered.com/app/736260/Baba_Is_You/) 
+We don't take any credit for creating the game's idea, mechanics, sprites, and/or music. This is a project created for educational purposes with consent of the original game's creator ([Hempuli](https://www.hempuli.com)) via email.
 
-### Что это такое?
-Наша игра является переделка другой зарубежной игры под названием Baba is you.
+## This project is a "Baba is You" clone written in python using the pygame library
 
-Вкратце, Baba is you - это видеоигра в жанре головоломки, где можно изменять правила уровня. 
-В каждом уровне **правила представлены в виде блоков** которые можно передвигать и всячески взаимодействовать.
+## Concept
 
-### Чем отличается от оригинала?
-Есть немало пунктов, что добавляет наше DLC:
-1. Она сделана в России
-2. Она open-source
-3. У неё заменены текстуры на более подходящие.
-4. У неё есть мультиплеер на одном устройстве, и если хватит времени то и по сети
-5. В ней больше уровней
+Baba is you is a puzzle videogame, where you have ability to change the game's rules. 
+In each level **the rules are represented with blocks** which you can move and interact with.
 
-## Запуск с исходников
-Для запуска игры с исходников необходимо:
-1. Скачать исходный код
-2. pip install .
-3. python main.py
+## How to launch
+```sh
+git clone https://github.com/Danilado/jaba-is-you.git
+cd ./jaba-is-you
+pip install .
+python main.py
+```
 
-### Профилирование
-1. Поставить FPS в 200+ в `settings.py`
-2. pip install snakeviz
-3. python profiler.py
-4. Играть
-5. snakeviz main.profile
+### Profiling
+```sh
+# Set the FPS to 200+ in settings.py
+pip install snakeviz
+python profiler.py
+# Play the game normally to collect data
+snakeviz main.profile
+```
