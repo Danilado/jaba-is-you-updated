@@ -69,7 +69,7 @@ jobs:
         --add-data "saves:saves"
         --add-data "levels:levels"
         main.py
-    - name: Create tarball  # We are creating tar because of .so soft links to pygame.libs 
+    - name: Create tarball  # We are creating tar because of .so soft links to pygame.libs
       if: runner.os == 'Linux'
       run: tar cf ../../build.tar *
       working-directory: ./dist/main
@@ -85,3 +85,17 @@ jobs:
       with:
         name: build-windows
         path: dist/main
+
+  release:
+    runs-on: ubuntu-22.04
+    needs: build
+#    if: ${{ github.ref_name == 'main' }}
+    steps:
+    - uses: actions/checkout@v4
+    - name: Check for version
+      id: version
+      run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
+    - name: Download an artifacts
+      uses: actions/download-artifact@v4
+    - name: IDK
+      run: ls -R .
