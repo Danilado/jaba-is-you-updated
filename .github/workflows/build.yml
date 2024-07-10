@@ -73,6 +73,10 @@ jobs:
       if: runner.os == 'Linux'
       run: tar cf ../../build.tar *
       working-directory: ./dist/main
+    - name: Create archive
+      if: runner.os != 'Linux'
+      run: Compress-Archive -Path * -DestinationPath ../../build.zip
+      working-directory: ./dist/main
     - name: Send Linux ${{matrix.os}} artifact
       uses: actions/upload-artifact@v4
       if: runner.os == 'Linux'
@@ -84,7 +88,7 @@ jobs:
       if: runner.os != 'Linux'
       with:
         name: build-windows
-        path: dist/main
+        path: build.zip
 
   release:
     runs-on: ubuntu-22.04
@@ -97,5 +101,14 @@ jobs:
       run: echo "version=$(cat VERSION)" >> $GITHUB_OUTPUT
     - name: Download an artifacts
       uses: actions/download-artifact@v4
+    - name: Reorganize artifacts
+      run: >
+        for d in */; do 
+          f=("$d"*); # array variable that will store the file names in each directory
+          ext="${f[0]##*.}"; # extracting extension first file in folder
+          fname="${d%/}"; # Removing trailing slash
+          mv "${f[0]}" "${fname}.${ext}";
+          rmdir "$d";
+        done
     - name: IDK
       run: ls -R .
